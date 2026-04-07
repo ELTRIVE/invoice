@@ -424,119 +424,157 @@ if (isset($_POST['save_supplier_invoice'])) {
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e;font-size:15px}
-.content{margin-left:220px;padding:68px 24px 28px;min-height:100vh;background:#f0f2f8}
-.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.page-header-left{display:flex;align-items:center;gap:12px}
-.page-icon{width:40px;height:40px;background:linear-gradient(135deg,#f97316,#fb923c);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;box-shadow:0 3px 10px rgba(249,115,22,.3)}
-.page-title{font-size:19px;font-weight:800;color:#1a1f2e}
-.page-sub{font-size:13px;color:#9ca3af;margin-top:1px}
-.form-card{background:#fff;border:1px solid #e8ecf4;border-radius:14px;box-shadow:0 2px 6px rgba(0,0,0,.04);margin-bottom:12px;overflow:hidden}
-.form-card-header{display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid #f0f2f7;background:#fafbfd}
-.hdr-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;flex-shrink:0}
-.form-card-header h3{font-size:15px;font-weight:800;color:#1a1f2e;font-family:'Times New Roman',Times,serif}
-.form-card-body{padding:14px 18px}
-.field-section-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#9ca3af;margin-bottom:6px;display:block}
-.field-input-styled{width:100%;padding:10px 14px;border:1.5px solid #e4e8f0;border-radius:10px;font-size:13px;font-family:'Times New Roman',Times,serif;color:#374151;background:#fff;outline:none;transition:border-color .2s,box-shadow .2s}
-.field-input-styled:focus{border-color:#f97316;box-shadow:0 0 0 3px rgba(249,115,22,.1)}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f8;color:#1a1f2e;font-size:13px}
+.content{margin-left:220px;padding:14px 16px 16px;min-height:100vh;background:#f0f2f8}
+
+/* PAGE HEADER */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.page-header-left{display:flex;align-items:center;gap:10px}
+.page-icon{width:34px;height:34px;background:linear-gradient(135deg,#f97316,#fb923c);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;box-shadow:0 2px 8px rgba(249,115,22,.3)}
+.page-title{font-size:16px;font-weight:800;color:#1a1f2e;line-height:1.2}
+.page-sub{font-size:11px;color:#9ca3af;margin-top:1px}
+
+/* CARDS */
+.form-card{background:#fff;border:1px solid #e8ecf4;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.04);margin-bottom:8px;overflow:hidden}
+.form-card-header{display:flex;align-items:center;gap:8px;padding:7px 14px;border-bottom:1px solid #f0f2f7;background:#fafbfd}
+.hdr-icon{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;flex-shrink:0}
+.form-card-header h3{font-size:12px;font-weight:800;color:#1a1f2e;text-transform:uppercase;letter-spacing:.5px}
+.form-card-body{padding:8px 14px 10px}
+
+/* UNIFIED FIELD LABELS + INPUTS */
+.field-section-label,label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;margin-bottom:3px}
+.field-input-styled,
+.field-select-styled,
+.form-control,
+.form-select{
+  width:100%;
+  padding:6px 10px;
+  border:1.5px solid #e4e8f0;
+  border-radius:7px;
+  font-size:12px;
+  font-family:'Segoe UI',system-ui,sans-serif;
+  color:#374151;
+  background:#fff;
+  outline:none;
+  transition:border-color .2s,box-shadow .2s;
+  height:30px;
+  line-height:1.4;
+}
+textarea.field-input-styled,
+textarea.form-control{height:52px;resize:vertical;line-height:1.5}
+.field-input-styled:focus,.field-select-styled:focus,.form-control:focus,.form-select:focus{border-color:#f97316;box-shadow:0 0 0 2px rgba(249,115,22,.1)}
 .field-input-styled[readonly]{background:#f8fafc;cursor:pointer}
-.supplier-field-wrap{display:flex;gap:6px;align-items:center}
-.supplier-field-wrap .field-input-styled{flex:1}
-label{display:block;font-size:12px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px}
-.form-control,.form-select{width:100%;padding:9px 12px;border:1.5px solid #e4e8f0;border-radius:8px;font-size:14px;font-family:'Times New Roman',Times,serif;color:#1a1f2e;background:#fff;outline:none;transition:border-color .2s,box-shadow .2s;height:auto}
-.form-control:focus,.form-select:focus{border-color:#f97316;background:#fff;box-shadow:0 0 0 3px rgba(249,115,22,.08)}
-textarea.form-control{height:70px;resize:vertical}
-.row>[class*=col]{margin-bottom:10px}
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-.btn-theme{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:700;font-family:'Times New Roman',Times,serif;cursor:pointer;transition:all .2s;box-shadow:0 3px 10px rgba(249,115,22,.25)}
-.btn-theme:hover{transform:translateY(-1px)}
-.btn-outline-theme{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#fff;border:1.5px solid #e4e8f0;border-radius:8px;font-size:14px;font-weight:600;font-family:'Times New Roman',Times,serif;color:#374151;text-decoration:none;cursor:pointer;transition:all .2s}
-.btn-outline-theme:hover{border-color:#f97316;color:#f97316}
-.btn-add-item{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Times New Roman',Times,serif;transition:all .2s}
+.supplier-field-wrap,.supplier-input-row{display:flex;gap:5px;align-items:center}
+.supplier-field-wrap .field-input-styled,.supplier-input-row .form-control{flex:1}
+.row>[class*=col]{margin-bottom:6px}
+
+/* TWO-COL LAYOUT */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+
+/* BUTTONS */
+.btn-theme{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 2px 8px rgba(249,115,22,.25)}
+.btn-theme:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(249,115,22,.35)}
+.btn-outline-theme{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;background:#fff;border:1.5px solid #e4e8f0;border-radius:7px;font-size:12px;font-weight:600;color:#374151;text-decoration:none;cursor:pointer;transition:all .2s}
+.btn-outline-theme:hover{border-color:#f97316;color:#f97316;background:#fff7f0}
+.btn-add-item{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:6px}
 .btn-add-item:hover{transform:translateY(-1px)}
-.btn-danger-sm{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;color:#dc2626;cursor:pointer;font-size:12px;transition:all .2s}
-.btn-danger-sm:hover{background:#dc2626;color:#fff;border-color:#dc2626}
-.bottom-actions{display:flex;gap:10px;align-items:center;padding:14px 18px;border-top:1px solid #f0f2f7;background:#fafbfd}
-.table-wrap{overflow-x:auto;max-height:300px;overflow-y:auto}
-#itemTable{width:100%;border-collapse:collapse;font-size:13px;background:#fff;min-width:900px}
-#itemTable thead th{background:#fff7f0;color:#f97316;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:8px 7px;border-bottom:2px solid #fed7aa;white-space:nowrap;position:sticky;top:0;z-index:1}
-#itemTable td{padding:5px 7px;border-bottom:1px solid #f1f5f9;vertical-align:middle;color:#374151}
-#itemTable tbody tr:hover td{background:#fafbff}
-#itemTable input.form-control{height:28px;padding:3px 6px;font-size:13px;border-radius:6px;border:1.5px solid #e4e8f0;background:#fff;font-family:'Times New Roman',Times,serif}
-#itemTable input.form-control:focus{border-color:#f97316;box-shadow:0 0 0 2px rgba(249,115,22,.1)}
-#itemTable tfoot td{padding:7px;font-weight:700;font-size:14px;border-top:2px solid #e4e8f0;background:#f8fafc}
-/* Supplier input row */
-.supplier-input-row{display:flex;gap:6px;align-items:center}
-.supplier-input-row .form-control{flex:1}
-.btn-plus{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:none;border-radius:8px;font-size:18px;cursor:pointer;flex-shrink:0;transition:all .2s;box-shadow:0 2px 8px rgba(249,115,22,.3)}
+.btn-plus{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:none;border-radius:7px;font-size:14px;cursor:pointer;transition:all .2s;flex-shrink:0}
 .btn-plus:hover{transform:translateY(-1px)}
-/* Terms */
-.term-row{display:flex;align-items:center;gap:8px;background:#fafafa;border:1px solid #f0f2f7;border-radius:8px;padding:9px 12px;margin-bottom:6px;font-size:13px}
+.btn-danger-sm{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:#fef2f2;border:1px solid #fca5a5;border-radius:5px;color:#dc2626;cursor:pointer;font-size:10px;transition:all .2s}
+.btn-danger-sm:hover{background:#dc2626;color:#fff;border-color:#dc2626}
+.bottom-actions{display:flex;gap:8px;align-items:center;padding:10px 14px;border-top:1px solid #f0f2f7;background:#fafbfd}
+
+/* ITEM TABLE */
+.table-wrap{overflow-x:auto;max-height:280px;overflow-y:auto}
+#itemTable{width:100%;border-collapse:collapse;font-size:11.5px;background:#fff;min-width:900px}
+#itemTable thead th{background:#fff7f0;color:#f97316;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:5px 5px;border-bottom:2px solid #fed7aa;white-space:nowrap;position:sticky;top:0;z-index:1}
+#itemTable td{padding:3px 5px;border-bottom:1px solid #f1f5f9;vertical-align:middle;color:#374151}
+#itemTable tbody tr:hover td{background:#fafbff}
+#itemTable input.form-control{height:26px;padding:3px 5px;font-size:11.5px;border-radius:5px;border:1.5px solid #e4e8f0;background:#fff;font-family:'Segoe UI',system-ui,sans-serif}
+#itemTable input.form-control:focus{border-color:#f97316;box-shadow:0 0 0 2px rgba(249,115,22,.1)}
+#itemTable tfoot td{padding:5px;font-weight:700;font-size:12px;border-top:2px solid #e4e8f0;background:#f8fafc}
+
+/* TOTALS BOX */
+.total-box{display:flex;gap:20px;justify-content:flex-end;flex-wrap:wrap;margin-top:8px;padding:8px 14px;background:#fff7f0;border-radius:8px;border:1px solid #fed7aa;font-size:12px;color:#374151}
+.total-box .grand{font-size:13px;font-weight:800;color:#1a1f2e;padding-left:16px;border-left:2px solid #f97316}
+
+/* TERMS */
+.term-row{display:flex;align-items:center;gap:6px;background:#fafafa;border:1px solid #f0f2f7;border-radius:7px;padding:6px 10px;margin-bottom:4px;font-size:12px}
 .term-row span{flex:1;color:#374151}
-.term-actions{display:flex;gap:4px;flex-shrink:0}
-.term-btn{width:24px;height:24px;border-radius:5px;border:none;cursor:pointer;font-size:11px;display:inline-flex;align-items:center;justify-content:center}
+.term-actions{display:flex;gap:3px;flex-shrink:0}
+.term-btn{width:22px;height:22px;border-radius:5px;border:none;cursor:pointer;font-size:10px;display:inline-flex;align-items:center;justify-content:center}
 .term-btn-edit{background:#fff8e1;color:#f57c00}.term-btn-del{background:#fef2f2;color:#dc2626}
-.btn-add-term{background:none;border:1.5px dashed #f97316;color:#f97316;border-radius:8px;padding:7px 14px;cursor:pointer;font-size:12px;font-family:inherit;font-weight:700;margin-top:4px;display:inline-flex;align-items:center;gap:6px}
+.btn-add-term{background:none;border:1.5px dashed #f97316;color:#f97316;border-radius:7px;padding:5px 11px;cursor:pointer;font-size:11px;font-weight:700;margin-top:3px;display:inline-flex;align-items:center;gap:5px}
 .btn-add-term:hover{background:#fff7f0}
-/* Supplier popup */
+
+/* SUPPLIER POPUP */
 .sp-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:3000;align-items:center;justify-content:center}
 .sp-overlay.open{display:flex}
-.sp-box{background:#fff;border-radius:14px;width:400px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2);overflow:hidden;font-family:'Times New Roman',Times,serif}
-.sp-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #f0f2f7;background:linear-gradient(135deg,#fff7f0,#fff)}
-.sp-header-left{display:flex;align-items:center;gap:10px}
-.sp-header-icon{width:36px;height:36px;background:linear-gradient(135deg,#f97316,#fb923c);border-radius:9px;display:flex;align-items:center;justify-content:center}
-.sp-header h3{font-size:15px;font-weight:800;color:#1a1f2e}
-.sp-close{background:none;border:none;font-size:20px;color:#9ca3af;cursor:pointer;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.sp-box{background:#fff;border-radius:12px;width:380px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2);overflow:hidden;font-family:'Segoe UI',system-ui,sans-serif}
+.sp-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #f0f2f7;background:linear-gradient(135deg,#fff7f0,#fff)}
+.sp-header-left{display:flex;align-items:center;gap:8px}
+.sp-header-icon{width:28px;height:28px;background:linear-gradient(135deg,#f97316,#fb923c);border-radius:7px;display:flex;align-items:center;justify-content:center}
+.sp-header h3{font-size:13px;font-weight:800;color:#1a1f2e}
+.sp-close{background:none;border:none;font-size:18px;color:#9ca3af;cursor:pointer;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:50%}
 .sp-close:hover{background:#fee2e2;color:#dc2626}
-.sp-search-wrap{padding:12px 18px;border-bottom:1px solid #f0f2f7}
-.sp-search{width:100%;border:1.5px solid #d1d5db;border-radius:8px;padding:8px 12px;font-size:13px;font-family:inherit;outline:none}
+.sp-search-wrap{padding:8px 14px;border-bottom:1px solid #f0f2f7}
+.sp-search{width:100%;border:1.5px solid #d1d5db;border-radius:7px;padding:6px 10px;font-size:12px;font-family:inherit;outline:none}
 .sp-search:focus{border-color:#f97316}
-.sp-list{overflow-y:auto;flex:1;min-height:120px}
-.sp-item{padding:12px 18px;cursor:pointer;border-bottom:1px solid #f9f9f9;transition:background .1s}
+.sp-list{overflow-y:auto;flex:1;min-height:100px}
+.sp-item{padding:8px 14px;cursor:pointer;border-bottom:1px solid #f9f9f9;transition:background .1s}
 .sp-item:hover{background:#fff7f0}
-.sp-item-name{font-size:13px;font-weight:700;color:#1a1f2e}
-.sp-item-sub{font-size:11px;color:#9ca3af;margin-top:2px}
-.sp-empty{padding:30px;text-align:center;color:#9ca3af;font-size:13px}
-.sp-footer{padding:14px 18px;border-top:1px solid #f0f2f7}
-.sp-add-btn{width:100%;background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px}
-/* Modal */
+.sp-item-name{font-size:12px;font-weight:700;color:#1a1f2e}
+.sp-item-sub{font-size:11px;color:#9ca3af;margin-top:1px}
+.sp-empty{padding:20px;text-align:center;color:#9ca3af;font-size:12px}
+.sp-footer{padding:10px 14px;border-top:1px solid #f0f2f7}
+.sp-add-btn{width:100%;background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:none;border-radius:7px;padding:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px}
+
+/* MODAL */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
-.modal-box{background:#fff;border-radius:14px;width:460px;max-width:96vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.15);font-family:'Times New Roman',Times,serif}
-.modal-header{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid #e4e8f0;position:sticky;top:0;background:#fafbfc;z-index:1;border-radius:14px 14px 0 0}
-.modal-header h3{font-size:15px;font-weight:800;color:#1a1f2e}
-.modal-close{background:none;border:none;font-size:20px;color:#9ca3af;cursor:pointer}
-.modal-body{padding:16px 18px}
-.mf-group{margin-bottom:14px}
-.mf-label{display:block;font-size:12px;font-weight:700;color:#9ca3af;margin-bottom:5px;text-transform:uppercase;letter-spacing:.7px}
-.mf-input{width:100%;border:1.5px solid #e4e8f0;border-radius:8px;padding:8px 12px;font-size:13px;font-family:inherit;outline:none}
-.mf-input:focus{border-color:#f97316;box-shadow:0 0 0 3px rgba(249,115,22,.08)}
-.mf-textarea{width:100%;border:1.5px solid #e4e8f0;border-radius:8px;padding:8px 12px;font-size:13px;font-family:inherit;outline:none;resize:vertical;min-height:70px}
-.mf-textarea:focus{border-color:#f97316;box-shadow:0 0 0 3px rgba(249,115,22,.08)}
-.mf-row{display:flex;gap:10px;align-items:flex-end}
+.modal-box{background:#fff;border-radius:12px;width:440px;max-width:96vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.15);font-family:'Segoe UI',system-ui,sans-serif}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #e4e8f0;position:sticky;top:0;background:#fafbfc;z-index:1;border-radius:12px 12px 0 0}
+.modal-header h3{font-size:13px;font-weight:800;color:#1a1f2e}
+.modal-close{background:none;border:none;font-size:18px;color:#9ca3af;cursor:pointer}
+.modal-body{padding:12px 14px}
+.mf-group{margin-bottom:8px}
+.mf-label{display:block;font-size:10px;font-weight:700;color:#9ca3af;margin-bottom:3px;text-transform:uppercase;letter-spacing:.7px}
+.mf-input{width:100%;border:1.5px solid #e4e8f0;border-radius:7px;padding:6px 10px;font-size:12px;font-family:inherit;outline:none}
+.mf-input:focus{border-color:#f97316;box-shadow:0 0 0 2px rgba(249,115,22,.08)}
+.mf-textarea{width:100%;border:1.5px solid #e4e8f0;border-radius:7px;padding:6px 10px;font-size:12px;font-family:inherit;outline:none;resize:vertical;min-height:50px}
+.mf-textarea:focus{border-color:#f97316;box-shadow:0 0 0 2px rgba(249,115,22,.08)}
+.mf-row{display:flex;gap:8px;align-items:flex-end}
 .mf-row .mf-group{flex:1;margin-bottom:0}
-.prefix-box{display:flex;align-items:center;border:1.5px solid #e4e8f0;border-radius:8px;overflow:hidden}
-.prefix-box span{background:#f9fafb;padding:8px 10px;font-size:13px;color:#6b7280;border-right:1px solid #e4e8f0;white-space:nowrap}
-.prefix-box input{border:none;padding:8px 10px;font-size:13px;font-family:inherit;outline:none;flex:1;width:100%}
-.modal-footer{padding:12px 18px;border-top:1px solid #e4e8f0;display:flex;gap:8px;background:#fafbfc;border-radius:0 0 14px 14px}
-.btn-modal-save{background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:none;border-radius:8px;padding:9px 22px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px}
-.btn-modal-cancel{background:#f5f5f5;color:#374151;border:1.5px solid #e4e8f0;border-radius:8px;padding:9px 16px;font-size:13px;cursor:pointer;font-family:inherit}
-/* Item select modal */
-.item-select-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #f5f5f5;cursor:pointer;transition:background .1s}
+.prefix-box{display:flex;align-items:center;border:1.5px solid #e4e8f0;border-radius:7px;overflow:hidden}
+.prefix-box span{background:#f9fafb;padding:5px 8px;font-size:12px;color:#6b7280;border-right:1px solid #e4e8f0;white-space:nowrap}
+.prefix-box input{border:none;padding:5px 8px;font-size:12px;font-family:inherit;outline:none;flex:1;width:100%}
+.modal-footer{padding:10px 14px;border-top:1px solid #e4e8f0;display:flex;gap:6px;background:#fafbfc;border-radius:0 0 12px 12px}
+.btn-modal-save{background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:none;border-radius:7px;padding:7px 18px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px}
+.btn-modal-cancel{background:#f5f5f5;color:#374151;border:1.5px solid #e4e8f0;border-radius:7px;padding:7px 14px;font-size:12px;cursor:pointer;font-family:inherit}
+
+/* ITEM SELECT MODAL */
+.item-select-row{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid #f5f5f5;cursor:pointer;transition:background .1s}
 .item-select-row:hover{background:#fff7f0}
-.item-select-name{font-size:13px;font-weight:700;color:#1a1f2e;flex:1}
+.item-select-name{font-size:12px;font-weight:700;color:#1a1f2e;flex:1}
 .item-select-sub{font-size:11px;color:#9ca3af;margin-top:1px}
-.modal-search{width:100%;border:1.5px solid #e4e8f0;border-radius:8px;padding:8px 12px;font-size:13px;font-family:inherit;outline:none;margin-bottom:10px}
-.modal-search:focus{border-color:#f97316;box-shadow:0 0 0 3px rgba(249,115,22,.08)}
-/* Terms popup */
+.modal-search{width:100%;border:1.5px solid #e4e8f0;border-radius:7px;padding:6px 10px;font-size:12px;font-family:inherit;outline:none;margin-bottom:8px}
+.modal-search:focus{border-color:#f97316;box-shadow:0 0 0 2px rgba(249,115,22,.08)}
+
+/* TERMS POPUP */
 .term-popup-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:3000;align-items:center;justify-content:center}
 .term-popup-overlay.open{display:flex}
-.term-popup-box{background:#fff;border-radius:14px;width:520px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2);overflow:hidden;font-family:'Times New Roman',Times,serif}
-.alert-danger{background:#fef2f2;border:1px solid #fca5a5;color:#dc2626;padding:10px 14px;border-radius:10px;margin-bottom:12px;font-size:14px}
-.val-toast{position:fixed;top:72px;left:50%;transform:translateX(-50%);background:#dc2626;color:#fff;padding:12px 24px;border-radius:10px;font-size:13px;font-weight:700;z-index:99999;box-shadow:0 4px 20px rgba(0,0,0,.25);display:none;min-width:260px;text-align:center}
+.term-popup-box{background:#fff;border-radius:12px;width:500px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2);overflow:hidden;font-family:'Segoe UI',system-ui,sans-serif}
+
+/* SELECT2 height fix */
+.select2-container .select2-selection--single{height:30px!important;line-height:28px!important;border:1.5px solid #e4e8f0!important;border-radius:7px!important;font-size:12px!important}
+.select2-container--default .select2-selection--single .select2-selection__arrow{height:28px!important}
+.select2-container--default .select2-selection--single .select2-selection__rendered{line-height:28px!important;padding-left:10px!important;font-size:12px}
+
+.alert-danger{background:#fef2f2;border:1px solid #fca5a5;color:#dc2626;padding:8px 12px;border-radius:8px;margin-bottom:8px;font-size:12px}
+.val-toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#dc2626;color:#fff;padding:10px 20px;border-radius:8px;font-size:12px;font-weight:700;z-index:99999;box-shadow:0 4px 20px rgba(0,0,0,.25);display:none;min-width:220px;text-align:center}
 .val-toast.show{display:block}
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:#e2e8f0;border-radius:99px}
-@media(max-width:900px){.two-col{grid-template-columns:1fr}.content{margin-left:0!important;padding:70px 12px 20px}}
+@media(max-width:900px){.two-col{grid-template-columns:1fr}.content{margin-left:0!important;padding:60px 10px 16px}}
 </style>
 </head>
 <body>
@@ -608,81 +646,119 @@ textarea.form-control{height:70px;resize:vertical}
     </div>
 </div>
 
-<!-- SUPPLIER INFO -->
+<!-- SUPPLIER INFO + DOCUMENT + ACCOUNTS – 3 columns in one card -->
 <div class="form-card">
     <div class="form-card-header">
         <div class="hdr-icon" style="background:linear-gradient(135deg,#f97316,#fb923c)"><i class="fas fa-truck"></i></div>
         <h3>Supplier Information</h3>
     </div>
     <div class="form-card-body">
-        <div class="row">
-            <div class="col-md-4">
-                <span class="field-section-label">Supplier</span>
-                <div class="supplier-field-wrap">
-                    <input type="text" name="supplier_name" id="supplierInput" class="field-input-styled" required
-                           value="<?= htmlspecialchars($editInv['supplier_name']??'') ?>"
-                           placeholder="— Select Supplier —"
-                           onclick="openSupplierPopup()" readonly>
-                    <button type="button" class="btn-plus" onclick="openSupplierPopup()" title="Select / Add Supplier"><i class="fas fa-plus"></i></button>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+
+            <!-- COLUMN 1: Supplier Info -->
+            <div style="border:1px solid #e8ecf4;border-radius:8px;padding:8px 10px;background:#fafbfd">
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#f97316;margin-bottom:6px;display:flex;align-items:center;gap:5px">
+                    <i class="fas fa-truck" style="font-size:9px"></i> Supplier Info
+                </div>
+                <!-- Row 1: Supplier -->
+                <div style="margin-bottom:5px">
+                    <span class="field-section-label">Supplier</span>
+                    <div class="supplier-field-wrap">
+                        <input type="text" name="supplier_name" id="supplierInput" class="field-input-styled" required
+                               value="<?= htmlspecialchars($editInv['supplier_name']??'') ?>"
+                               placeholder="— Select Supplier —"
+                               onclick="openSupplierPopup()" readonly>
+                        <button type="button" class="btn-plus" onclick="openSupplierPopup()" title="Select / Add Supplier"><i class="fas fa-plus"></i></button>
+                    </div>
+                </div>
+                <!-- Row 2: Contact Person + Phone -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:5px">
+                    <div>
+                        <span class="field-section-label">Contact Person</span>
+                        <input type="text" name="contact_person" id="contactInput" class="field-input-styled" value="<?= htmlspecialchars($editInv['contact_person']??'') ?>">
+                    </div>
+                    <div>
+                        <span class="field-section-label">Phone</span>
+                        <input type="text" name="supplier_phone" id="phoneInput" class="field-input-styled" value="<?= htmlspecialchars($editInv['supplier_phone']??'') ?>">
+                    </div>
+                </div>
+                <!-- Row 3: GSTIN + Address -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                    <div>
+                        <span class="field-section-label">GSTIN</span>
+                        <input type="text" name="supplier_gstin" id="gstinInput" class="field-input-styled" value="<?= htmlspecialchars($editInv['supplier_gstin']??'') ?>" style="text-transform:uppercase" placeholder="27AABCS1234A1Z5">
+                    </div>
+                    <div>
+                        <span class="field-section-label">Address</span>
+                        <input type="text" name="supplier_address" id="addressInput" class="field-input-styled" value="<?= htmlspecialchars($editInv['supplier_address']??'') ?>" placeholder="Supplier address">
+                    </div>
                 </div>
             </div>
-            <div class="col-md-2">
-                <span class="field-section-label">Contact Person</span>
-                <input type="text" name="contact_person" id="contactInput" class="field-input-styled" value="<?= htmlspecialchars($editInv['contact_person']??'') ?>">
-            </div>
-            <div class="col-md-2">
-                <span class="field-section-label">Phone</span>
-                <input type="text" name="supplier_phone" id="phoneInput" class="field-input-styled" value="<?= htmlspecialchars($editInv['supplier_phone']??'') ?>">
-            </div>
-            <div class="col-md-2">
-                <span class="field-section-label">GSTIN</span>
-                <input type="text" name="supplier_gstin" id="gstinInput" class="field-input-styled" value="<?= htmlspecialchars($editInv['supplier_gstin']??'') ?>" style="text-transform:uppercase" placeholder="27AABCS1234A1Z5">
-            </div>
-            <div class="col-md-2">
-                <span class="field-section-label">Address</span>
-                <input type="text" name="supplier_address" id="addressInput" class="field-input-styled" value="<?= htmlspecialchars($editInv['supplier_address']??'') ?>" placeholder="Supplier address">
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- DOCUMENT + ACCOUNTS -->
-<div class="two-col">
-<div class="form-card">
-    <div class="form-card-header">
-        <div class="hdr-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)"><i class="fas fa-file-alt"></i></div>
-        <h3>Document Details</h3>
-    </div>
-    <div class="form-card-body">
-        <div class="row">
-            <div class="col-md-6"><label>Invoice No.</label><input type="text" name="invoice_number" class="form-control" required value="<?= htmlspecialchars($editInv['invoice_number']??'') ?>"></div>
-            <div class="col-md-6"><label>Reference</label><input type="text" name="reference" class="form-control" value="<?= htmlspecialchars($editInv['reference']??'') ?>"></div>
-            <div class="col-md-6"><label>Invoice Date</label><input type="date" name="invoice_date" class="form-control" required value="<?= htmlspecialchars($editInv['invoice_date']??date('Y-m-d')) ?>"></div>
-            <div class="col-md-6"><label>Due Date</label><input type="date" name="due_date" class="form-control" required value="<?= htmlspecialchars($editInv['due_date']??date('Y-m-d')) ?>"></div>
-        </div>
-    </div>
-</div>
-<div class="form-card">
-    <div class="form-card-header">
-        <div class="hdr-icon" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)"><i class="fas fa-book"></i></div>
-        <h3>Accounts Update</h3>
-    </div>
-    <div class="form-card-body">
-        <div class="row">
-            <div class="col-md-6"><label>Supplier Ledger</label><input type="text" name="supplier_ledger" class="form-control" value="<?= htmlspecialchars($editInv['supplier_ledger']??'') ?>"></div>
-            <div class="col-md-6"><label>Purchase Ledger</label><input type="text" name="purchase_ledger" class="form-control" value="<?= htmlspecialchars($editInv['purchase_ledger']??'') ?>"></div>
-            <div class="col-md-4"><label>Voucher No.</label><input type="text" name="voucher_number" class="form-control" value="<?= htmlspecialchars($editInv['voucher_number']??'') ?>"></div>
-            <div class="col-md-4"><label>Voucher Date</label><input type="date" name="voucher_date" class="form-control" value="<?= htmlspecialchars($editInv['voucher_date']??date('Y-m-d')) ?>"></div>
-            <div class="col-md-4"><label>Credit Month</label>
-                <select name="credit_month" class="form-select">
-                    <?php foreach(['None','1','2','3','6','12'] as $cm): ?>
-                    <option value="<?=$cm?>" <?=($editInv['credit_month']??'None')===$cm?'selected':''?>><?=$cm?></option>
-                    <?php endforeach; ?>
-                </select>
+            <!-- COLUMN 2: Document Details -->
+            <div style="border:1px solid #e8ecf4;border-radius:8px;padding:8px 10px;background:#fafbfd">
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#7c3aed;margin-bottom:6px;display:flex;align-items:center;gap:5px">
+                    <i class="fas fa-file-alt" style="font-size:9px"></i> Document Details
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:5px">
+                    <div>
+                        <label>Invoice No.</label>
+                        <input type="text" name="invoice_number" class="form-control" required value="<?= htmlspecialchars($editInv['invoice_number']??'') ?>">
+                    </div>
+                    <div>
+                        <label>Reference</label>
+                        <input type="text" name="reference" class="form-control" value="<?= htmlspecialchars($editInv['reference']??'') ?>">
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                    <div>
+                        <label>Invoice Date</label>
+                        <input type="date" name="invoice_date" class="form-control" required value="<?= htmlspecialchars($editInv['invoice_date']??date('Y-m-d')) ?>">
+                    </div>
+                    <div>
+                        <label>Due Date</label>
+                        <input type="date" name="due_date" class="form-control" required value="<?= htmlspecialchars($editInv['due_date']??date('Y-m-d')) ?>">
+                    </div>
+                </div>
             </div>
+
+            <!-- COLUMN 3: Accounts Update -->
+            <div style="border:1px solid #e8ecf4;border-radius:8px;padding:8px 10px;background:#fafbfd">
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#0284c7;margin-bottom:6px;display:flex;align-items:center;gap:5px">
+                    <i class="fas fa-book" style="font-size:9px"></i> Accounts Update
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:5px">
+                    <div>
+                        <label>Supplier Ledger</label>
+                        <input type="text" name="supplier_ledger" class="form-control" value="<?= htmlspecialchars($editInv['supplier_ledger']??'') ?>">
+                    </div>
+                    <div>
+                        <label>Purchase Ledger</label>
+                        <input type="text" name="purchase_ledger" class="form-control" value="<?= htmlspecialchars($editInv['purchase_ledger']??'') ?>">
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+                    <div>
+                        <label>Voucher No.</label>
+                        <input type="text" name="voucher_number" class="form-control" value="<?= htmlspecialchars($editInv['voucher_number']??'') ?>">
+                    </div>
+                    <div>
+                        <label>Voucher Date</label>
+                        <input type="date" name="voucher_date" class="form-control" value="<?= htmlspecialchars($editInv['voucher_date']??date('Y-m-d')) ?>">
+                    </div>
+                    <div>
+                        <label>Credit Month</label>
+                        <select name="credit_month" class="form-select">
+                            <?php foreach(['None','1','2','3','6','12'] as $cm): ?>
+                            <option value="<?=$cm?>" <?=($editInv['credit_month']??'None')===$cm?'selected':''?>><?=$cm?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
-</div>
 </div>
 
 <!-- ITEM LIST -->
@@ -746,7 +822,7 @@ textarea.form-control{height:70px;resize:vertical}
     </div>
     <div class="bottom-actions">
         <button type="button" class="btn-add-item" onclick="openSelectItemModal()"><i class="fas fa-plus"></i> Add Item</button>
-        <div style="flex:1;text-align:right;font-size:13px;color:#6b7280">Grand Total: <strong style="color:#f97316;font-size:16px" id="grandTotalDisplay">&#8377; 0.00</strong></div>
+        <div style="flex:1;text-align:right;font-size:12px;color:#6b7280">Grand Total: <strong style="color:#f97316;font-size:14px;font-weight:800" id="grandTotalDisplay">&#8377; 0.00</strong></div>
     </div>
 </div>
 
@@ -782,12 +858,12 @@ textarea.form-control{height:70px;resize:vertical}
         <h3>Notes</h3>
     </div>
     <div class="form-card-body">
-        <textarea name="notes" class="form-control" rows="3" placeholder="Additional notes..."><?= htmlspecialchars($editInv['notes']??'') ?></textarea>
+        <textarea name="notes" class="form-control" rows="2" placeholder="Additional notes..."><?= htmlspecialchars($editInv['notes']??'') ?></textarea>
     </div>
 </div>
 
 <!-- BOTTOM SAVE -->
-<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px;margin-bottom:24px">
+<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;margin-bottom:12px">
     <a href="supplier_invoices.php" class="btn-outline-theme"><i class="fas fa-times"></i> Cancel</a>
     <button type="submit" name="save_supplier_invoice" class="btn-theme"><i class="fas fa-save"></i> <?= $isEdit?'Update':'Save' ?> Invoice</button>
 </div>

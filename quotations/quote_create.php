@@ -282,118 +282,140 @@ if (!$selectedCompanyId && !empty($companyBase['id'])) $selectedCompanyId = (int
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e;font-size:15px}
-.content{margin-left:220px;padding:32px 28px 28px;min-height:100vh;background:#f0f2f8}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f8;color:#1a1f2e;font-size:13px}
+.content{margin-left:220px;padding:14px 16px 16px;min-height:100vh;background:#f0f2f8}
 
 /* PAGE HEADER */
-.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.page-header-left{display:flex;align-items:center;gap:12px}
-.page-icon{width:40px;height:40px;background:linear-gradient(135deg,#f97316,#fb923c);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;box-shadow:0 3px 10px rgba(249,115,22,.3)}
-.page-title{font-size:19px;font-weight:800;color:#1a1f2e}
-.page-sub{font-size:13px;color:#9ca3af;margin-top:1px}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.page-header-left{display:flex;align-items:center;gap:10px}
+.page-icon{width:34px;height:34px;background:linear-gradient(135deg,#f97316,#fb923c);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;box-shadow:0 2px 8px rgba(249,115,22,.3)}
+.page-title{font-size:16px;font-weight:800;color:#1a1f2e;line-height:1.2}
+.page-sub{font-size:11px;color:#9ca3af;margin-top:1px}
 
 /* CARDS */
-.form-card{background:#fff;border:1px solid #e8ecf4;border-radius:14px;box-shadow:0 2px 6px rgba(0,0,0,.04);margin-bottom:12px;overflow:hidden}
-.form-card-header{display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid #f0f2f7;background:#fafbfd}
-.hdr-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;flex-shrink:0}
-.form-card-header h3{font-size:15px;font-weight:800;color:#1a1f2e;font-family:'Times New Roman',Times,serif}
-.form-card-body{padding:14px 18px}
-.field-section-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#9ca3af;margin-bottom:6px;display:block}
-.field-input-styled{width:100%;padding:10px 14px;border:1.5px solid #e4e8f0;border-radius:10px;font-size:13px;font-family:'Times New Roman',Times,serif;color:#374151;background:#fff;outline:none;transition:border-color .2s,box-shadow .2s}
-.field-input-styled:focus{border-color:#f97316;box-shadow:0 0 0 3px rgba(249,115,22,.1)}
-.field-input-styled[readonly]{background:#f8fafc;cursor:pointer}
-.supplier-field-wrap{display:flex;gap:6px;align-items:center}
-.supplier-field-wrap .field-input-styled{flex:1}
+.form-card{background:#fff;border:1px solid #e8ecf4;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.04);margin-bottom:8px;overflow:hidden}
+.form-card-header{display:flex;align-items:center;gap:8px;padding:7px 14px;border-bottom:1px solid #f0f2f7;background:#fafbfd}
+.hdr-icon{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;flex-shrink:0}
+.form-card-header h3{font-size:12px;font-weight:800;color:#1a1f2e;text-transform:uppercase;letter-spacing:.5px}
+.form-card-body{padding:8px 14px 10px}
 
-/* LABELS & INPUTS */
-label{display:block;font-size:12px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px}
-.form-control,.form-select{width:100%;padding:9px 12px;border:1.5px solid #e4e8f0;border-radius:8px;font-size:14px;font-family:'Times New Roman',Times,serif;color:#1a1f2e;background:#fff;outline:none;transition:border-color .2s,box-shadow .2s;height:auto}
-.form-control:focus,.form-select:focus{border-color:#f97316;background:#fff;box-shadow:0 0 0 3px rgba(249,115,22,.08)}
-textarea.form-control{height:70px;resize:vertical}
-.row>[class*=col]{margin-bottom:10px}
+/* FIELD LABELS + INPUTS – unified across all sections */
+.field-section-label,label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;margin-bottom:3px}
+.field-input-styled,
+.form-control,
+.form-select{
+  width:100%;
+  padding:6px 10px;
+  border:1.5px solid #e4e8f0;
+  border-radius:7px;
+  font-size:12px;
+  font-family:'Segoe UI',system-ui,sans-serif;
+  color:#374151;
+  background:#fff;
+  outline:none;
+  transition:border-color .2s,box-shadow .2s;
+  height:30px;
+  line-height:1.4;
+}
+textarea.field-input-styled,
+textarea.form-control{height:52px;resize:vertical;line-height:1.5}
+.field-input-styled:focus,.form-control:focus,.form-select:focus{border-color:#f97316;box-shadow:0 0 0 2px rgba(249,115,22,.1)}
+.field-input-styled[readonly]{background:#f8fafc;cursor:pointer}
+.supplier-field-wrap{display:flex;gap:5px;align-items:center}
+.supplier-field-wrap .field-input-styled{flex:1}
+.row>[class*=col]{margin-bottom:6px}
+
+/* SECTION DIVIDERS */
+.section-divider{margin:6px 0 5px;border-top:1px dashed #e4e8f0;position:relative}
+.section-divider span{position:absolute;top:-8px;left:0;background:#fff;padding:0 8px;font-size:9px;font-weight:800;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px}
 
 /* TWO-COL LAYOUT */
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
 
 /* BUTTONS */
-.btn-theme{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:700;font-family:'Times New Roman',Times,serif;cursor:pointer;transition:all .2s;box-shadow:0 3px 10px rgba(249,115,22,.25)}
-.btn-theme:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(249,115,22,.35)}
-.btn-theme-blue{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:700;font-family:'Times New Roman',Times,serif;cursor:pointer;transition:all .2s;box-shadow:0 3px 10px rgba(21,101,192,.25)}
+.btn-theme{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 2px 8px rgba(249,115,22,.25)}
+.btn-theme:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(249,115,22,.35)}
+.btn-theme-blue{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 2px 8px rgba(21,101,192,.25)}
 .btn-theme-blue:hover{transform:translateY(-1px)}
-.btn-outline-theme{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#fff;border:1.5px solid #e4e8f0;border-radius:8px;font-size:14px;font-weight:600;font-family:'Times New Roman',Times,serif;color:#374151;text-decoration:none;cursor:pointer;transition:all .2s}
+.btn-outline-theme{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;background:#fff;border:1.5px solid #e4e8f0;border-radius:7px;font-size:12px;font-weight:600;color:#374151;text-decoration:none;cursor:pointer;transition:all .2s}
 .btn-outline-theme:hover{border-color:#f97316;color:#f97316;background:#fff7f0}
-.btn-add-item{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Times New Roman',Times,serif;transition:all .2s;margin-top:10px}
+.btn-add-item{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:6px}
 .btn-add-item:hover{transform:translateY(-1px)}
-.btn-plus{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:none;border-radius:8px;font-size:19px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.btn-plus{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:none;border-radius:7px;font-size:14px;cursor:pointer;transition:all .2s;flex-shrink:0}
 .btn-plus:hover{transform:translateY(-1px)}
-.btn-danger-sm{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;color:#dc2626;cursor:pointer;font-size:12px;transition:all .2s}
+.btn-danger-sm{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:#fef2f2;border:1px solid #fca5a5;border-radius:5px;color:#dc2626;cursor:pointer;font-size:10px;transition:all .2s}
 .btn-danger-sm:hover{background:#dc2626;color:#fff}
-.bottom-actions{display:flex;gap:10px;align-items:center;padding:14px 18px;border-top:1px solid #f0f2f7;background:#fafbfd}
+.bottom-actions{display:flex;gap:8px;align-items:center;padding:10px 14px;border-top:1px solid #f0f2f7;background:#fafbfd}
 
 /* ITEM TABLE */
 .table-wrap{overflow-x:auto}
-#itemTable{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
-#itemTable thead th{background:#fff7f0;color:#f97316;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:8px 7px;border-bottom:2px solid #fed7aa;white-space:nowrap}
-#itemTable td{padding:5px 7px;border-bottom:1px solid #f1f5f9;vertical-align:middle;color:#374151}
+#itemTable{width:100%;border-collapse:collapse;font-size:11.5px;background:#fff}
+#itemTable thead th{background:#fff7f0;color:#f97316;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:5px 5px;border-bottom:2px solid #fed7aa;white-space:nowrap}
+#itemTable td{padding:3px 5px;border-bottom:1px solid #f1f5f9;vertical-align:middle;color:#374151}
 #itemTable tbody tr:hover td{background:#fff7f0}
-#itemTable input{width:100%;border:1.5px solid #e4e8f0;border-radius:6px;padding:4px 6px;font-size:13px;font-family:'Times New Roman',Times,serif;background:#fff;outline:none}
+#itemTable input{width:100%;border:1.5px solid #e4e8f0;border-radius:5px;padding:3px 5px;font-size:11.5px;font-family:'Segoe UI',system-ui,sans-serif;background:#fff;outline:none}
 #itemTable input:focus{border-color:#f97316;box-shadow:0 0 0 2px rgba(249,115,22,.1)}
-#itemTable td.num{text-align:right;font-weight:600;white-space:nowrap;padding:5px 8px}
+#itemTable td.num{text-align:right;font-weight:600;white-space:nowrap;padding:3px 6px}
 
 /* TOTALS BOX */
-.total-box{text-align:right;margin-top:14px;padding:14px 18px;background:#fff7f0;border-radius:10px;border:1px solid #fed7aa;font-size:14px;color:#374151}
-.total-box .grand{font-size:16px;font-weight:800;color:#1a1f2e;margin-top:6px;border-top:1px solid #fed7aa;padding-top:6px}
+.total-box{display:flex;gap:20px;justify-content:flex-end;flex-wrap:wrap;margin-top:8px;padding:8px 14px;background:#fff7f0;border-radius:8px;border:1px solid #fed7aa;font-size:12px;color:#374151}
+.total-box .grand{font-size:13px;font-weight:800;color:#1a1f2e;padding-left:16px;border-left:2px solid #f97316}
 
 /* TERMS */
-.term-row{display:flex;align-items:center;gap:8px;background:#fafafa;border:1px solid #f0f2f7;border-radius:8px;padding:10px 14px;margin-bottom:6px;font-size:14px}
+.term-row{display:flex;align-items:center;gap:6px;background:#fafafa;border:1px solid #f0f2f7;border-radius:7px;padding:6px 10px;margin-bottom:4px;font-size:12px}
 .term-row span{flex:1;color:#374151}
-.term-actions{display:flex;gap:4px;flex-shrink:0}
-.term-btn{width:26px;height:26px;border-radius:6px;border:none;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
+.term-actions{display:flex;gap:3px;flex-shrink:0}
+.term-btn{width:22px;height:22px;border-radius:5px;border:none;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center}
 .term-btn-edit{background:#fff8e1;color:#f57c00}
 .term-btn-del{background:#fde8e8;color:#c62828}
-.btn-add-term{display:inline-flex;align-items:center;gap:6px;background:none;border:1.5px dashed #f97316;color:#f97316;border-radius:8px;padding:7px 14px;cursor:pointer;font-size:13px;font-family:'Times New Roman',Times,serif;font-weight:700;margin-top:4px;transition:all .2s}
+.btn-add-term{display:inline-flex;align-items:center;gap:5px;background:none;border:1.5px dashed #f97316;color:#f97316;border-radius:7px;padding:5px 11px;cursor:pointer;font-size:11px;font-weight:700;margin-top:3px;transition:all .2s}
 .btn-add-term:hover{background:#fff7f0}
 
 /* OVERLAY MODALS */
 .sp-overlay,.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center}
 .sp-overlay.open,.modal-overlay.open{display:flex!important}
-.sp-box,.modal-box{background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.18);font-family:'Times New Roman',Times,serif}
-.sp-box{width:380px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;overflow:hidden}
-.modal-box{width:520px;max-width:96vw;max-height:90vh;overflow-y:auto}
-.sp-header,.modal-header-box{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #f0f2f7;background:#fafbfd}
-.sp-header h3,.modal-header-box h3{font-size:15px;font-weight:800;color:#1a1f2e}
-.sp-close,.modal-close-btn{background:none;border:none;font-size:20px;color:#9ca3af;cursor:pointer}
-.sp-search-wrap,.modal-search-wrap{padding:12px 18px;border-bottom:1px solid #f0f2f7}
-.sp-search,.modal-search-inp{width:100%;border:1.5px solid #e4e8f0;border-radius:8px;padding:8px 12px;font-size:14px;font-family:inherit;outline:none}
+.sp-box,.modal-box{background:#fff;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.18);font-family:'Segoe UI',system-ui,sans-serif}
+.sp-box{width:360px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;overflow:hidden}
+.modal-box{width:500px;max-width:96vw;max-height:90vh;overflow-y:auto}
+.sp-header,.modal-header-box{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #f0f2f7;background:#fafbfd}
+.sp-header h3,.modal-header-box h3{font-size:13px;font-weight:800;color:#1a1f2e}
+.sp-close,.modal-close-btn{background:none;border:none;font-size:18px;color:#9ca3af;cursor:pointer}
+.sp-search-wrap,.modal-search-wrap{padding:8px 14px;border-bottom:1px solid #f0f2f7}
+.sp-search,.modal-search-inp{width:100%;border:1.5px solid #e4e8f0;border-radius:7px;padding:6px 10px;font-size:12px;font-family:inherit;outline:none}
 .sp-search:focus,.modal-search-inp:focus{border-color:#f97316}
 .sp-list{overflow-y:auto;flex:1}
-.sp-item{padding:12px 18px;cursor:pointer;border-bottom:1px solid #f9f9f9;transition:background .1s}
+.sp-item{padding:8px 14px;cursor:pointer;border-bottom:1px solid #f9f9f9;transition:background .1s}
 .sp-item:hover{background:#fff7f0}
-.sp-item-name{font-size:14px;font-weight:700;color:#1a1f2e}
-.sp-item-sub{font-size:12px;color:#9ca3af;margin-top:2px}
-.sp-empty{padding:30px;text-align:center;color:#9ca3af;font-size:14px}
-.sp-footer,.modal-footer-box{padding:12px 18px;border-top:1px solid #f0f2f7;background:#fafbfd;display:flex;gap:8px}
-.item-select-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #f5f5f5;cursor:pointer;transition:background .1s}
+.sp-item-name{font-size:13px;font-weight:700;color:#1a1f2e}
+.sp-item-sub{font-size:11px;color:#9ca3af;margin-top:1px}
+.sp-empty{padding:20px;text-align:center;color:#9ca3af;font-size:13px}
+.sp-footer,.modal-footer-box{padding:10px 14px;border-top:1px solid #f0f2f7;background:#fafbfd;display:flex;gap:6px}
+.item-select-row{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid #f5f5f5;cursor:pointer;transition:background .1s}
 .item-select-row:hover{background:#fff7f0}
-.item-select-name{font-size:14px;font-weight:700;color:#1a1f2e}
-.item-select-sub{font-size:12px;color:#9ca3af;margin-top:1px}
-.mf-group{margin-bottom:12px}
-.mf-label{display:block;font-size:12px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px}
-.mf-input,.mf-select,.mf-textarea{width:100%;border:1.5px solid #e4e8f0;border-radius:8px;padding:8px 12px;font-size:14px;font-family:inherit;outline:none;background:#fff}
+.item-select-name{font-size:13px;font-weight:700;color:#1a1f2e}
+.item-select-sub{font-size:11px;color:#9ca3af;margin-top:1px}
+.mf-group{margin-bottom:8px}
+.mf-label{display:block;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px}
+.mf-input,.mf-select,.mf-textarea{width:100%;border:1.5px solid #e4e8f0;border-radius:7px;padding:6px 10px;font-size:12px;font-family:inherit;outline:none;background:#fff}
 .mf-input:focus,.mf-select:focus,.mf-textarea:focus{border-color:#f97316}
-.mf-textarea{resize:vertical;min-height:60px}
-.mf-row{display:flex;gap:10px}.mf-row .mf-group{flex:1;margin-bottom:0}
-.term-select-item{padding:11px 14px;cursor:pointer;border-bottom:1px solid #f5f5f5;font-size:14px;transition:background .1s}
+.mf-textarea{resize:vertical;min-height:50px}
+.mf-row{display:flex;gap:8px}.mf-row .mf-group{flex:1;margin-bottom:0}
+.term-select-item{padding:8px 12px;cursor:pointer;border-bottom:1px solid #f5f5f5;font-size:13px;transition:background .1s}
 .term-select-item:hover{background:#fff7f0;color:#f97316}
-.term-select-list{max-height:260px;overflow-y:auto}
-.add-term-box{padding:12px 18px;border-top:1px solid #f0f2f7}
+.term-select-list{max-height:200px;overflow-y:auto}
+.add-term-box{padding:10px 14px;border-top:1px solid #f0f2f7}
+
+/* SELECT2 height fix */
+.select2-container .select2-selection--single{height:30px!important;line-height:28px!important;border:1.5px solid #e4e8f0!important;border-radius:7px!important;font-size:12px!important}
+.select2-container--default .select2-selection--single .select2-selection__arrow{height:28px!important}
+.select2-container--default .select2-selection--single .select2-selection__rendered{line-height:28px!important;padding-left:10px!important;font-size:12px}
 
 /* TOAST */
-.val-toast{position:fixed;top:72px;left:50%;transform:translateX(-50%);background:#c62828;color:#fff;padding:12px 24px;border-radius:10px;font-size:14px;font-weight:700;z-index:99999;box-shadow:0 4px 20px rgba(0,0,0,.25);display:none;min-width:260px;text-align:center}
+.val-toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#c62828;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:99999;box-shadow:0 4px 20px rgba(0,0,0,.25);display:none;min-width:220px;text-align:center}
 .val-toast.show{display:block}
 
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#e2e8f0;border-radius:99px}
-@media(max-width:900px){.two-col{grid-template-columns:1fr}.content{margin-left:0!important;padding:70px 12px 20px}}
+@media(max-width:900px){.two-col{grid-template-columns:1fr}.content{margin-left:0!important;padding:60px 10px 16px}}
 </style>
 </head>
 <body>
@@ -469,84 +491,90 @@ textarea.form-control{height:70px;resize:vertical}
         </div>
         <div class="form-card-body">
 
-            <!-- Row 1: Customer | Contact Person | Phone | GSTIN -->
-            <div class="row">
-                <div class="col-md-3">
-                    <span class="field-section-label">Customer</span>
-                    <div class="supplier-field-wrap">
-                        <input class="field-input-styled" type="text" name="customer_name" id="customerInput"
-                               value="<?= htmlspecialchars($quot['customer_name'] ?? '') ?>"
-                               placeholder="— Select Customer —" onclick="openCustomerPopup()" readonly>
-                        <a href="/invoice/add_customer.php" class="btn-plus" title="Add New Customer" style="width:34px;height:38px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;"><i class="fas fa-plus"></i></a>
+            <!-- 3-column layout: Customer | Billing | Shipping -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+
+                <!-- COLUMN 1: Customer Info -->
+                <div style="border:1px solid #e8ecf4;border-radius:8px;padding:8px 10px;background:#fafbfd">
+                    <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#f97316;margin-bottom:6px;display:flex;align-items:center;gap:5px">
+                        <i class="fas fa-user" style="font-size:9px"></i> Customer Info
+                    </div>
+                    <div style="margin-bottom:5px">
+                        <span class="field-section-label">Customer</span>
+                        <div class="supplier-field-wrap">
+                            <input class="field-input-styled" type="text" name="customer_name" id="customerInput"
+                                   value="<?= htmlspecialchars($quot['customer_name'] ?? '') ?>"
+                                   placeholder="— Select Customer —" onclick="openCustomerPopup()" readonly>
+                            <a href="/invoice/add_customer.php" class="btn-plus" title="Add New Customer" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;"><i class="fas fa-plus"></i></a>
+                        </div>
+                    </div>
+                    <div style="margin-bottom:5px">
+                        <span class="field-section-label">Contact Person</span>
+                        <input class="field-input-styled" type="text" name="contact_person" id="contactInput" value="<?= htmlspecialchars($quot['contact_person'] ?? '') ?>" placeholder="Contact name">
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                        <div>
+                            <span class="field-section-label">Phone</span>
+                            <input class="field-input-styled" type="text" name="customer_phone" id="phoneInput" value="<?= htmlspecialchars($quot['customer_phone'] ?? '') ?>" placeholder="Mobile number">
+                        </div>
+                        <div>
+                            <span class="field-section-label">GSTIN</span>
+                            <input class="field-input-styled" type="text" name="customer_gstin" id="gstinInput" value="<?= htmlspecialchars($quot['customer_gstin'] ?? '') ?>" placeholder="22AAAAA0000A1Z5" style="text-transform:uppercase">
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <span class="field-section-label">Contact Person</span>
-                    <input class="field-input-styled" type="text" name="contact_person" id="contactInput" value="<?= htmlspecialchars($quot['contact_person'] ?? '') ?>" placeholder="Contact name">
-                </div>
-                <div class="col-md-2">
-                    <span class="field-section-label">Phone</span>
-                    <input class="field-input-styled" type="text" name="customer_phone" id="phoneInput" value="<?= htmlspecialchars($quot['customer_phone'] ?? '') ?>" placeholder="Mobile number">
-                </div>
-                <div class="col-md-2">
-                    <span class="field-section-label">GSTIN</span>
-                    <input class="field-input-styled" type="text" name="customer_gstin" id="gstinInput" value="<?= htmlspecialchars($quot['customer_gstin'] ?? '') ?>" placeholder="22AAAAA0000A1Z5" style="text-transform:uppercase">
-                </div>
-            </div>
 
-            <!-- Divider: Billing Details -->
-            <div style="margin:14px 0 10px;border-top:1px dashed #e4e8f0;position:relative">
-                <span style="position:absolute;top:-9px;left:0;background:#fff;padding:0 10px;font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.7px">Billing Details</span>
-            </div>
+                <!-- COLUMN 2: Billing Details -->
+                <div style="border:1px solid #e8ecf4;border-radius:8px;padding:8px 10px;background:#fafbfd">
+                    <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#7c3aed;margin-bottom:6px;display:flex;align-items:center;gap:5px">
+                        <i class="fas fa-file-invoice" style="font-size:9px"></i> Billing Details
+                    </div>
+                    <div style="margin-bottom:5px">
+                        <span class="field-section-label">Address</span>
+                        <textarea class="field-input-styled" name="billing_details" id="addrInput" rows="3" placeholder="Customer billing address"><?= htmlspecialchars($quot['billing_details'] ?? '') ?></textarea>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                        <div>
+                            <span class="field-section-label">GSTIN</span>
+                            <input class="field-input-styled" type="text" name="billing_gstin" id="billingGstinInput" value="<?= htmlspecialchars($quot['billing_gstin'] ?? '') ?>" placeholder="Billing GSTIN" style="text-transform:uppercase" maxlength="15">
+                            <span id="billingGstin_hint" style="font-size:10px;margin-top:2px;display:none;font-weight:600"></span>
+                        </div>
+                        <div>
+                            <span class="field-section-label">Phone</span>
+                            <input class="field-input-styled" type="text" name="billing_phone" id="billingPhoneInput" value="<?= htmlspecialchars($quot['billing_phone'] ?? '') ?>" placeholder="Billing phone" maxlength="10">
+                            <span id="billingPhone_hint" style="font-size:10px;margin-top:2px;display:none;font-weight:600"></span>
+                        </div>
+                    </div>
+                </div>
 
-            <!-- Row 2: Billing Address | Billing GSTIN | Billing Phone -->
-            <div class="row">
-                <div class="col-md-6">
-                    <span class="field-section-label">Billing Address</span>
-                    <textarea class="field-input-styled" name="billing_details" id="addrInput" rows="2" placeholder="Customer billing address"><?= htmlspecialchars($quot['billing_details'] ?? '') ?></textarea>
+                <!-- COLUMN 3: Shipping Details -->
+                <div style="border:1px solid #e8ecf4;border-radius:8px;padding:8px 10px;background:#fafbfd">
+                    <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#0891b2;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between">
+                        <span style="display:flex;align-items:center;gap:5px"><i class="fas fa-truck" style="font-size:9px"></i> Shipping Details</span>
+                        <label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:10px;font-weight:600;color:#374151;margin-bottom:0">
+                            <input type="checkbox" id="sameAsBillingChk" style="width:12px;height:12px;accent-color:#f97316;cursor:pointer"
+                                <?= !empty($quot['shipping_details']) && $quot['shipping_details'] == ($quot['billing_details'] ?? $quot['customer_address'] ?? '') ? 'checked' : '' ?>>
+                            Same as Billing
+                        </label>
+                    </div>
+                    <div style="margin-bottom:5px">
+                        <span class="field-section-label">Address</span>
+                        <textarea class="field-input-styled" name="shipping_details" id="shippingInput" rows="3" placeholder="Delivery / shipping address"><?= htmlspecialchars($quot['shipping_details'] ?? '') ?></textarea>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                        <div>
+                            <span class="field-section-label">GSTIN</span>
+                            <input class="field-input-styled" type="text" name="shipping_gstin" id="shippingGstinInput" value="<?= htmlspecialchars($quot['shipping_gstin'] ?? '') ?>" placeholder="Shipping GSTIN" style="text-transform:uppercase" maxlength="15">
+                            <span id="shippingGstin_hint" style="font-size:10px;margin-top:2px;display:none;font-weight:600"></span>
+                        </div>
+                        <div>
+                            <span class="field-section-label">Phone</span>
+                            <input class="field-input-styled" type="text" name="shipping_phone" id="shippingPhoneInput" value="<?= htmlspecialchars($quot['shipping_phone'] ?? '') ?>" placeholder="Shipping phone" maxlength="10">
+                            <span id="shippingPhone_hint" style="font-size:10px;margin-top:2px;display:none;font-weight:600"></span>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <span class="field-section-label">Billing GSTIN</span>
-                    <input class="field-input-styled" type="text" name="billing_gstin" id="billingGstinInput" value="<?= htmlspecialchars($quot['billing_gstin'] ?? '') ?>" placeholder="Billing GSTIN" style="text-transform:uppercase" maxlength="15">
-                    <span id="billingGstin_hint" style="font-size:11px;margin-top:3px;display:none;font-weight:600"></span>
-                </div>
-                <div class="col-md-3">
-                    <span class="field-section-label">Billing Phone</span>
-                    <input class="field-input-styled" type="text" name="billing_phone" id="billingPhoneInput" value="<?= htmlspecialchars($quot['billing_phone'] ?? '') ?>" placeholder="Billing phone" maxlength="10">
-                    <span id="billingPhone_hint" style="font-size:11px;margin-top:3px;display:none;font-weight:600"></span>
-                </div>
-            </div>
 
-            <!-- Divider: Shipping Details -->
-            <div style="margin:14px 0 10px;border-top:1px dashed #e4e8f0;position:relative">
-                <span style="position:absolute;top:-9px;left:0;background:#fff;padding:0 10px;font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.7px">Shipping Details</span>
-            </div>
-
-            <!-- Same as Billing checkbox -->
-            <div style="margin-bottom:10px">
-                <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:13px;font-weight:500;color:#374151">
-                    <input type="checkbox" id="sameAsBillingChk" style="width:15px;height:15px;accent-color:#f97316;cursor:pointer"
-                        <?= !empty($quot['shipping_details']) && $quot['shipping_details'] == ($quot['billing_details'] ?? $quot['customer_address'] ?? '') ? 'checked' : '' ?>>
-                    Same as Billing
-                </label>
-            </div>
-
-            <!-- Row 3: Shipping Address | Shipping GSTIN | Shipping Phone -->
-            <div class="row">
-                <div class="col-md-6">
-                    <span class="field-section-label">Shipping Address</span>
-                    <textarea class="field-input-styled" name="shipping_details" id="shippingInput" rows="2" placeholder="Delivery / shipping address"><?= htmlspecialchars($quot['shipping_details'] ?? '') ?></textarea>
-                </div>
-                <div class="col-md-3">
-                    <span class="field-section-label">Shipping GSTIN</span>
-                    <input class="field-input-styled" type="text" name="shipping_gstin" id="shippingGstinInput" value="<?= htmlspecialchars($quot['shipping_gstin'] ?? '') ?>" placeholder="Shipping GSTIN" style="text-transform:uppercase" maxlength="15">
-                    <span id="shippingGstin_hint" style="font-size:11px;margin-top:3px;display:none;font-weight:600"></span>
-                </div>
-                <div class="col-md-3">
-                    <span class="field-section-label">Shipping Phone</span>
-                    <input class="field-input-styled" type="text" name="shipping_phone" id="shippingPhoneInput" value="<?= htmlspecialchars($quot['shipping_phone'] ?? '') ?>" placeholder="Shipping phone" maxlength="10">
-                    <span id="shippingPhone_hint" style="font-size:11px;margin-top:3px;display:none;font-weight:600"></span>
-                </div>
             </div>
 
         </div>
@@ -593,9 +621,9 @@ textarea.form-control{height:70px;resize:vertical}
             </div>
             <div class="form-card-body">
                 <label>Additional Notes</label>
-                <textarea class="form-control" name="notes" rows="4" placeholder="Additional notes or remarks..."><?= htmlspecialchars($quot['notes'] ?? '') ?></textarea>
+                <textarea class="form-control" name="notes" rows="2" placeholder="Additional notes or remarks..."><?= htmlspecialchars($quot['notes'] ?? '') ?></textarea>
 
-                <div style="margin-top:14px;border-top:1px dashed #e4e8f0;padding-top:12px">
+                <div style="margin-top:8px;border-top:1px dashed #e4e8f0;padding-top:8px">
                     <label>Bank Details</label>
                     <div style="display:flex;gap:8px">
                         <select name="bank_id" id="bank_select" class="form-control">
@@ -670,11 +698,11 @@ textarea.form-control{height:70px;resize:vertical}
             </div>
             <button type="button" class="btn-add-item" onclick="openSelectItemModal()"><i class="fas fa-plus"></i> Add Item</button>
             <div class="total-box">
-                <div>Taxable &nbsp;: ₹ <span id="totalTaxable">0.00</span></div>
-                <div>CGST &nbsp;&nbsp;&nbsp;&nbsp;: ₹ <span id="totalCgst">0.00</span></div>
-                <div>SGST &nbsp;&nbsp;&nbsp;&nbsp;: ₹ <span id="totalSgst">0.00</span></div>
-                <div>IGST &nbsp;&nbsp;&nbsp;&nbsp;: ₹ <span id="totalIgst">0.00</span></div>
-                <div class="grand">Grand Total : ₹ <span id="grandTotal">0.00</span></div>
+                <div>Taxable: ₹ <span id="totalTaxable">0.00</span></div>
+                <div>CGST: ₹ <span id="totalCgst">0.00</span></div>
+                <div>SGST: ₹ <span id="totalSgst">0.00</span></div>
+                <div>IGST: ₹ <span id="totalIgst">0.00</span></div>
+                <div class="grand">Grand Total: ₹ <span id="grandTotal">0.00</span></div>
             </div>
         </div>
     </div>
