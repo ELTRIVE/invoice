@@ -334,15 +334,16 @@ tr:hover td { background: #fafbff; }
                         <th onclick="sortTable(0)" style="cursor:pointer;user-select:none"># <span class="sort-icon" data-col="0">⇅</span></th>
                         <th onclick="sortTable(1)" style="cursor:pointer;user-select:none">Service Code <span class="sort-icon" data-col="1">⇅</span></th>
                         <th onclick="sortTable(2)" style="cursor:pointer;user-select:none">HSN/SAC <span class="sort-icon" data-col="2">⇅</span></th>
-                        <th onclick="sortTable(3)" style="cursor:pointer;user-select:none">Description <span class="sort-icon" data-col="3">⇅</span></th>
-                        <th onclick="sortTable(4)" style="cursor:pointer;user-select:none">UOM <span class="sort-icon" data-col="4">⇅</span></th>
-                        <th onclick="sortTable(5)" style="cursor:pointer;user-select:none">Qty <span class="sort-icon" data-col="5">⇅</span></th>
-                        <th onclick="sortTable(6)" style="cursor:pointer;user-select:none">Unit Price <span class="sort-icon" data-col="6">⇅</span></th>
-                        <th onclick="sortTable(7)" style="cursor:pointer;user-select:none">Discount% <span class="sort-icon" data-col="7">⇅</span></th>
-                        <th onclick="sortTable(8)" style="cursor:pointer;user-select:none">SGST% <span class="sort-icon" data-col="8">⇅</span></th>
-                        <th onclick="sortTable(9)" style="cursor:pointer;user-select:none">CGST% <span class="sort-icon" data-col="9">⇅</span></th>
-                        <th onclick="sortTable(10)" style="cursor:pointer;user-select:none">IGST% <span class="sort-icon" data-col="10">⇅</span></th>
-                        <th onclick="sortTable(11)" style="cursor:pointer;user-select:none">Total <span class="sort-icon" data-col="11">⇅</span></th>
+                        <th onclick="sortTable(3)" style="cursor:pointer;user-select:none">Item name <span class="sort-icon" data-col="3">⇅</span></th>
+                        <th onclick="sortTable(4)" style="cursor:pointer;user-select:none">Description <span class="sort-icon" data-col="4">⇅</span></th>
+                        <th onclick="sortTable(5)" style="cursor:pointer;user-select:none">UOM <span class="sort-icon" data-col="5">⇅</span></th>
+                        <th onclick="sortTable(6)" style="cursor:pointer;user-select:none">Qty <span class="sort-icon" data-col="6">⇅</span></th>
+                        <th onclick="sortTable(7)" style="cursor:pointer;user-select:none">Unit Price <span class="sort-icon" data-col="7">⇅</span></th>
+                        <th onclick="sortTable(8)" style="cursor:pointer;user-select:none">Discount% <span class="sort-icon" data-col="8">⇅</span></th>
+                        <th onclick="sortTable(9)" style="cursor:pointer;user-select:none">SGST% <span class="sort-icon" data-col="9">⇅</span></th>
+                        <th onclick="sortTable(10)" style="cursor:pointer;user-select:none">CGST% <span class="sort-icon" data-col="10">⇅</span></th>
+                        <th onclick="sortTable(11)" style="cursor:pointer;user-select:none">IGST% <span class="sort-icon" data-col="11">⇅</span></th>
+                        <th onclick="sortTable(12)" style="cursor:pointer;user-select:none">Total <span class="sort-icon" data-col="12">⇅</span></th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -352,7 +353,8 @@ tr:hover td { background: #fafbff; }
                     <td><?= $i + 1 ?></td>
                     <td><span class="badge badge-code"><?= htmlspecialchars($item['service_code'] ?? '-') ?></span></td>
                     <td><span class="badge badge-hsn"><?= htmlspecialchars($item['hsn_sac'] ?? '-') ?></span></td>
-                    <td style="max-width:220px;white-space:normal"><?= htmlspecialchars($item['material_description'] ?? '-') ?></td>
+                    <td style="max-width:220px;white-space:normal"><?= htmlspecialchars($item['item_name'] ?? '-') ?></td>
+                    <td style="font-weight:600;color:#1a1f2e"><?= htmlspecialchars($item['material_description'] ?? '-') ?></td>
                     <td><?= htmlspecialchars($item['uom'] ?? '-') ?></td>
                     <td><?= htmlspecialchars($item['qty'] ?? 0) ?></td>
                     <td class="amount-cell">₹<?= number_format($item['unit_price'] ?? 0, 2) ?></td>

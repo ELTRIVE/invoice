@@ -1108,8 +1108,6 @@ $popupCompany = !empty($existingOverride) ? array_merge($companyData, $existingO
                     <?php if ($isEdit): ?><input type="hidden" name="edit_id" value="<?= $editId ?>"><?php endif; ?>
                     <div style="display:flex;gap:8px;align-items:center;">
                         <div style="display:flex;flex-direction:column;gap:3px;">
-                            <label
-                                style="font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.7px;margin:0">Company</label>
                             <div style="display:flex;gap:6px;align-items:center;">
                                 <select id="company_select" name="selected_company_id" style="min-width:260px;">
                                     <option value="">-- Select Company --</option>
@@ -1480,7 +1478,19 @@ $popupCompany = !empty($existingOverride) ? array_merge($companyData, $existingO
                     </table>
                 </div>
             </div>
+<div style="display:flex; justify-content:flex-start; gap:10px; margin-top:20px;">
+    
+    <button type="submit" name="save_invoice" class="btn-theme" style="padding:10px 18px;">
+        <i class="fas fa-save"></i>
+        <?= $isEdit ? 'Update Invoice' : 'Save Invoice' ?>
+    </button>
 
+    <a href="index.php?view=invoices" class="btn-outline-theme" style="padding:10px 18px; text-decoration:none;">
+        <i class="fas fa-times"></i>
+        Cancel
+    </a>
+
+</div>
         </form>
         <!-- ADD BANK MODAL -->
         <div class="modal fade" id="addBankModal" tabindex="-1" aria-hidden="true">
