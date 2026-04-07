@@ -559,6 +559,22 @@ h2 { font-size: 22px; font-weight: 700; color: #1a1f2e; }
         </select>
     </div>
 
+    <!-- SHOW ENTRIES (outside the card) -->
+    <div class="show-entries" style="margin-bottom:8px">
+        Show
+        <form method="GET" id="ppForm" style="display:inline">
+            <input type="hidden" name="search" value="<?= htmlspecialchars($search) ?>">
+            <input type="hidden" name="sort_col" value="<?= htmlspecialchars($sort_col_st) ?>">
+            <input type="hidden" name="sort_dir" value="<?= htmlspecialchars($sort_dir_st) ?>">
+            <select name="per_page" onchange="this.form.submit();">
+                <?php foreach([10,25,50,100] as $n): ?>
+                <option value="<?=$n?>" <?=$per_page==$n?'selected':''?>><?=$n?></option>
+                <?php endforeach; ?>
+            </select>
+        </form>
+        entries
+    </div>
+
     <!-- TABLE -->
     <div class="stock-card">
         <?php
@@ -573,20 +589,6 @@ h2 { font-size: 22px; font-weight: 700; color: #1a1f2e; }
                  . $label . '<i class="fas '.$icon.' si"></i></th>';
         }
         ?>
-        <div class="show-entries">
-            Show
-            <form method="GET" id="ppForm" style="display:inline">
-                <input type="hidden" name="search" value="<?= htmlspecialchars($search) ?>">
-                <input type="hidden" name="sort_col" value="<?= htmlspecialchars($sort_col_st) ?>">
-                <input type="hidden" name="sort_dir" value="<?= htmlspecialchars($sort_dir_st) ?>">
-                <select name="per_page" onchange="this.form.submit();">
-                    <?php foreach([10,25,50,100] as $n): ?>
-                    <option value="<?=$n?>" <?=$per_page==$n?'selected':''?>><?=$n?></option>
-                    <?php endforeach; ?>
-                </select>
-            </form>
-            entries
-        </div>
         <table class="stock-table">
             <thead>
                 <tr>
