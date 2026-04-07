@@ -39,11 +39,37 @@ if (!$action) {
 }
 
 switch ($action) {
-    case 'save':   saveProject();   break;
-    case 'load':   loadProject();   break;
-    case 'list':   listProjects();  break;
-    case 'delete': deleteProject(); break;
-    default:       jsonError('Unknown action: ' . $action);
+    case 'save':     saveProject();   break;
+    case 'load':     loadProject();   break;
+    case 'list':     listProjects();  break;
+    case 'delete':   deleteProject(); break;
+    case 'next_key': nextDocKey();    break;
+    default:         jsonError('Unknown action: ' . $action);
+}
+
+// ── Generate next document key: ELT-TC-YYMMNNN (NNN = 3-digit sequence for this YYMM) ──
+function nextDocKey(): void {
+    global $pdo;
+    $prefix = 'ELT-TC-' . date('ym');   // e.g. ELT-TC-2602
+    try {
+        $stmt = $pdo->prepare(
+            "SELECT document_key FROM techno_projects
+             WHERE document_key LIKE :pfx
+             ORDER BY id DESC LIMIT 1"
+        );
+        $stmt->execute([':pfx' => $prefix . '%']);
+        $last = $stmt->fetchColumn();
+        $seq  = 1;
+        if ($last) {
+            // Extract the numeric suffix after the prefix
+            $num = intval(substr($last, strlen($prefix)));
+            if ($num > 0) $seq = $num + 1;
+        }
+        $key = $prefix . str_pad($seq, 3, '0', STR_PAD_LEFT);
+        jsonSuccess(['document_key' => $key]);
+    } catch (Exception $e) {
+        jsonError('Key generation failed: ' . $e->getMessage(), 500);
+    }
 }
 
 function saveProject(): void {

@@ -863,7 +863,7 @@ textarea.form-control{height:52px;resize:vertical;line-height:1.5}
 </div>
 
 <!-- BOTTOM SAVE -->
-<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;margin-bottom:12px">
+<div style="display:flex;gap:8px;justify-content:flex-start;margin-top:4px;margin-bottom:12px">
     <a href="supplier_invoices.php" class="btn-outline-theme"><i class="fas fa-times"></i> Cancel</a>
     <button type="submit" name="save_supplier_invoice" class="btn-theme"><i class="fas fa-save"></i> <?= $isEdit?'Update':'Save' ?> Invoice</button>
 </div>

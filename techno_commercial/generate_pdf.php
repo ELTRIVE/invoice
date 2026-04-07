@@ -1202,10 +1202,10 @@ if ($watermarkData) $zip->addFile('word/media/watermark.png',    $watermarkData)
 
 $docx = $zip->build();
 
-$safeName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $p['project_name'] ?? 'project');
+$safeName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $p['document_key'] ?: ($p['project_name'] ?? 'project'));
 
 // Word format download
-$filename = 'TC_' . $safeName . '_' . date('Ymd') . '.docx';
+$filename = $safeName . '.docx';
 header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
 header('Content-Disposition: attachment; filename="' . $filename . '"');
 header('Content-Length: ' . strlen($docx));

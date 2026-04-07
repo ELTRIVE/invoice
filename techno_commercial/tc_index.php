@@ -295,7 +295,70 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
 ::-webkit-scrollbar{display:none;}
 html{scrollbar-width:none;}
 
-/* ── DOWNLOAD MODAL ── */
+/* ── IMAGE PICKER MODAL ── */
+.img-overlay,.tbl-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9100;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.img-overlay.open,.tbl-overlay.open{opacity:1;pointer-events:all;}
+.img-modal,.tbl-modal{
+  background:#fff;border-radius:14px;padding:28px 30px;
+  width:90%;max-width:460px;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+  transform:translateY(16px) scale(.97);transition:transform .2s;
+}
+.img-overlay.open .img-modal,.tbl-overlay.open .tbl-modal{transform:translateY(0) scale(1);}
+.modal-title{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;color:#222;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.modal-tabs{display:flex;gap:0;border:1.5px solid var(--border);border-radius:7px;overflow:hidden;margin-bottom:18px;}
+.modal-tab{flex:1;padding:8px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;border:none;background:#f8fafc;color:#888;transition:all .15s;font-family:'Inter',sans-serif;}
+.modal-tab.active{background:var(--primary);color:#fff;}
+.modal-field{margin-bottom:14px;}
+.modal-field label{display:block;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;}
+.modal-field input[type=text],.modal-field input[type=url],.modal-field input[type=number]{
+  width:100%;padding:8px 11px;border:1.5px solid var(--border);border-radius:6px;
+  font-size:13px;font-family:'Inter',sans-serif;outline:none;
+}
+.modal-field input:focus{border-color:var(--primary);}
+.modal-field input[type=file]{font-size:13px;font-family:'Inter',sans-serif;}
+.modal-field .hint{font-size:11px;color:#aaa;margin-top:4px;}
+.modal-preview{width:100%;max-height:140px;object-fit:contain;border-radius:6px;border:1px solid var(--border);margin-bottom:14px;display:none;}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:6px;}
+.tbl-grid-picker{display:grid;gap:3px;margin:10px 0;cursor:pointer;}
+.tbl-grid-cell{width:22px;height:22px;border:1.5px solid var(--border);border-radius:3px;background:#f8fafc;transition:all .12s;}
+.tbl-grid-cell.hover{background:var(--primary-light);border-color:var(--primary);}
+.tbl-grid-wrap{display:flex;align-items:flex-start;gap:18px;}
+.tbl-grid-label{font-size:12px;color:var(--primary-dark);font-weight:600;margin-top:6px;white-space:nowrap;}
+
+/* ── INSERTED CONTENT BLOCKS ── */
+.inserted-block{
+  border:1px solid #d4edda;border-radius:8px;
+  background:#f6fcf8;padding:12px 14px;margin:12px 0;position:relative;
+  box-shadow:0 1px 4px rgba(61,186,111,.08);
+}
+.inserted-block .block-remove{
+  position:absolute;top:7px;right:8px;background:none;border:none;
+  color:#c8d6ce;cursor:pointer;font-size:14px;transition:color .15s;
+}
+.inserted-block .block-remove:hover{color:#e53935;background:#fff0f0;border-radius:50%;}
+.inserted-img{max-width:100%;display:block;border-radius:6px 6px 0 0;border:1px solid #d4edda;border-bottom:none;box-shadow:0 2px 10px rgba(0,0,0,.08);}
+.inserted-img-wrap{text-align:center;border:1px solid #d4edda;border-radius:6px;overflow:hidden;display:inline-block;width:100%;}
+.inserted-block-image{text-align:center;}
+.inserted-img-caption{font-size:11.5px;color:#6b7280;text-align:center;margin:0;padding:6px 10px;background:#f0faf4;border-top:1px solid #d4edda;font-style:italic;}
+.inserted-table-wrap{overflow-x:auto;}
+.inserted-table{width:100%;border-collapse:collapse;font-size:13px;font-family:'Inter',sans-serif;border-radius:6px;overflow:hidden;}
+.inserted-table th,.inserted-table td{
+  border:1.5px solid #c8e6c9;padding:7px 10px;
+  text-align:left;vertical-align:middle;
+}
+.inserted-table th{background:linear-gradient(135deg,var(--primary),var(--primary-dark));font-weight:700;color:#fff;font-size:12px;letter-spacing:.3px;}
+.inserted-table tr:nth-child(even) td{background:#f8fbf9;}
+.inserted-table td input{
+  width:100%;border:none;outline:none;background:transparent;
+  font-size:13px;font-family:'Inter',sans-serif;color:#333;padding:2px 0;
+}
+.inserted-table td input:focus{background:#e8f7ef;border-radius:3px;padding:2px 4px;}
+.block-label{font-size:10px;font-weight:700;color:var(--primary-dark);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;display:flex;align-items:center;gap:5px;}
 .dl-overlay{
   position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;
   display:flex;align-items:center;justify-content:center;
@@ -417,8 +480,11 @@ if (file_exists($headerPath)) {
                         <div class="field-input"><input id="mp-project-name" type="text" placeholder="Enter project name"></div>
                     </div>
                     <div class="field-cell">
-                        <div class="field-label">Document Key</div>
-                        <div class="field-input"><input id="mp-document-key" type="text" placeholder="e.g. ELT-QT-2602V1"></div>
+                        <div class="field-label">Document Key <span style="font-size:10px;color:var(--primary);font-weight:400;text-transform:none;margin-left:4px;">(auto-generated)</span></div>
+                        <div class="field-input" style="display:flex;align-items:center;gap:6px;">
+                            <input id="mp-document-key" type="text" placeholder="Auto-generating…"  style="background:#f0fbf4;color:var(--primary-dark);font-weight:600;cursor:default;flex:1">
+                            <button type="button" onclick="refreshDocKey()" title="Regenerate key" style="background:none;border:none;color:var(--primary);cursor:pointer;font-size:14px;padding:4px 6px;" id="doc-key-refresh-btn"><i class="fas fa-sync-alt"></i></button>
+                        </div>
                     </div>
                     <div class="field-cell">
                         <div class="field-label">Version</div>
@@ -597,6 +663,14 @@ if (file_exists($headerPath)) {
                     <button class="add-btn" onclick="addSubSubHeading()">
                         <i class="fas fa-indent" style="font-size:10px;"></i> Sub-sub Heading
                     </button>
+                    <button class="add-btn" onclick="openImagePicker()"
+                            style="border-color:#0d7377;color:#0d7377;">
+                        <i class="fas fa-image"></i> Insert Image
+                    </button>
+                    <button class="add-btn" onclick="openTableDialog()"
+                            style="border-color:#5c6bc0;color:#5c6bc0;">
+                        <i class="fas fa-table"></i> Insert Table
+                    </button>
                     <button class="add-btn" onclick="document.getElementById('rich-sections-container').innerHTML='';headingCount=0;lastHeadingEl=null;lastSubEl=null;const b=document.getElementById('offset-badge');if(b)b.textContent='Headings start at '+(globalHeadingOffset+1);"
                             style="border-color:#e53935;color:#e53935;">
                         <i class="fas fa-trash-alt"></i> Clear All
@@ -637,6 +711,111 @@ if (file_exists($headerPath)) {
       </button>
     </div>
     <button class="dl-cancel" onclick="closeDlModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- ═══ IMAGE PICKER MODAL ═══ -->
+<div class="img-overlay" id="img-overlay" onclick="if(event.target===this)closeImagePicker()">
+  <div class="img-modal">
+    <div class="modal-title"><i class="fas fa-image" style="color:var(--primary);"></i> Insert Image</div>
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="img-tab-upload" onclick="switchImgTab('upload')">
+        <i class="fas fa-upload"></i> Upload from PC
+      </button>
+      <button class="modal-tab" id="img-tab-url" onclick="switchImgTab('url')">
+        <i class="fas fa-link"></i> Paste URL / Google
+      </button>
+    </div>
+
+    <!-- Upload tab -->
+    <div id="img-panel-upload">
+      <div class="modal-field">
+        <label>Choose Image File</label>
+        <input type="file" id="img-file-input" accept="image/*" onchange="previewUpload(this)">
+        <div class="hint">Supports JPG, PNG, GIF, WEBP, SVG</div>
+      </div>
+    </div>
+
+    <!-- URL tab -->
+    <div id="img-panel-url" style="display:none;">
+      <div class="modal-field">
+        <label>Image URL</label>
+        <input type="url" id="img-url-input" placeholder="https://…  or paste a Google image link" oninput="previewUrl(this.value)">
+        <div class="hint">Right-click any image → "Copy image address" → paste here</div>
+      </div>
+    </div>
+
+    <img id="img-preview" class="modal-preview" alt="Preview">
+
+    <div class="modal-field">
+      <label>Caption (optional)</label>
+      <input type="text" id="img-caption-input" placeholder="Figure 1: …">
+    </div>
+    <div class="modal-field">
+      <label>Width %</label>
+      <input type="number" id="img-width-input" value="100" min="10" max="100" style="width:90px;">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-sm" onclick="closeImagePicker()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="insertImageBlock()"><i class="fas fa-check"></i> Insert</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TABLE DIALOG MODAL ═══ -->
+<div class="tbl-overlay" id="tbl-overlay" onclick="if(event.target===this)closeTableDialog()">
+  <div class="tbl-modal">
+    <div class="modal-title"><i class="fas fa-table" style="color:#5c6bc0;"></i> Insert Table</div>
+
+    <!-- Visual grid picker -->
+    <div class="modal-field">
+      <label>Hover to pick size (max 8×8) — or type below</label>
+      <div class="tbl-grid-wrap">
+        <div id="tbl-grid" style="display:inline-grid;gap:3px;grid-template-columns:repeat(8,24px);"></div>
+        <div>
+          <div class="tbl-grid-label" id="tbl-grid-label">0 × 0</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:14px;">
+      <div class="modal-field" style="flex:1;">
+        <label>Rows</label>
+        <input type="number" id="tbl-rows-input" value="3" min="1" max="50" oninput="syncGridFromInputs()">
+      </div>
+      <div class="modal-field" style="flex:1;">
+        <label>Columns</label>
+        <input type="number" id="tbl-cols-input" value="3" min="1" max="20" oninput="syncGridFromInputs()">
+      </div>
+    </div>
+
+    <div class="modal-field">
+      <label>Border Style</label>
+      <select id="tbl-border-style" style="width:100%;padding:8px 11px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
+        <option value="solid">Solid (default)</option>
+        <option value="double">Double</option>
+        <option value="dashed">Dashed</option>
+        <option value="dotted">Dotted</option>
+        <option value="none">No border</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Header Row</label>
+      <select id="tbl-has-header" style="width:100%;padding:8px 11px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
+        <option value="1">Yes – first row is header</option>
+        <option value="0">No – all rows are data</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:14px;">
+      <div class="modal-field" style="flex:2;">
+        <label>Table Width %</label>
+        <input type="number" id="tbl-width-input" value="70" min="20" max="100" style="width:100%;padding:8px 11px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-sm" onclick="closeTableDialog()">Cancel</button>
+      <button class="btn btn-primary btn-sm" style="background:#5c6bc0;" onclick="insertTableBlock()"><i class="fas fa-check"></i> Insert Table</button>
+    </div>
   </div>
 </div>
 
@@ -717,6 +896,22 @@ function scheduleAutoSave(){
 
 // ── Project Options ────────────────────────────────────────────────────
 
+// ── Auto-generate document key ────────────────────────────────────────
+async function refreshDocKey(){
+  const btn = document.getElementById('doc-key-refresh-btn');
+  const inp = document.getElementById('mp-document-key');
+  if(!inp) return;
+  if(btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+  try {
+    const res  = await fetch(BASE_URL + 'main_project.php?action=next_key');
+    const json = await res.json();
+    if(json.success && json.data?.document_key){
+      inp.value = json.data.document_key;
+    }
+  } catch(e){ console.warn('Key gen failed:', e); }
+  if(btn) btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+}
+
 // ── New Project (clear form, reset state) ─────────────────────────────
 function newProject(){
   currentProjectId = null;
@@ -732,6 +927,7 @@ function newProject(){
   }
   const rBody = document.getElementById('revision-tbody');
   if(rBody){ rBody.innerHTML = ''; addRevisionRow('','','',''); }
+  refreshDocKey();
   toast('Ready for new project. Fill in details and Save.','success');
 }
 
@@ -1000,20 +1196,112 @@ async function saveRichSection(isAuto=false){
   }
 }
 
+// ── Restore a saved block (table/image) into a parent element ─────────
+function restoreBlock(b, parentEl) {
+  if (!b || !b.type) return;
+  if (b.type === 'table') {
+    const rows = b.rows || [];
+    const headers = b.headers || [];
+    const hasHeader = headers.length > 0;
+    const widthPct = b.widthPct || '70%';
+    const borderStyle = '1.5px solid #c8e6c9';
+    let thead = '';
+    if (hasHeader) {
+      const hcells = headers.map((h,i) =>
+        `<th style="border:${borderStyle};padding:7px 10px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-weight:700;font-size:12px;">
+          <input type="text" value="${esc(h)}" style="width:100%;border:none;outline:none;background:transparent;font-weight:700;font-size:12px;font-family:'Inter',sans-serif;color:#fff;">
+         </th>`).join('');
+      thead = `<thead><tr>${hcells}</tr></thead>`;
+    }
+    const dataRows = rows.map((cells, ri) => {
+      const tds = cells.map(v =>
+        `<td style="border:${borderStyle};padding:5px 10px;background:${ri%2===0?'#fff':'#f8fbf9'};">
+          <input type="text" value="${esc(v)}" style="width:100%;border:none;outline:none;background:transparent;font-size:13px;font-family:'Inter',sans-serif;color:#333;">
+         </td>`).join('');
+      return `<tr>${tds}</tr>`;
+    }).join('');
+    const block = document.createElement('div');
+    block.className = 'inserted-block';
+    block.dataset.blockType = 'table';
+    block.innerHTML = `
+      <button class="block-remove" title="Remove table" onclick="this.parentElement.remove();scheduleAutoSave()">
+        <i class="fas fa-times-circle"></i>
+      </button>
+      <div class="block-label"><i class="fas fa-table"></i> Table</div>
+      <div class="inserted-table-wrap" style="max-width:${widthPct};">
+        <table class="inserted-table" style="border-collapse:collapse;width:100%;box-shadow:0 1px 6px rgba(61,186,111,.12);">
+          ${thead}<tbody>${dataRows}</tbody>
+        </table>
+      </div>`;
+    block.querySelectorAll('input').forEach(attachAutoSave);
+    parentEl.appendChild(block);
+  } else if (b.type === 'image') {
+    const src = b.src || '';
+    const caption = b.caption || '';
+    const widthPct = b.widthPct || '70%';
+    if (!src) return;
+    const block = document.createElement('div');
+    block.className = 'inserted-block inserted-block-image';
+    block.dataset.blockType = 'image';
+    block.dataset.src = src;
+    block.innerHTML =
+      '<button class="block-remove" title="Remove figure" onclick="this.parentElement.remove();scheduleAutoSave()">' +
+      '<i class="fas fa-times-circle"></i></button>' +
+      '<div class="block-label"><i class="fas fa-image"></i> Figure</div>' +
+      '<div class="inserted-img-wrap" style="max-width:' + widthPct + ';margin:0 auto;">' +
+      '<img class="inserted-img" src="' + esc(src) + '" style="width:100%;" alt="' + esc(caption) + '">' +
+      (caption ? '<div class="inserted-img-caption"><i class="fas fa-camera" style="font-size:9px;margin-right:4px;"></i>' + esc(caption) + '</div>' : '') +
+      '</div>';
+    parentEl.appendChild(block);
+  }
+}
+
 function collectHeadings(){
   const results=[];
   document.getElementById('rich-sections-container')?.querySelectorAll(':scope > .section-entry').forEach(entry=>{
     const subs=[];
+    // collect inserted blocks (tables/images) directly inside this heading (not inside subs)
+    const headingBlocks = [];
+    entry.querySelectorAll(':scope > .inserted-block').forEach(block => {
+      headingBlocks.push(collectBlock(block));
+    });
     entry.querySelectorAll(':scope > .sub-entries > .sub-entry').forEach(sub=>{
       const subsubs=[];
+      const subBlocks=[];
+      sub.querySelectorAll(':scope > .inserted-block').forEach(block => {
+        subBlocks.push(collectBlock(block));
+      });
       sub.querySelectorAll(':scope > .subsub-container > .subsub-entry').forEach(ss=>{
         subsubs.push({num:+ss.dataset.ssnum,title:ss.querySelector('.subsub-title-input')?.value||'',description:ss.querySelector('.subsub-desc-input')?.value||''});
       });
-      subs.push({num:+sub.dataset.snum,title:sub.querySelector('.sub-title-input')?.value||'',description:sub.querySelector('.sub-desc-input')?.value||'',subsubheadings:subsubs});
+      subs.push({num:+sub.dataset.snum,title:sub.querySelector('.sub-title-input')?.value||'',description:sub.querySelector('.sub-desc-input')?.value||'',subsubheadings:subsubs,blocks:subBlocks});
     });
-    results.push({num:+entry.dataset.hnum,title:entry.querySelector('.section-title-input')?.value||'',description:entry.querySelector('.section-desc-input')?.value||'',subheadings:subs});
+    results.push({num:+entry.dataset.hnum,title:entry.querySelector('.section-title-input')?.value||'',description:entry.querySelector('.section-desc-input')?.value||'',subheadings:subs,blocks:headingBlocks});
   });
   return results;
+}
+
+function collectBlock(block) {
+  const type = block.dataset.blockType;
+  if (type === 'table') {
+    const headers = [];
+    block.querySelectorAll('thead th input').forEach(inp => headers.push(inp.value));
+    const rows = [];
+    block.querySelectorAll('tbody tr').forEach(tr => {
+      const cells = [];
+      tr.querySelectorAll('td input').forEach(inp => cells.push(inp.value));
+      rows.push(cells);
+    });
+    const maxW = block.querySelector('.inserted-table-wrap')?.style.maxWidth || '70%';
+    return { type: 'table', headers, rows, widthPct: maxW };
+  } else if (type === 'image') {
+    const img = block.querySelector('.inserted-img');
+    const wrap = block.querySelector('.inserted-img-wrap');
+    const caption = block.querySelector('.inserted-img-caption')?.textContent?.trim().replace(/^./, '').trim() || '';
+    const widthPct = wrap?.style.maxWidth || '70%';
+    return { type: 'image', src: img?.src || block.dataset.src || '', widthPct, caption };
+  }
+  return { type: 'unknown' };
 }
 
 // Attach auto-save to any input/textarea change inside rich container
@@ -1039,7 +1327,9 @@ function buildHeading(num,title,desc,subs){
   container.appendChild(entry);
   lastHeadingEl=entry; lastSubEl=null;
   entry.querySelectorAll('input,textarea').forEach(attachAutoSave);
-  (subs||[]).forEach(sh=>addSubFromData(entry,sh.sub_num??sh.num,sh.title,sh.description,sh.subsubheadings||[]));
+  (subs||[]).forEach(sh=>addSubFromData(entry,sh.sub_num??sh.num,sh.title,sh.description,sh.subsubheadings||[],sh.blocks||[]));
+  // restore heading-level blocks
+  (subs?.length === 0 ? [] : []).concat([]); // placeholder – blocks restored below
   if(!title) entry.querySelector('.section-title-input').focus();
   return entry;
 }
@@ -1049,10 +1339,10 @@ function addSubHeading(){
   lastHeadingEl.dataset.subCount=+lastHeadingEl.dataset.subCount+1;
   buildSubHeading(lastHeadingEl,+lastHeadingEl.dataset.gnum,lastHeadingEl.dataset.subCount,'','',[]);
 }
-function addSubFromData(hEl,snum,title,desc,subsubs){
-  hEl.dataset.subCount=snum; return buildSubHeading(hEl,+hEl.dataset.gnum,snum,title,desc,subsubs);
+function addSubFromData(hEl,snum,title,desc,subsubs,blocks){
+  hEl.dataset.subCount=snum; return buildSubHeading(hEl,+hEl.dataset.gnum,snum,title,desc,subsubs,blocks);
 }
-function buildSubHeading(hEl,gnum,snum,title,desc,subsubs){
+function buildSubHeading(hEl,gnum,snum,title,desc,subsubs,blocks){
   const sub=document.createElement('div'); sub.className='sub-entry';
   sub.dataset.gnum=gnum; sub.dataset.snum=snum; sub.dataset.ssCount=0;
   sub.innerHTML=`
@@ -1065,6 +1355,8 @@ function buildSubHeading(hEl,gnum,snum,title,desc,subsubs){
   lastSubEl=sub;
   sub.querySelectorAll('input,textarea').forEach(attachAutoSave);
   (subsubs||[]).forEach(ss=>buildSubSubHeading(sub,gnum,snum,ss.subsub_num??ss.num,ss.title,ss.description));
+  // restore saved table/image blocks
+  (blocks||[]).forEach(b => restoreBlock(b, sub));
   if(!title) sub.querySelector('.sub-title-input').focus();
   return sub;
 }
@@ -1164,11 +1456,12 @@ document.addEventListener('DOMContentLoaded', async function(){
     await loadProjectOptions('mp-project-select');
     mpSel.addEventListener('change',()=>{
       const id=parseInt(mpSel.value);
-      if(id) loadMainProject(id); else clearMainProject();
+      if(id) loadMainProject(id); else { clearMainProject(); refreshDocKey(); }
     });
     // Check URL load_id first, then sessionStorage
     const loadId=parseInt(new URLSearchParams(location.search).get('load_id')||'0') || getPersistedProjectId();
     if(loadId){ mpSel.value=loadId; loadMainProject(loadId); }
+    else { refreshDocKey(); } // new project — auto-fill doc key
   }
 
   // ── Sidebar (rich editor) pages ────────────────────────────────────
@@ -1197,6 +1490,225 @@ document.addEventListener('DOMContentLoaded', async function(){
 
   if(TC_SUB==='documents') loadDocumentList();
 });
+
+// ═══════════════════════════════════════════════════════════════════════
+// IMAGE PICKER
+// ═══════════════════════════════════════════════════════════════════════
+let _imgTab = 'upload';
+let _imgInsertTarget = null; // insert after this element, or null = append
+
+function openImagePicker() {
+  document.getElementById('img-overlay').classList.add('open');
+  document.getElementById('img-file-input').value = '';
+  document.getElementById('img-url-input').value = '';
+  document.getElementById('img-caption-input').value = '';
+  document.getElementById('img-width-input').value = '70';
+  const prev = document.getElementById('img-preview');
+  prev.style.display = 'none'; prev.src = '';
+  switchImgTab('upload');
+}
+function closeImagePicker() {
+  document.getElementById('img-overlay').classList.remove('open');
+}
+function switchImgTab(tab) {
+  _imgTab = tab;
+  document.getElementById('img-panel-upload').style.display = tab === 'upload' ? '' : 'none';
+  document.getElementById('img-panel-url').style.display   = tab === 'url'    ? '' : 'none';
+  document.getElementById('img-tab-upload').classList.toggle('active', tab === 'upload');
+  document.getElementById('img-tab-url').classList.toggle('active',    tab === 'url');
+}
+function previewUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const prev = document.getElementById('img-preview');
+    prev.src = e.target.result;
+    prev.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+function previewUrl(url) {
+  const prev = document.getElementById('img-preview');
+  if (!url) { prev.style.display = 'none'; return; }
+  prev.src = url;
+  prev.style.display = 'block';
+  prev.onerror = () => { prev.style.display = 'none'; };
+}
+function insertImageBlock() {
+  let src = '';
+  if (_imgTab === 'upload') {
+    const file = document.getElementById('img-file-input').files[0];
+    if (!file) { toast('Please choose an image file.', 'error'); return; }
+    // Convert to base64 data URL and insert
+    const reader = new FileReader();
+    reader.onload = e => _doInsertImage(e.target.result);
+    reader.readAsDataURL(file);
+    closeImagePicker();
+    return;
+  } else {
+    src = document.getElementById('img-url-input').value.trim();
+    if (!src) { toast('Please enter an image URL.', 'error'); return; }
+  }
+  _doInsertImage(src);
+  closeImagePicker();
+}
+function _doInsertImage(src) {
+  const caption  = document.getElementById('img-caption-input').value.trim();
+  const widthPct = parseInt(document.getElementById('img-width-input').value) || 70;
+  const container = document.getElementById('rich-sections-container');
+  if (!container) return;
+
+  const block = document.createElement('div');
+  block.className = 'inserted-block inserted-block-image';
+  block.dataset.blockType = 'image';
+  block.dataset.src = src;
+  block.innerHTML = `
+    <button class="block-remove" title="Remove figure" onclick="this.parentElement.remove();scheduleAutoSave()">
+      <i class="fas fa-times-circle"></i>
+    </button>
+    <div class="block-label"><i class="fas fa-image"></i> Figure</div>
+    <div class="inserted-img-wrap" style="max-width:${widthPct}%;margin:0 auto;">
+      <img class="inserted-img" src="${esc(src)}" style="width:100%;" alt="${esc(caption)}">
+      ${caption ? '<div class="inserted-img-caption"><i class="fas fa-camera" style="font-size:9px;margin-right:4px;"></i>' + esc(caption) + '</div>' : ''}
+    </div>`;
+
+  if (lastSubEl) {
+    lastSubEl.parentNode.insertBefore(block, lastSubEl.nextSibling);
+  } else if (lastHeadingEl) {
+    lastHeadingEl.appendChild(block);
+  } else {
+    container.appendChild(block);
+  }
+
+  scheduleAutoSave();
+  toast('Figure inserted!', 'success');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// TABLE DIALOG
+// ═══════════════════════════════════════════════════════════════════════
+let _tblHoverR = 0, _tblHoverC = 0;
+
+function openTableDialog() {
+  document.getElementById('tbl-overlay').classList.add('open');
+  buildTblGrid();
+  syncGridHighlight(0, 0);
+}
+function closeTableDialog() {
+  document.getElementById('tbl-overlay').classList.remove('open');
+}
+function buildTblGrid() {
+  const grid = document.getElementById('tbl-grid');
+  grid.innerHTML = '';
+  for (let r = 1; r <= 8; r++) {
+    for (let c = 1; c <= 8; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'tbl-grid-cell';
+      cell.dataset.r = r; cell.dataset.c = c;
+      cell.addEventListener('mouseenter', () => syncGridHighlight(r, c));
+      cell.addEventListener('click', () => {
+        document.getElementById('tbl-rows-input').value = r;
+        document.getElementById('tbl-cols-input').value = c;
+      });
+      grid.appendChild(cell);
+    }
+  }
+  grid.addEventListener('mouseleave', () => syncGridHighlight(
+    parseInt(document.getElementById('tbl-rows-input').value) || 0,
+    parseInt(document.getElementById('tbl-cols-input').value) || 0
+  ));
+}
+function syncGridHighlight(r, c) {
+  document.getElementById('tbl-grid-label').textContent = r + ' × ' + c + ' table';
+  document.querySelectorAll('.tbl-grid-cell').forEach(cell => {
+    cell.classList.toggle('hover', +cell.dataset.r <= r && +cell.dataset.c <= c);
+  });
+}
+function syncGridFromInputs() {
+  const r = parseInt(document.getElementById('tbl-rows-input').value) || 0;
+  const c = parseInt(document.getElementById('tbl-cols-input').value) || 0;
+  syncGridHighlight(r, c);
+}
+function insertTableBlock() {
+  const rows      = Math.max(1, parseInt(document.getElementById('tbl-rows-input').value) || 3);
+  const cols      = Math.max(1, parseInt(document.getElementById('tbl-cols-input').value) || 3);
+  const border    = document.getElementById('tbl-border-style').value;
+  const hasHeader = document.getElementById('tbl-has-header').value === '1';
+  const widthPct  = parseInt(document.getElementById('tbl-width-input')?.value) || 70;
+  const container = document.getElementById('rich-sections-container');
+  if (!container) return;
+
+  const borderStyle = border === 'none' ? 'none' : `1.5px ${border} #c8e6c9`;
+
+  let thead = '';
+  let startRow = 0;
+  if (hasHeader) {
+    startRow = 1;
+    const hcells = Array.from({length: cols}, (_, i) =>
+      `<th style="border:${borderStyle};padding:7px 10px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-weight:700;font-size:12px;letter-spacing:.3px;">
+        <input type="text" placeholder="Header ${i+1}" style="width:100%;border:none;outline:none;background:transparent;font-weight:700;font-size:12px;font-family:'Inter',sans-serif;color:#fff;::placeholder-color:rgba(255,255,255,.6);">
+       </th>`
+    ).join('');
+    thead = `<thead><tr>${hcells}</tr></thead>`;
+  }
+
+  const dataRows = Array.from({length: rows - startRow}, (_, ri) => {
+    const cells = Array.from({length: cols}, (_, ci) =>
+      `<td style="border:${borderStyle};padding:5px 10px;background:${ri%2===0?'#fff':'#f8fbf9'};">
+        <input type="text" placeholder="" style="width:100%;border:none;outline:none;background:transparent;font-size:13px;font-family:'Inter',sans-serif;color:#333;">
+       </td>`
+    ).join('');
+    return `<tr>${cells}</tr>`;
+  }).join('');
+
+  const block = document.createElement('div');
+  block.className = 'inserted-block';
+  block.dataset.blockType = 'table';
+  block.dataset.rows = rows;
+  block.dataset.cols = cols;
+  block.innerHTML = `
+    <button class="block-remove" title="Remove table" onclick="this.parentElement.remove();scheduleAutoSave()">
+      <i class="fas fa-times-circle"></i>
+    </button>
+    <div class="block-label"><i class="fas fa-table"></i> Table (${rows}×${cols})</div>
+    <div class="inserted-table-wrap" style="max-width:${widthPct}%;">
+      <table class="inserted-table" style="border-collapse:collapse;width:100%;box-shadow:0 1px 6px rgba(61,186,111,.12);border-radius:6px;overflow:hidden;">
+        ${thead}
+        <tbody>${dataRows}</tbody>
+      </table>
+    </div>`;
+
+  // Attach auto-save to all inputs inside the table
+  block.querySelectorAll('input').forEach(attachAutoSave);
+
+  // ── Insert at the correct position (after active heading/sub/subsub) ──
+  // Priority: lastSubEl textarea → lastHeadingEl textarea → end of container
+  let insertAfter = null;
+  if (lastSubEl) {
+    // Find the subsub-container or the desc textarea inside lastSubEl
+    insertAfter = lastSubEl.querySelector('.subsub-container') || lastSubEl.querySelector('.sub-desc-input') || lastSubEl;
+    // We want to insert the block as a sibling AFTER lastSubEl inside its parent
+    insertAfter = lastSubEl;
+    lastSubEl.parentNode.insertBefore(block, insertAfter.nextSibling);
+  } else if (lastHeadingEl) {
+    // Insert after the sub-entries div of lastHeadingEl
+    const subEntries = lastHeadingEl.querySelector('.sub-entries');
+    if (subEntries && subEntries.children.length > 0) {
+      lastHeadingEl.appendChild(block); // append inside heading, after sub-entries
+    } else {
+      lastHeadingEl.appendChild(block);
+    }
+  } else {
+    container.appendChild(block);
+  }
+
+  closeTableDialog();
+  scheduleAutoSave();
+  toast(`Table ${rows}×${cols} inserted!`, 'success');
+}
+
+
 </script>
 </body>
 </html>

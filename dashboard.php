@@ -18,6 +18,7 @@ switch($period) {
         $from = date("Y-$qS-01"); $to = date('Y-m-t', strtotime(date("Y-".($qS+2)."-01")));
         $periodLabel = 'This Quarter'; break;
     case 'this_year':   $from = $finYearStart; $to = $finYearEnd; $periodLabel = 'This Financial Year'; break;
+    case 'last_year':   $from = ($m>=4)?(($y-1).'-04-01'):(($y-2).'-04-01'); $to = ($m>=4)?("$y-03-31"):(($y-1).'-03-31'); $periodLabel = 'Last Financial Year'; break;
     default:            $from = date('Y-m-01'); $to = date('Y-m-t'); $periodLabel = date('F Y'); $period = 'this_month';
 }
 
@@ -220,7 +221,7 @@ body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
     <div class="filter-wrap">
         <div class="filter-bar">
             <?php
-            $periods = ['today'=>'Today','this_week'=>'This Week','this_month'=>'This Month','last_month'=>'Last Month','this_quarter'=>'This Quarter','this_year'=>'This Year'];
+            $periods = ['today'=>'Today','this_week'=>'This Week','this_month'=>'This Month','last_month'=>'Last Month','this_quarter'=>'This Quarter','this_year'=>'This Year','last_year'=>'Last Fin. Year'];
             foreach($periods as $val=>$lbl): ?>
             <a href="?period=<?=$val?>" class="<?=$period===$val?'active':''?>"><?=$lbl?></a>
             <?php endforeach; ?>
@@ -230,41 +231,37 @@ body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
 
     <!-- STAT CARDS -->
     <div class="sec-label">Overview</div>
+    <?php
+    // Period-aware stat card values — all driven by $from / $to
+    $cardRevenue  = $filteredAmount;
+    $cardPaid     = floatval($pdo->query("SELECT COALESCE(SUM(amount_received),0) FROM invoices WHERE payment_status='Paid' AND invoice_date BETWEEN '$from' AND '$to'")->fetchColumn());
+    $cardPending  = floatval($pdo->query("SELECT COALESCE(SUM(amount_pending),0)  FROM invoices WHERE invoice_date BETWEEN '$from' AND '$to'")->fetchColumn());
+    $cardCount    = (int)$pdo->query("SELECT COUNT(*) FROM invoices WHERE invoice_date BETWEEN '$from' AND '$to'")->fetchColumn();
+    ?>
     <div class="top-stats">
 
-        <a href="index.php?view=invoices&period=this_year" class="ts orange">
-           
-            <div class="ts-label">Annual Revenue</div>
-            <div class="ts-value"><?=formatINR($annualAmount)?></div>
-            <div class="ts-sub">FY <?=date('Y')?>–<?=date('y',strtotime('+1 year'))?> &nbsp;·&nbsp; from Apr</div>
+        <a href="index.php?view=invoices&period=<?=$period?>" class="ts orange">
+            <div class="ts-label">Revenue</div>
+            <div class="ts-value"><?=formatINR($cardRevenue)?></div>
+            <div class="ts-sub"><?=htmlspecialchars($periodLabel)?></div>
         </a>
 
-        <a href="index.php?view=invoices&period=this_month" class="ts green">
-           
-            <div class="ts-label">This Month</div>
-            <div class="ts-value"><?=formatINR($thisMonthAmount)?></div>
-            <div class="ts-sub">
-                <?=date('F Y')?>
-                <?php if($lastMonthAmount>0):
-                    $pct=round((($thisMonthAmount-$lastMonthAmount)/$lastMonthAmount)*100);
-                    $dir=$pct>=0?'up':'down'; $icon=$pct>=0?'arrow-up':'arrow-down'; ?>
-                <span class="badge-trend <?=$dir?>"><i class="fas fa-<?=$icon?>"></i> <?=abs($pct)?>%</span>
-                <?php endif; ?>
-            </div>
+        <a href="index.php?view=invoices&period=<?=$period?>&status=paid" class="ts green">
+            <div class="ts-label">Collected</div>
+            <div class="ts-value"><?=formatINR($cardPaid)?></div>
+            <div class="ts-sub">Paid invoices &nbsp;·&nbsp; <?=$paidCount?> inv</div>
         </a>
 
-        <a href="index.php?view=invoices&period=last_month" class="ts blue">
-          
-            <div class="ts-label">Last Month</div>
-            <div class="ts-value"><?=formatINR($lastMonthAmount)?></div>
-            <div class="ts-sub"><?=date('F',strtotime('last month'))?> <?=date('Y')?></div>
+        <a href="index.php?view=invoices&period=<?=$period?>&status=unpaid" class="ts blue">
+            <div class="ts-label">Pending</div>
+            <div class="ts-value"><?=formatINR($cardPending)?></div>
+            <div class="ts-sub">Unpaid + Partial &nbsp;·&nbsp; <?=$unpaidCount+$partialCount?> inv</div>
         </a>
 
-        <a href="index.php?view=invoices&period=this_year" class="ts purple">
-            
+        <a href="index.php?view=invoices&period=<?=$period?>" class="ts purple">
             <div class="ts-label">Total Invoices</div>
-            <div class="ts-value"><?=$totalInvoices?></div>
-            <div class="ts-sub"><?=$invoicesThisMonth?> this month &nbsp;·&nbsp; <?=$totalCustomers?> customers</div>
+            <div class="ts-value"><?=$cardCount?></div>
+            <div class="ts-sub"><?=htmlspecialchars($periodLabel)?> &nbsp;·&nbsp; <?=$totalCustomers?> customers</div>
         </a>
 
     </div>
