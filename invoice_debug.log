@@ -1,0 +1,228 @@
+2026-03-11 11:50:15
+POST keys: customer, contact_person, sales_credit, mobile, gstin, billing_address, shipping_address, ship_gstin, ship_phone_num, invoice_number, reference, invoice_date, due_date, bank_id, items, save_invoice
+items count: 1
+items dump:
+Array
+(
+    [1] => Array
+        (
+            [id] => 5
+            [service_code] => 110824
+            [description] => Preventive Maintenance Visit – Fire Alarm System
+            [hsn_sac] => 998719
+            [uom] => NOS
+            [basic_amount] => 25000.00
+            [cgst_amount] => 0.00
+            [sgst_amount] => 0.00
+            [igst_amount] => 0.00
+            [total_amount] => 25000.00
+            [qty] => 1
+            [rate] => 25000
+            [discount] => 0
+            [cgst_percent] => 0
+            [sgst_percent] => 0
+            [igst_percent] => 0
+        )
+
+)
+
+------------------------------------------------------------
+2026-03-11 11:56:33
+POST keys: customer, customer_hidden_backup, contact_person, sales_credit, mobile, gstin, billing_address, shipping_address, ship_gstin, ship_phone_num, invoice_number, reference, invoice_date, due_date, bank_id, items, save_invoice
+items count: 1
+items dump:
+Array
+(
+    [1] => Array
+        (
+            [id] => 5
+            [service_code] => 110824
+            [description] => Preventive Maintenance Visit – Fire Alarm System
+            [hsn_sac] => 998719
+            [uom] => NOS
+            [basic_amount] => 25000.00
+            [cgst_amount] => 0.00
+            [sgst_amount] => 0.00
+            [igst_amount] => 0.00
+            [total_amount] => 25000.00
+            [qty] => 1
+            [rate] => 25000
+            [discount] => 0
+            [cgst_percent] => 0
+            [sgst_percent] => 0
+            [igst_percent] => 0
+        )
+
+)
+
+------------------------------------------------------------
+2026-03-11 12:03:18
+POST keys: customer, customer_hidden_backup, contact_person, sales_credit, mobile, gstin, billing_address, shipping_address, ship_gstin, ship_phone_num, invoice_number, reference, invoice_date, due_date, bank_id, items, save_invoice
+items count: 1
+items dump:
+Array
+(
+    [1] => Array
+        (
+            [id] => 5
+            [service_code] => 110824
+            [description] => Preventive Maintenance Visit – Fire Alarm System
+            [hsn_sac] => 998719
+            [uom] => NOS
+            [basic_amount] => 25000.00
+            [cgst_amount] => 0.00
+            [sgst_amount] => 0.00
+            [igst_amount] => 0.00
+            [total_amount] => 25000.00
+            [qty] => 1
+            [rate] => 25000
+            [discount] => 0
+            [cgst_percent] => 0
+            [sgst_percent] => 0
+            [igst_percent] => 0
+        )
+
+)
+
+------------------------------------------------------------
+EXCEPTION: SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'voucher_number' cannot be null
+TRACE: #0 C:\xampp\htdocs\TOOLS\invoice\create_invoice.php(87): PDOStatement->execute(Array)
+#1 {main}
+POST dump:
+Array
+(
+    [customer] => GRANULES INDIA LIMITED
+    [customer_hidden_backup] => GRANULES INDIA LIMITED
+    [contact_person] => 9390195613
+    [sales_credit] => 32434343
+    [mobile] => 8418306109
+    [gstin] => 36AAICE6601Q1Z7
+    [billing_address] => Hyderbad, Telangana - 
+India
+    [shipping_address] => Hyderbad, Telangana - 
+India
+    [ship_gstin] => MICB000123
+    [ship_phone_num] => 8418306109
+    [invoice_number] => ELT2526123
+    [reference] => ELT2526115
+    [invoice_date] => 2026-03-11
+    [due_date] => 2026-03-11
+    [bank_id] => 2
+    [items] => Array
+        (
+            [1] => Array
+                (
+                    [id] => 5
+                    [service_code] => 110824
+                    [description] => Preventive Maintenance Visit – Fire Alarm System
+                    [hsn_sac] => 998719
+                    [uom] => NOS
+                    [basic_amount] => 25000.00
+                    [cgst_amount] => 0.00
+                    [sgst_amount] => 0.00
+                    [igst_amount] => 0.00
+                    [total_amount] => 25000.00
+                    [qty] => 1
+                    [rate] => 25000
+                    [discount] => 0
+                    [cgst_percent] => 0
+                    [sgst_percent] => 0
+                    [igst_percent] => 0
+                )
+
+        )
+
+    [save_invoice] => 
+)
+
+------------------------------------------------------------
+2026-03-11 12:05:31
+POST keys: customer, customer_hidden_backup, contact_person, sales_credit, mobile, gstin, billing_address, shipping_address, ship_gstin, ship_phone_num, invoice_number, reference, invoice_date, due_date, bank_id, items, save_invoice
+items count: 1
+items dump:
+Array
+(
+    [1] => Array
+        (
+            [id] => 5
+            [service_code] => 110824
+            [description] => Preventive Maintenance Visit – Fire Alarm System
+            [hsn_sac] => 998719
+            [uom] => NOS
+            [basic_amount] => 25000.00
+            [cgst_amount] => 0.00
+            [sgst_amount] => 0.00
+            [igst_amount] => 0.00
+            [total_amount] => 25000.00
+            [qty] => 1
+            [rate] => 25000
+            [discount] => 0
+            [cgst_percent] => 0
+            [sgst_percent] => 0
+            [igst_percent] => 0
+        )
+
+)
+
+------------------------------------------------------------
+INSERT row 1: invoice_id=96, inv_no=ELT2526123, date=2026-03-11, item_id=5, qty=1, rate=25000, total=25000
+2026-03-11 12:06:00
+POST keys: customer, customer_hidden_backup, contact_person, sales_credit, mobile, gstin, billing_address, shipping_address, ship_gstin, ship_phone_num, invoice_number, reference, invoice_date, due_date, bank_id, items, save_invoice
+items count: 1
+items dump:
+Array
+(
+    [1] => Array
+        (
+            [id] => 5
+            [service_code] => 110824
+            [description] => Preventive Maintenance Visit – Fire Alarm System
+            [hsn_sac] => 998719
+            [uom] => NOS
+            [basic_amount] => 25000.00
+            [cgst_amount] => 0.00
+            [sgst_amount] => 0.00
+            [igst_amount] => 0.00
+            [total_amount] => 25000.00
+            [qty] => 1
+            [rate] => 25000
+            [discount] => 0
+            [cgst_percent] => 0
+            [sgst_percent] => 0
+            [igst_percent] => 0
+        )
+
+)
+
+------------------------------------------------------------
+INSERT row 1: invoice_id=97, inv_no=ELT2526124, date=2026-03-11, item_id=5, qty=1, rate=25000, total=25000
+2026-03-11 12:15:06
+POST keys: customer, customer_hidden_backup, contact_person, sales_credit, mobile, gstin, billing_address, shipping_address, ship_gstin, ship_phone_num, invoice_number, reference, invoice_date, due_date, bank_id, items, save_invoice
+items count: 1
+items dump:
+Array
+(
+    [1] => Array
+        (
+            [id] => 5
+            [service_code] => 110824
+            [description] => Preventive Maintenance Visit – Fire Alarm System
+            [hsn_sac] => 998719
+            [uom] => NOS
+            [basic_amount] => 25000.00
+            [cgst_amount] => 0.00
+            [sgst_amount] => 0.00
+            [igst_amount] => 0.00
+            [total_amount] => 25000.00
+            [qty] => 1
+            [rate] => 25000
+            [discount] => 0
+            [cgst_percent] => 0
+            [sgst_percent] => 0
+            [igst_percent] => 0
+        )
+
+)
+
+------------------------------------------------------------
+INSERT row 1: invoice_id=98, inv_no=ELT2526125, date=2026-03-11, item_id=5, qty=1, rate=25000, total=25000
