@@ -393,7 +393,7 @@ $html .= '
         </td>
         <td style="border:0.5px solid #000; padding:8px; width:50%; text-align:right; vertical-align:top; font-size:9px;">
             For, ' . htmlspecialchars($company['company_name']) . '<br><br>
-            ' . ($signatureBase64 ? '<img src="' . $signatureBase64 . '" style="max-height:70px; max-width:170px; object-fit:contain; display:inline-block;" /><br>' : '<br><br><br>') . '
+            ' . ($signatureBase64 ? '<img src="' . $signatureBase64 . '" style="max-height:75px; max-width:175px; object-fit:contain; display:inline-block;" /><br>' : '<br><br><br>') . '
             <strong>Authorised Signatory</strong>
         </td>
     </tr>
