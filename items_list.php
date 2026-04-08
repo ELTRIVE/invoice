@@ -124,24 +124,19 @@ tbody tr:hover td{background:#fff7f0}
 
 <div class="content">
 
-    <!-- PAGE HEADER -->
-    <div class="page-header">
-        <div class="page-header-left">
+    <!-- TOP ROW: Header + Summary Cards + Per Page + Buttons -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:nowrap">
+        <!-- Page Icon + Title -->
+        <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
             <div class="page-icon"><i class="fas fa-boxes"></i></div>
             <div>
                 <div class="page-title">Items List</div>
                 <div class="page-sub">Manage all inventory items</div>
             </div>
         </div>
-        <div style="display:flex;align-items:center;gap:6px">
-            <a href="javascript:history.back()" class="btn-back"><i class="fas fa-arrow-left"></i> Back</a>
-            <a href="add_stock.php" class="btn-add"><i class="fas fa-plus"></i> Add Item</a>
-        </div>
-    </div>
 
-    <!-- SUMMARY CARDS -->
-    <div class="summary-row">
-        <div class="summary-card">
+        <!-- Summary Cards -->
+        <div class="summary-card" style="flex-shrink:0">
             <div class="summary-icon" style="background:linear-gradient(135deg,#f97316,#fb923c)">
                 <i class="fas fa-boxes"></i>
             </div>
@@ -150,7 +145,7 @@ tbody tr:hover td{background:#fff7f0}
                 <div class="summary-label">Total Items</div>
             </div>
         </div>
-        <div class="summary-card">
+        <div class="summary-card" style="flex-shrink:0">
             <div class="summary-icon" style="background:linear-gradient(135deg,#3b82f6,#2563eb)">
                 <i class="fas fa-rupee-sign"></i>
             </div>
@@ -159,7 +154,7 @@ tbody tr:hover td{background:#fff7f0}
                 <div class="summary-label">Total Value</div>
             </div>
         </div>
-        <div class="summary-card">
+        <div class="summary-card" style="flex-shrink:0">
             <div class="summary-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
                 <i class="fas fa-cubes"></i>
             </div>
@@ -168,16 +163,27 @@ tbody tr:hover td{background:#fff7f0}
                 <div class="summary-label">Total Qty</div>
             </div>
         </div>
+
+        <!-- Per Page -->
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;flex-shrink:0">Show
+            <select id="perPageSelect" onchange="changePerPage(this.value)" style="padding:3px 6px;border:1.5px solid #e4e8f0;border-radius:6px;font-size:12px;font-family:inherit;cursor:pointer;background:#fff;color:#374151;outline:none">
+                <option value="10" <?= $perPage==10?'selected':'' ?>>10</option>
+                <option value="25" <?= $perPage==25?'selected':'' ?>>25</option>
+                <option value="50" <?= $perPage==50?'selected':'' ?>>50</option>
+                <option value="100" <?= $perPage==100?'selected':'' ?>>100</option>
+            </select>
+            entries
+        </div>
+
+        <!-- Spacer -->
+        <div style="flex:1"></div>
+
+        <!-- Buttons -->
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            <a href="javascript:history.back()" class="btn-back"><i class="fas fa-arrow-left"></i> Back</a>
+            <a href="add_stock.php" class="btn-add"><i class="fas fa-plus"></i> Add Item</a>
+        </div>
     </div>
-<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;margin-bottom:4px;">Show
-    <select id="perPageSelect" onchange="changePerPage(this.value)" style="padding:3px 6px;border:1.5px solid #e4e8f0;border-radius:6px;font-size:12px;font-family:inherit;cursor:pointer;background:#fff;color:#374151;outline:none">
-        <option value="10" <?= $perPage==10?'selected':'' ?>>10</option>
-        <option value="25" <?= $perPage==25?'selected':'' ?>>25</option>
-        <option value="50" <?= $perPage==50?'selected':'' ?>>50</option>
-        <option value="100" <?= $perPage==100?'selected':'' ?>>100</option>
-    </select>
-    entries
-</div>
 
     <!-- TABLE CARD -->
     <div class="table-card">
@@ -223,7 +229,7 @@ tbody tr:hover td{background:#fff7f0}
                     <td><span class="badge badge-code"><?= htmlspecialchars($item['service_code'] ?? '-') ?></span></td>
                     <td><span class="badge badge-hsn"><?= htmlspecialchars($item['hsn_sac'] ?? '-') ?></span></td>
                     <td style="max-width:220px;white-space:normal"><?= htmlspecialchars($item['item_name'] ?? '-') ?></td>
-                    <td style="font-weight:600;color:#1a1f2e"><?= htmlspecialchars($item['material_description'] ?? '-') ?></td>
+                    <td style="font-weight:400;color:#1a1f2e"><?= htmlspecialchars($item['material_description'] ?? '-') ?></td>
                     <td><?= htmlspecialchars($item['uom'] ?? '-') ?></td>
                     <td><?= htmlspecialchars($item['qty'] ?? 0) ?></td>
                     <td class="amount-cell">₹<?= number_format($item['unit_price'] ?? 0, 2) ?></td>
@@ -263,7 +269,7 @@ tbody tr:hover td{background:#fff7f0}
         echo $page <= 1 ? '<span class="disabled">&laquo;</span>' : "<a href='".htmlspecialchars('?'.http_build_query($qs))."'>&laquo;</a>";
         $prev = null;
         foreach ($pages as $p) {
-            if ($prev !== null && $p - $prev > 1) echo '<span class="dots">\...</span>';
+            if ($prev !== null && $p - $prev > 1) echo '<span class="dots">...</span>';
             $qs['page'] = $p;
             if ($p == $page) echo '<span class="active">'.$p.'</span>';
             else echo "<a href='".htmlspecialchars('?'.http_build_query($qs))."'>$p</a>";
