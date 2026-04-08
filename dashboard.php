@@ -139,10 +139,10 @@ function formatINR($n){return '&#8377;'.indianFormat($n);}
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden}
+html,body{height:100%;overflow-x:hidden;overflow-y:auto}
 body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
 
-.content{margin-left:220px;padding:8px 16px 8px;background:#f0f2f8;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+.content{margin-left:220px;padding:8px 16px 8px;background:#f0f2f8;min-height:100vh;overflow:visible;display:flex;flex-direction:column;}
 
 /* ── FILTER BAR ── */
 .filter-wrap{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:6px}
