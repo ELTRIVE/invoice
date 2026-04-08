@@ -141,6 +141,10 @@ function formatINR($n){return '&#8377;'.indianFormat($n);}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
 body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
+:root{
+    --rev-chart-h:120px;
+    --cash-chart-h:150px;
+}
 
 .dashboard-page .content{
     margin-left:var(--sb-w,220px);
@@ -233,6 +237,30 @@ body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
     .ts-sub{font-size:9px}
     .rev-grid{gap:8px}
     .rev-card{padding:10px 12px}
+    :root{
+        --rev-chart-h:102px;
+        --cash-chart-h:124px;
+    }
+}
+@media (max-height:740px){
+    .filter-wrap{margin-bottom:3px;gap:3px}
+    .filter-bar{padding:2px 4px}
+    .filter-bar a{padding:2px 7px;font-size:9px}
+    .period-badge{font-size:8px}
+    .sec-label{font-size:8px;letter-spacing:1.2px;margin-bottom:3px}
+    .top-stats{gap:5px;margin-bottom:3px}
+    .ts{padding:7px 9px}
+    .ts-label{font-size:8px}
+    .ts-value{font-size:12px}
+    .ts-sub{font-size:8px}
+    .rev-grid{gap:7px}
+    .rev-card{padding:9px 11px}
+    .card-title{font-size:11px}
+    .card-subtitle{font-size:9px;margin-bottom:6px}
+    :root{
+        --rev-chart-h:88px;
+        --cash-chart-h:106px;
+    }
 }
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#e2e8f0;border-radius:99px}
 </style>
@@ -312,7 +340,7 @@ body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
             // for today, highlight index 4
             if($period==='today') $activeIdx=4;
             ?>
-            <div style="position:relative;height:108px;width:100%;">
+            <div style="position:relative;height:var(--rev-chart-h);width:100%;">
                 <canvas id="revBarChart"></canvas>
             </div>
             <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -534,7 +562,7 @@ body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
                 <span style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:#6b7280"><span style="width:28px;height:3px;background:linear-gradient(90deg,#dc2626,#f87171);border-radius:2px;display:inline-block;opacity:.7"></span>Outstanding</span>
             </div>
         </div>
-        <div style="position:relative;height:130px;width:100%;">
+        <div style="position:relative;height:var(--cash-chart-h);width:100%;">
             <canvas id="cashFlowChart"></canvas>
         </div>
         <?php
