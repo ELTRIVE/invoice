@@ -88,6 +88,21 @@ if (!empty($company['company_logo'])) {
     }
 }
 
+$signatureBase64 = '';
+if (!empty($inv['signature_id'])) {
+    $sigStmt = $pdo->prepare("SELECT file_path FROM signatures WHERE id = ?");
+    $sigStmt->execute([$inv['signature_id']]);
+    $sigData = $sigStmt->fetch(PDO::FETCH_ASSOC);
+    if ($sigData && !empty($sigData['file_path'])) {
+        $sigFile = dirname(__DIR__) . '/' . ltrim($sigData['file_path'], '/');
+        if (file_exists($sigFile)) {
+            $ext = strtolower(pathinfo($sigFile, PATHINFO_EXTENSION));
+            $mime = ($ext === 'png') ? 'image/png' : (($ext === 'gif') ? 'image/gif' : 'image/jpeg');
+            $signatureBase64 = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($sigFile));
+        }
+    }
+}
+
 // ── Parse items / terms ──────────────────────────────────────────────────────
 $items = json_decode($inv['items_json'] ?? '[]', true) ?: [];
 $terms = json_decode($inv['terms_json'] ?? '[]', true) ?: [];
@@ -497,7 +512,8 @@ $descW = $hasIGST ? '30%' : ($hasCGST && $hasSGST ? '28%' : '32%');
   </td>
   <td class="sig-right">
     For, <strong><?= htmlspecialchars(strtoupper($company['company_name'] ?? '')) ?></strong>
-    <br><br><br><br>
+    <br><br>
+    <?= $signatureBase64 ? '<img src="' . $signatureBase64 . '" style="max-height:75px; max-width:175px; object-fit:contain; display:inline-block;" /><br>' : '<br><br><br>' ?>
     <strong>Authorised Signatory</strong>
   </td>
 </tr>

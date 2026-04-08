@@ -91,6 +91,21 @@ if (!empty($po['company_override'])) {
     }
 }
 
+$signatureBase64 = '';
+if (!empty($po['signature_id'])) {
+    $sigStmt = $pdo->prepare("SELECT file_path FROM signatures WHERE id = ?");
+    $sigStmt->execute([$po['signature_id']]);
+    $sigData = $sigStmt->fetch(PDO::FETCH_ASSOC);
+    if ($sigData && !empty($sigData['file_path'])) {
+        $sigFile = dirname(__DIR__) . '/' . ltrim($sigData['file_path'], '/');
+        if (file_exists($sigFile)) {
+            $ext = strtolower(pathinfo($sigFile, PATHINFO_EXTENSION));
+            $mime = ($ext === 'png') ? 'image/png' : (($ext === 'gif') ? 'image/gif' : 'image/jpeg');
+            $signatureBase64 = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($sigFile));
+        }
+    }
+}
+
 $supplier_row = null;
 try {
     $ss = $pdo->prepare("SELECT * FROM suppliers WHERE supplier_name=? LIMIT 1");
@@ -134,6 +149,15 @@ $grand_total = (float)$po['grand_total'] ?: ($subtotal + $tot_cgst + $tot_sgst +
 $has_tax = ($tot_cgst + $tot_sgst + $tot_igst) > 0;
 
 function h($s){ return htmlspecialchars((string)($s ?? ''), ENT_QUOTES); }
+
+function wrap_words_for_pdf($text, $chunkSize = 2) {
+    $text = trim((string)$text);
+    if ($text === '') return '';
+    $words = preg_split('/\s+/', $text) ?: [];
+    if (count($words) <= $chunkSize) return h($text);
+    $chunks = array_chunk($words, max(1, (int)$chunkSize));
+    return implode('<br>', array_map(fn($chunk) => h(implode(' ', $chunk)), $chunks));
+}
 
 $co_name    = $company['company_name']  ?? 'ELTRIVE AUTOMATIONS PVT LTD';
 $co_address = $company['address_line1'] ?? '';
@@ -241,7 +265,7 @@ if (!empty($po['shipping_phone'])) $shipping_info_html .= ' | Phone: ' . h($po['
 $item_rows_html = '';
 foreach ($calc as $i => $c) {
     $item = $c['item'];
-    $nm = '<strong>' . h($item['item_name'] ?? '') . '</strong>';
+    $nm = '<strong>' . wrap_words_for_pdf($item['item_name'] ?? '', 2) . '</strong>';
     if (!empty($item['description'])) $nm .= '<br><span style="font-size:7.5px;">' . nl2br(h($item['description'])) . '</span>';
     $item_rows_html .= '<tr>';
     $item_rows_html .= '<td style="text-align:center;">' . ($i + 1) . '</td>';
@@ -329,7 +353,7 @@ body { font-family: DejaVu Sans, sans-serif; font-size: 9px; line-height: 1.4; c
 .item-table { width:100%; border-collapse:collapse; font-size:8.5px; margin-top:4px; table-layout:fixed; }
 .item-table th { border:0.5px solid #000; padding:4px 3px; background:#f0f0f0; text-align:center; font-weight:bold; overflow:hidden; }
 .item-table td { border:0.5px solid #000; padding:4px 3px; vertical-align:top; word-wrap:break-word; overflow-wrap:break-word; }
-.item-table .desc { text-align:left; }
+.item-table .desc { text-align:left; width:24%; word-break:break-word; overflow-wrap:anywhere; }
 .item-table .right { text-align:right; }
 .summary-table { width:100%; border-collapse:collapse; font-size:9px; margin-top:0; }
 .summary-table td { border:0.5px solid #000; padding:4px 8px; vertical-align:top; }
@@ -378,7 +402,7 @@ body { font-family: DejaVu Sans, sans-serif; font-size: 9px; line-height: 1.4; c
 <thead>
 <tr>
   <th style="width:22px;">No.</th>
-  <th style="min-width:80px;">Item &amp; Description</th>
+  <th style="width:24%;">Item &amp; Description</th>
   <th style="width:28px;">Qty</th>
   <th style="width:26px;">Unit</th>
   <th style="width:48px;">Rate (&#8377;)</th>
@@ -431,7 +455,8 @@ $html .= '
     This is a computer-generated purchase order. E. &amp; O. E.
   </td>
   <td style="width:50%; text-align:right; vertical-align:top; padding:8px; font-size:9px;">
-    For, ' . h($co_name) . '<br><br><br><br>
+    For, ' . h($co_name) . '<br><br>
+    ' . ($signatureBase64 ? '<img src="' . $signatureBase64 . '" style="max-height:75px; max-width:175px; object-fit:contain; display:inline-block;" /><br>' : '<br><br><br>') . '
     <strong>Authorised Signatory</strong>
   </td>
 </tr>

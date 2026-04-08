@@ -269,6 +269,8 @@ $rows = (!empty($items) && is_array($items)) ? $items : [];
 /* ── Company override (invoice_company) for PO ────────────────── */
 $allCompanies = [];
 try { $allCompanies = $pdo->query("SELECT * FROM invoice_company ORDER BY company_name ASC")->fetchAll(PDO::FETCH_ASSOC) ?: []; } catch (Exception $e) { $allCompanies = []; }
+$signatures = [];
+try { $signatures = $pdo->query("SELECT * FROM signatures ORDER BY signature_name ASC")->fetchAll(PDO::FETCH_ASSOC) ?: []; } catch (Exception $e) { $signatures = []; }
 $companyBase = $allCompanies[0] ?? [];
 
 $existingCompanyOverride = [];
@@ -288,6 +290,7 @@ if (!empty($popupCompany['company_name'])) {
     }
 }
 if (!$selectedCompanyId && !empty($companyBase['id'])) $selectedCompanyId = (int)$companyBase['id'];
+try { $pdo->exec("ALTER TABLE purchase_orders ADD COLUMN signature_id INT DEFAULT NULL"); } catch(Exception $e) {}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -885,6 +888,26 @@ textarea.form-control{height:48px;resize:vertical}
         </div>
     </div>
 
+    <div class="form-card">
+        <div class="form-card-header">
+            <div class="hdr-icon" style="background:linear-gradient(135deg,#10b981,#059669)"><i class="fas fa-signature"></i></div>
+            <h3>Authorised Signature</h3>
+        </div>
+        <div class="form-card-body">
+            <label>Authorised Signature</label>
+            <div style="display:flex;gap:8px;align-items:center">
+                <select name="signature_id" id="signature_select" class="form-control">
+                    <option value="">-- Select Signature --</option>
+                    <?php foreach ($signatures as $sig): ?>
+                        <option value="<?= $sig['id']; ?>" data-path="<?= htmlspecialchars($sig['file_path']); ?>" <?= ((string)($po['signature_id'] ?? '') === (string)$sig['id']) ? 'selected' : '' ?>><?= htmlspecialchars($sig['signature_name']); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <button type="button" class="btn-plus" onclick="openModal('addSignatureModal')" title="Add Signature"><i class="fas fa-plus"></i></button>
+                <img id="signature_preview" src="" style="max-height:32px;max-width:80px;object-fit:contain;display:none;border:1px dashed #ccc;border-radius:4px;padding:2px">
+            </div>
+        </div>
+    </div>
+
     <!-- ── Bottom actions ───────────────────────────────────────── -->
     <div class="form-card">
         <div class="bottom-actions">
@@ -1086,6 +1109,25 @@ textarea.form-control{height:48px;resize:vertical}
 </div>
 
 <!-- ═══════════════════════════════ TERMS POPUP ═══════════════ -->
+<div class="modal-overlay" id="addSignatureModal">
+  <div class="modal-box" style="width:460px">
+    <div class="modal-header">
+      <h3><i class="fas fa-signature" style="color:#10b981;margin-right:8px"></i>Add Signature</h3>
+      <button class="modal-close" onclick="closeModal('addSignatureModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="mf-group"><label class="mf-label">Signature Name</label><input class="mf-input" id="new_signature_name" placeholder="e.g. CEO Signature"></div>
+      <div class="mf-group"><label class="mf-label">Signature Image</label><input class="mf-input" id="new_signature_image" type="file" accept="image/png, image/jpeg, image/webp"></div>
+      <small style="color:#6b7280;font-size:11px;display:block;margin-bottom:8px;">Upload clear PNG/JPG/WEBP signature.</small>
+      <div id="add_sig_error" style="color:#dc2626;font-size:12px;margin-bottom:8px;display:none"></div>
+    </div>
+    <div class="modal-footer" style="justify-content:flex-end;gap:8px">
+      <button type="button" class="btn-modal-save" style="background:linear-gradient(135deg,#10b981,#059669)" onclick="saveNewSignature()"><i class="fas fa-save"></i> Save Signature</button>
+      <button type="button" class="btn-modal-cancel" onclick="closeModal('addSignatureModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div id="termModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:3000;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:14px;width:520px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.2);overflow:hidden;">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #f0f2f7;background:linear-gradient(135deg,#f0fdf4,#fff);">
@@ -1401,6 +1443,11 @@ document.addEventListener('click',e=>{
 document.addEventListener('keydown',e=>{
     if(e.key==='Escape'){document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));document.getElementById('spOverlay').classList.remove('open');}
 });
+const __sigSel = document.getElementById('signature_select');
+if(__sigSel){
+    __sigSel.addEventListener('change', refreshSignaturePreview);
+    refreshSignaturePreview();
+}
 
 let allSuppliers=[];
 function openSupplierPopup(){
@@ -1498,6 +1545,56 @@ function saveAddItem(saveToMaster){
 }
 
 function saveExtraCharge(){const item=document.getElementById('ec_item').value.trim(),amount=parseFloat(document.getElementById('ec_amount').value)||0;if(!item){alert('Charge name is required.');return;}addItemRowWithData('Extra: '+item,'Extra Charge','',1,'no.s',amount,0,0,0,0);document.getElementById('ec_item').value='';document.getElementById('ec_amount').value=0;closeModal('extraChargeModal');}
+
+function refreshSignaturePreview(){
+    const sel = document.getElementById('signature_select');
+    const preview = document.getElementById('signature_preview');
+    if(!sel || !preview) return;
+    const opt = sel.options[sel.selectedIndex];
+    const path = opt && opt.dataset ? (opt.dataset.path || '') : '';
+    if(path){
+        preview.src = '/invoice/' + String(path).replace(/^\/+/, '');
+        preview.style.display = 'inline-block';
+    } else {
+        preview.src = '';
+        preview.style.display = 'none';
+    }
+}
+
+async function saveNewSignature(){
+    const name = document.getElementById('new_signature_name').value.trim();
+    const fileInput = document.getElementById('new_signature_image');
+    const errDiv = document.getElementById('add_sig_error');
+    if(!name){ errDiv.textContent='Signature name is required.'; errDiv.style.display='block'; return; }
+    if(!fileInput.files.length){ errDiv.textContent='Signature image is required.'; errDiv.style.display='block'; return; }
+    errDiv.style.display='none';
+    const fd = new FormData();
+    fd.append('signature_name', name);
+    fd.append('signature_image', fileInput.files[0]);
+    try{
+        const res = await fetch('/invoice/addsignature.php', { method:'POST', body:fd });
+        const json = await res.json();
+        if(json.status === 'success'){
+            const sel = document.getElementById('signature_select');
+            const opt = document.createElement('option');
+            opt.value = json.id;
+            opt.textContent = json.signature_name;
+            opt.dataset.path = json.file_path;
+            sel.appendChild(opt);
+            sel.value = String(json.id);
+            refreshSignaturePreview();
+            document.getElementById('new_signature_name').value = '';
+            fileInput.value = '';
+            closeModal('addSignatureModal');
+        } else {
+            errDiv.textContent = json.message || 'Error uploading signature.';
+            errDiv.style.display='block';
+        }
+    } catch(e){
+        errDiv.textContent = 'Network error: ' + e.message;
+        errDiv.style.display='block';
+    }
+}
 
 // ── Terms System ──────────────────────────────────────────────────────────────
 const defaultTerms = [

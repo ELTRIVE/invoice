@@ -25,6 +25,7 @@ $reference        = trim($_POST['reference']        ?? '');
 $po_date          = $_POST['po_date']  ?? date('Y-m-d');
 $due_date         = $_POST['due_date'] ?? date('Y-m-d');
 $notes            = trim($_POST['notes'] ?? '');
+$signature_id     = !empty($_POST['signature_id']) ? (int)$_POST['signature_id'] : null;
 $created_by       = 'Gayatri Geeta Gopisetty';
 
 // Company override (invoice_company fields) for PO
@@ -70,6 +71,7 @@ try { $pdo->exec("ALTER TABLE purchase_orders ADD COLUMN shipping_city VARCHAR(1
 try { $pdo->exec("ALTER TABLE purchase_orders ADD COLUMN shipping_state VARCHAR(100) DEFAULT ''"); } catch(Exception $e){}
 try { $pdo->exec("ALTER TABLE purchase_orders ADD COLUMN shipping_pincode VARCHAR(10) DEFAULT ''"); } catch(Exception $e){}
 try { $pdo->exec("ALTER TABLE purchase_orders ADD COLUMN contact_phone VARCHAR(20) DEFAULT ''"); } catch(Exception $e){}
+try { $pdo->exec("ALTER TABLE purchase_orders ADD COLUMN signature_id INT DEFAULT NULL"); } catch(Exception $e){}
 
 // ── Totals ────────────────────────────────────────────────────────────────────
 $raw_items     = $_POST['items'] ?? [];
@@ -159,7 +161,7 @@ try {
                 shipping_city=:sc, shipping_state=:sst, shipping_pincode=:spin,
                 reference=:ref, po_date=:pd, due_date=:dd,
                 notes=:notes, total_taxable=:tt, total_cgst=:tc, total_sgst=:ts,
-                total_igst=:ti, grand_total=:gt, items_json=:ij, item_list=:il, terms_list=:tl
+                total_igst=:ti, grand_total=:gt, items_json=:ij, item_list=:il, terms_list=:tl, signature_id=:sid
                 , company_override=:co
             WHERE id=:id
         ")->execute([
@@ -172,7 +174,7 @@ try {
             ':notes'=>$notes,       ':tt'=>$total_taxable,
             ':tc'=>$total_cgst,     ':ts'=>$total_sgst,
             ':ti'=>$total_igst,     ':gt'=>$grand_total,
-            ':ij'=>$items_json, ':il'=>$item_list_json, ':tl'=>$terms_list_json,
+            ':ij'=>$items_json, ':il'=>$item_list_json, ':tl'=>$terms_list_json, ':sid'=>$signature_id,
             ':co'=>$company_override, ':id'=>$edit_id,
         ]);
         $po_id = $edit_id;
@@ -186,14 +188,14 @@ try {
                  shipping_address,shipping_gstin,shipping_phone,shipping_city,shipping_state,shipping_pincode,
                  reference,po_date,due_date,notes,
                  total_taxable,total_cgst,total_sgst,total_igst,grand_total,
-                 created_by,items_json,item_list,terms_list,company_override)
+                 created_by,items_json,item_list,terms_list,signature_id,company_override)
             VALUES
                 (:pn,:sn,:cp,:cph,
                  :ba,:bg,:bp,:bc,:bst,:bpin,
                  :sa,:sg,:sph,:sc,:sst,:spin,
                  :ref,:pd,:dd,:notes,
                  :tt,:tc,:ts,:ti,:gt,
-                 :cb,:ij,:il,:tl,:co)
+                 :cb,:ij,:il,:tl,:sid,:co)
             ON DUPLICATE KEY UPDATE id=id
         ")->execute([
             ':pn'=>$po_number,        ':sn'=>$supplier_name,
@@ -207,7 +209,7 @@ try {
             ':notes'=>$notes,         ':tt'=>$total_taxable,
             ':tc'=>$total_cgst,       ':ts'=>$total_sgst,
             ':ti'=>$total_igst,       ':gt'=>$grand_total,
-            ':cb'=>$created_by,       ':ij'=>$items_json,  ':il'=>$item_list_json, ':tl'=>$terms_list_json,
+            ':cb'=>$created_by,       ':ij'=>$items_json,  ':il'=>$item_list_json, ':tl'=>$terms_list_json, ':sid'=>$signature_id,
             ':co'=>$company_override,
         ]);
         $po_id = $pdo->lastInsertId();

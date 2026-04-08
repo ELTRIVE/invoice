@@ -86,6 +86,7 @@ try { $pdo->exec("ALTER TABLE purchases ADD COLUMN terms_json LONGTEXT DEFAULT N
 try { $pdo->exec("ALTER TABLE purchases ADD COLUMN item_list JSON DEFAULT NULL"); } catch(Exception $e){}
 try { $pdo->exec("ALTER TABLE purchases ADD COLUMN terms_list JSON DEFAULT NULL"); } catch(Exception $e){}
 try { $pdo->exec("ALTER TABLE purchases ADD COLUMN company_override TEXT DEFAULT NULL"); } catch(Exception $e){}
+try { $pdo->exec("ALTER TABLE purchases ADD COLUMN signature_id INT DEFAULT NULL"); } catch(Exception $e){}
 
 // ── Ensure po_master_terms table exists ────────────────────────
 $pdo->exec("CREATE TABLE IF NOT EXISTS po_master_terms (
@@ -272,6 +273,8 @@ if ($isEdit) {
 /* ── Company override (invoice_company) for Supplier Invoice ── */
 $allCompanies = [];
 try { $allCompanies = $pdo->query("SELECT * FROM invoice_company ORDER BY company_name ASC")->fetchAll(PDO::FETCH_ASSOC) ?: []; } catch(Exception $e) { $allCompanies = []; }
+$signatures = [];
+try { $signatures = $pdo->query("SELECT * FROM signatures ORDER BY signature_name ASC")->fetchAll(PDO::FETCH_ASSOC) ?: []; } catch(Exception $e) { $signatures = []; }
 $companyBase = $allCompanies[0] ?? [];
 
 $existingCompanyOverride = [];
@@ -312,6 +315,7 @@ if (isset($_POST['save_supplier_invoice'])) {
         $purchase_ledger  = trim($_POST['purchase_ledger']  ?? '');
         $credit_month     = trim($_POST['credit_month']     ?? 'None');
         $notes            = trim($_POST['notes']            ?? '');
+        $signature_id     = !empty($_POST['signature_id']) ? (int)$_POST['signature_id'] : null;
 
         // Company override snapshot (invoice_company fields)
         $co_data = [
@@ -389,7 +393,7 @@ if (isset($_POST['save_supplier_invoice'])) {
             'supplier_name','contact_person','supplier_address','supplier_gstin','supplier_phone',
             'invoice_number','reference','invoice_date','due_date',
             'voucher_number','voucher_date','supplier_ledger','purchase_ledger','credit_month',
-            'notes','company_override','items_json','terms_json','item_list','terms_list',
+            'notes','signature_id','company_override','items_json','terms_json','item_list','terms_list',
             'total_taxable','total_cgst','total_sgst','total_igst','grand_total'
         );
 
@@ -874,6 +878,26 @@ textarea.form-control{height:52px;resize:vertical;line-height:1.5}
     </div>
 </div>
 
+<div class="form-card">
+    <div class="form-card-header">
+        <div class="hdr-icon" style="background:linear-gradient(135deg,#10b981,#059669)"><i class="fas fa-signature"></i></div>
+        <h3>Authorised Signature</h3>
+    </div>
+    <div class="form-card-body">
+        <label>Authorised Signature</label>
+        <div style="display:flex;gap:8px;align-items:center">
+            <select name="signature_id" id="signature_select" class="form-control">
+                <option value="">-- Select Signature --</option>
+                <?php foreach ($signatures as $sig): ?>
+                    <option value="<?= $sig['id']; ?>" data-path="<?= htmlspecialchars($sig['file_path']); ?>" <?= ((string)($editInv['signature_id'] ?? '') === (string)$sig['id']) ? 'selected' : '' ?>><?= htmlspecialchars($sig['signature_name']); ?></option>
+                <?php endforeach; ?>
+            </select>
+            <button type="button" class="btn-plus" onclick="openModal('addSignatureModal')" title="Add Signature"><i class="fas fa-plus"></i></button>
+            <img id="signature_preview" src="" style="max-height:32px;max-width:80px;object-fit:contain;display:none;border:1px dashed #ccc;border-radius:4px;padding:2px">
+        </div>
+    </div>
+</div>
+
 <!-- BOTTOM SAVE -->
 <div style="display:flex;gap:8px;justify-content:flex-start;margin-top:4px;margin-bottom:12px">
     <a href="supplier_invoices.php" class="btn-outline-theme"><i class="fas fa-times"></i> Cancel</a>
@@ -1060,6 +1084,25 @@ textarea.form-control{height:52px;resize:vertical;line-height:1.5}
   </div>
 </div>
 
+<div class="modal-overlay" id="addSignatureModal">
+  <div class="modal-box" style="width:460px">
+    <div class="modal-header">
+      <h3><i class="fas fa-signature" style="color:#10b981;margin-right:8px"></i>Add Signature</h3>
+      <button class="modal-close" onclick="closeModal('addSignatureModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="mf-group"><label class="mf-label">Signature Name</label><input class="mf-input" id="new_signature_name" placeholder="e.g. CEO Signature"></div>
+      <div class="mf-group"><label class="mf-label">Signature Image</label><input class="mf-input" id="new_signature_image" type="file" accept="image/png, image/jpeg, image/webp"></div>
+      <small style="color:#6b7280;font-size:11px;display:block;margin-bottom:8px;">Upload clear PNG/JPG/WEBP signature.</small>
+      <div id="add_sig_error" style="color:#dc2626;font-size:12px;margin-bottom:8px;display:none"></div>
+    </div>
+    <div class="modal-footer" style="justify-content:flex-end;gap:8px">
+      <button type="button" class="btn-modal-save" style="background:linear-gradient(135deg,#10b981,#059669)" onclick="saveNewSignature()"><i class="fas fa-save"></i> Save Signature</button>
+      <button type="button" class="btn-modal-cancel" onclick="closeModal('addSignatureModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ TERMS POPUP ═══ -->
 <div id="termModalOverlay" class="term-popup-overlay">
   <div class="term-popup-box">
@@ -1131,6 +1174,11 @@ document.addEventListener('click',e=>{
 document.addEventListener('keydown',e=>{
     if(e.key==='Escape'){document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));closeSupplierPopup();closeTermsPopup();}
 });
+const __sigSel = document.getElementById('signature_select');
+if(__sigSel){
+    __sigSel.addEventListener('change', refreshSignaturePreview);
+    refreshSignaturePreview();
+}
 
 /* ── Item Table ── */
 function addItemRow(name,hsn,qty,unit,rate,cgst,sgst,igst,itemId){
@@ -1292,6 +1340,56 @@ function saveNewSupplier(){
                 alert('Failed to save: '+(d.message||'Unknown error'));
             }
         }).catch(()=>alert('Network error'));
+}
+
+function refreshSignaturePreview(){
+    const sel = document.getElementById('signature_select');
+    const preview = document.getElementById('signature_preview');
+    if(!sel || !preview) return;
+    const opt = sel.options[sel.selectedIndex];
+    const path = opt && opt.dataset ? (opt.dataset.path || '') : '';
+    if(path){
+        preview.src = '/invoice/' + String(path).replace(/^\/+/, '');
+        preview.style.display = 'inline-block';
+    } else {
+        preview.src = '';
+        preview.style.display = 'none';
+    }
+}
+
+async function saveNewSignature(){
+    const name = document.getElementById('new_signature_name').value.trim();
+    const fileInput = document.getElementById('new_signature_image');
+    const errDiv = document.getElementById('add_sig_error');
+    if(!name){ errDiv.textContent='Signature name is required.'; errDiv.style.display='block'; return; }
+    if(!fileInput.files.length){ errDiv.textContent='Signature image is required.'; errDiv.style.display='block'; return; }
+    errDiv.style.display='none';
+    const fd = new FormData();
+    fd.append('signature_name', name);
+    fd.append('signature_image', fileInput.files[0]);
+    try{
+        const res = await fetch('/invoice/addsignature.php', { method:'POST', body:fd });
+        const json = await res.json();
+        if(json.status === 'success'){
+            const sel = document.getElementById('signature_select');
+            const opt = document.createElement('option');
+            opt.value = json.id;
+            opt.textContent = json.signature_name;
+            opt.dataset.path = json.file_path;
+            sel.appendChild(opt);
+            sel.value = String(json.id);
+            refreshSignaturePreview();
+            document.getElementById('new_signature_name').value = '';
+            fileInput.value = '';
+            closeModal('addSignatureModal');
+        } else {
+            errDiv.textContent = json.message || 'Error uploading signature.';
+            errDiv.style.display='block';
+        }
+    } catch(e){
+        errDiv.textContent = 'Network error: ' + e.message;
+        errDiv.style.display='block';
+    }
 }
 
 /* ── Item Library ── */
