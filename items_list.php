@@ -36,14 +36,14 @@ $allItems = $pdo->query("SELECT total, qty FROM items")->fetchAll(PDO::FETCH_ASS
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f8;color:#1a1f2e;font-size:13px}
-.content{margin-left:220px;padding:14px 16px 20px;min-height:100vh;background:#f0f2f8}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f8;color:#1a1f2e;font-size:13px;height:100vh;overflow:hidden}
+.content{margin-left:220px;padding:58px 18px 6px 18px;height:100vh;display:flex;flex-direction:column;overflow:hidden;background:#f0f2f8}
 
 /* PAGE HEADER */
-.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
 .page-header-left{display:flex;align-items:center;gap:10px}
 .page-icon{width:34px;height:34px;background:linear-gradient(135deg,#f97316,#fb923c);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;box-shadow:0 2px 8px rgba(249,115,22,.3);flex-shrink:0}
-.page-title{font-size:16px;font-weight:800;color:#1a1f2e;line-height:1.2}
+.page-title{font-size:14px;font-weight:800;color:#1a1f2e;line-height:1.2}
 .page-sub{font-size:11px;color:#9ca3af;margin-top:1px}
 
 /* BUTTONS */
@@ -53,20 +53,20 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f8;color:#1a1f2
 .btn-back:hover{border-color:#f97316;color:#f97316;background:#fff7f0}
 
 /* SUMMARY CARDS */
-.summary-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
-.summary-card{background:#fff;border-radius:10px;border:1px solid #e8ecf4;padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
-.summary-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;flex-shrink:0}
-.summary-num{font-size:18px;font-weight:800;color:#1a1f2e;line-height:1.2}
+.summary-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:nowrap}
+.summary-card{background:#fff;border-radius:8px;border:1px solid #e8ecf4;padding:4px 12px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.summary-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;flex-shrink:0}
+.summary-num{font-size:13px;font-weight:800;color:#1a1f2e;line-height:1.2}
 .summary-label{font-size:10px;color:#9ca3af;margin-top:1px;text-transform:uppercase;letter-spacing:.5px}
 
 /* TABLE CARD */
-.table-card{background:#fff;border-radius:10px;border:1px solid #e8ecf4;box-shadow:0 1px 4px rgba(0,0,0,.04);overflow:hidden}
-.table-card-header{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid #f0f2f7;background:#fafbfd;flex-wrap:wrap;gap:8px}
+.table-card{background:#fff;border-radius:10px;border:1px solid #e8ecf4;box-shadow:0 1px 4px rgba(0,0,0,.04);overflow:hidden;flex:1;display:flex;flex-direction:column;}
+.table-card-header{display:flex;align-items:center;justify-content:space-between;padding:5px 14px;border-bottom:1px solid #f0f2f7;background:#fafbfd;flex-wrap:wrap;gap:6px}
 .table-card-header h3{font-size:12px;font-weight:800;color:#1a1f2e;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
 .item-count{background:#fff7f0;color:#f97316;border:1px solid #fed7aa;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700}
 
 /* SEARCH + CONTROLS ROW */
-.controls-row{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid #f0f2f7;gap:10px;flex-wrap:wrap}
+.controls-row{display:flex;align-items:center;justify-content:space-between;padding:4px 14px;border-bottom:1px solid #f0f2f7;gap:8px;flex-wrap:wrap}
 .search-input{padding:5px 10px 5px 30px;border:1.5px solid #e4e8f0;border-radius:7px;font-size:12px;font-family:inherit;background:#fafafa url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") no-repeat 9px center;outline:none;width:260px;transition:border-color .2s}
 .search-input:focus{border-color:#f97316;background-color:#fff}
 .show-entries{display:flex;align-items:center;gap:6px;font-size:12px;color:#6b7280}
@@ -74,13 +74,13 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f8;color:#1a1f2
 .show-entries select:focus{border-color:#f97316}
 
 /* TABLE */
-.table-wrap{overflow-x:auto}
+.table-wrap{overflow-x:auto;overflow-y:auto;flex:1}
 table{width:100%;border-collapse:collapse;font-size:12px}
 thead tr{background:#fff7f0}
-th{padding:7px 10px;text-align:left;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#f97316;border-bottom:2px solid #fed7aa;white-space:nowrap;cursor:pointer;user-select:none}
+th{padding:4px 8px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#f97316;border-bottom:2px solid #fed7aa;white-space:nowrap;cursor:pointer;user-select:none}
 th:hover{background:#ffeedd;color:#ea6c00}
 .sort-icon{font-size:9px;opacity:.5;margin-left:2px}
-td{padding:7px 10px;border-bottom:1px solid #f1f5f9;color:#374151;vertical-align:middle}
+td{padding:4px 8px;border-bottom:1px solid #f1f5f9;color:#374151;vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tbody tr:hover td{background:#fff7f0}
 
@@ -106,7 +106,7 @@ tbody tr:hover td{background:#fff7f0}
 .empty-state a{color:#f97316;font-weight:700;text-decoration:none}
 
 /* PAGINATION */
-.pagination{display:flex;justify-content:center;align-items:center;gap:4px;padding:10px 14px;border-top:1px solid #f0f2f7}
+.pagination{display:flex;justify-content:center;align-items:center;gap:4px;padding:4px 14px;border-top:1px solid #f0f2f7}
 .pagination a,.pagination span{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 6px;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;border:1.5px solid #e4e8f0;color:#374151;background:#fff;transition:all .15s}
 .pagination a:hover{border-color:#f97316;color:#f97316;background:#fff7f0}
 .pagination span.active{background:#f97316;color:#fff;border-color:#f97316}
@@ -169,18 +169,15 @@ tbody tr:hover td{background:#fff7f0}
             </div>
         </div>
     </div>
-
-    <!-- SHOW ENTRIES (outside the card) -->
-    <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#6b7280;margin-bottom:8px">
-        Show
-        <select id="perPageSelect" onchange="changePerPage(this.value)" style="padding:4px 8px;border:1.5px solid #e4e8f0;border-radius:6px;font-size:12px;font-family:inherit;cursor:pointer;background:#fff;color:#374151;outline:none">
-            <option value="10" <?= $perPage==10?'selected':'' ?>>10</option>
-            <option value="25" <?= $perPage==25?'selected':'' ?>>25</option>
-            <option value="50" <?= $perPage==50?'selected':'' ?>>50</option>
-            <option value="100" <?= $perPage==100?'selected':'' ?>>100</option>
-        </select>
-        entries
-    </div>
+<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;margin-bottom:4px;">Show
+    <select id="perPageSelect" onchange="changePerPage(this.value)" style="padding:3px 6px;border:1.5px solid #e4e8f0;border-radius:6px;font-size:12px;font-family:inherit;cursor:pointer;background:#fff;color:#374151;outline:none">
+        <option value="10" <?= $perPage==10?'selected':'' ?>>10</option>
+        <option value="25" <?= $perPage==25?'selected':'' ?>>25</option>
+        <option value="50" <?= $perPage==50?'selected':'' ?>>50</option>
+        <option value="100" <?= $perPage==100?'selected':'' ?>>100</option>
+    </select>
+    entries
+</div>
 
     <!-- TABLE CARD -->
     <div class="table-card">
@@ -266,7 +263,7 @@ tbody tr:hover td{background:#fff7f0}
         echo $page <= 1 ? '<span class="disabled">&laquo;</span>' : "<a href='".htmlspecialchars('?'.http_build_query($qs))."'>&laquo;</a>";
         $prev = null;
         foreach ($pages as $p) {
-            if ($prev !== null && $p - $prev > 1) echo '<span class="dots">\u2026</span>';
+            if ($prev !== null && $p - $prev > 1) echo '<span class="dots">\...</span>';
             $qs['page'] = $p;
             if ($p == $page) echo '<span class="active">'.$p.'</span>';
             else echo "<a href='".htmlspecialchars('?'.http_build_query($qs))."'>$p</a>";

@@ -141,70 +141,70 @@ function formatINR($n){return '&#8377;'.indianFormat($n);}
 html,body{height:100%;overflow:hidden}
 body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
 
-.content{margin-left:220px;padding:16px 24px 16px;background:#f0f2f8;height:100vh;overflow-y:auto}
+.content{margin-left:220px;padding:8px 16px 8px;background:#f0f2f8;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
 
 /* ── FILTER BAR ── */
-.filter-wrap{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
-.filter-bar{display:flex;align-items:center;gap:6px;background:#fff;padding:5px 8px;border-radius:30px;box-shadow:0 1px 6px rgba(0,0,0,.07);border:1px solid #e4e8f0}
+.filter-wrap{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:6px}
+.filter-bar{display:flex;align-items:center;gap:3px;background:#fff;padding:3px 6px;border-radius:30px;box-shadow:0 1px 6px rgba(0,0,0,.07);border:1px solid #e4e8f0}
 .filter-bar a{
-    padding:6px 16px;border-radius:20px;font-size:12px;font-weight:700;
+    padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;
     text-decoration:none;color:#6b7280;transition:all .2s;white-space:nowrap;letter-spacing:.3px;
 }
 .filter-bar a:hover{color:#f97316;background:#fff7f0}
 .filter-bar a.active{background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;box-shadow:0 3px 10px rgba(249,115,22,.35)}
-.period-badge{font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1.2px}
+.period-badge{font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1.2px}
 
 /* ── STAT CARDS ── */
-.top-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.top-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:6px}
 .ts{
-    background:#fff;border:1px solid #e8ecf4;border-radius:16px;
-    padding:16px 18px;position:relative;overflow:hidden;
+    background:#fff;border:1px solid #e8ecf4;border-radius:12px;
+    padding:10px 12px;position:relative;overflow:hidden;
     box-shadow:0 2px 8px rgba(0,0,0,.05);transition:transform .2s,box-shadow .2s;
     cursor:pointer;text-decoration:none;color:inherit;display:block;}
-.ts:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.1)}
-.ts::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;border-radius:16px 16px 0 0}
+.ts:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.1)}
+.ts::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
 .ts.orange::before{background:linear-gradient(90deg,#f97316,#fb923c)}
 .ts.green::before {background:linear-gradient(90deg,#16a34a,#4ade80)}
 .ts.blue::before  {background:linear-gradient(90deg,#2563eb,#60a5fa)}
 .ts.purple::before{background:linear-gradient(90deg,#7c3aed,#a78bfa)}
-.ts-icon-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
-.ts-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff}
+.ts-icon-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.ts-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff}
 .ts-icon.orange{background:linear-gradient(135deg,#f97316,#fb923c)}
 .ts-icon.green {background:linear-gradient(135deg,#16a34a,#22c55e)}
 .ts-icon.blue  {background:linear-gradient(135deg,#2563eb,#3b82f6)}
 .ts-icon.purple{background:linear-gradient(135deg,#7c3aed,#8b5cf6)}
-.ts-label{font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px}
-.ts-value{font-size:17px;font-weight:800;color:#1a1f2e;line-height:1;margin-bottom:5px}
-.ts-sub{font-size:11px;color:#9ca3af;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.badge-trend{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px}
+.ts-label{font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px}
+.ts-value{font-size:14px;font-weight:800;color:#1a1f2e;line-height:1;margin-bottom:3px}
+.ts-sub{font-size:10px;color:#9ca3af;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.badge-trend{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:1px 5px;border-radius:20px}
 .badge-trend.up  {background:rgba(22,163,74,.12);color:#16a34a}
 .badge-trend.down{background:rgba(220,38,38,.12);color:#dc2626}
 
 /* ── CHARTS GRID ── */
 .sec-label{
-    font-size:10px;font-weight:800;color:#9ca3af;text-transform:uppercase;
-    letter-spacing:2px;margin-bottom:10px;display:flex;align-items:center;gap:10px;}
+    font-size:9px;font-weight:800;color:#9ca3af;text-transform:uppercase;
+    letter-spacing:2px;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
 .sec-label::after{content:'';flex:1;height:1px;background:#e4e8f0}
 
-.rev-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.rev-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .rev-card{
-    background:#fff;border:1px solid #e8ecf4;border-radius:16px;
-    padding:18px 20px;box-shadow:0 2px 8px rgba(0,0,0,.05);}
-.card-title{font-size:13px;font-weight:800;color:#1a1f2e;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+    background:#fff;border:1px solid #e8ecf4;border-radius:12px;
+    padding:12px 14px;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+.card-title{font-size:12px;font-weight:800;color:#1a1f2e;margin-bottom:2px;display:flex;align-items:center;gap:6px}
 .card-title i{color:#f97316}
-.card-subtitle{font-size:11px;color:#9ca3af;margin-bottom:14px}
+.card-subtitle{font-size:10px;color:#9ca3af;margin-bottom:8px}
 
 /* Pie legend */
-.pie-legend-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f4f6fb}
+.pie-legend-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f4f6fb}
 .pie-legend-row:last-of-type{border-bottom:none}
 .pie-leg-left{display:flex;align-items:center;gap:9px}
 .pie-leg-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0}
-.pie-leg-label{font-size:13px;font-weight:700;color:#1a1f2e}
+.pie-leg-label{font-size:11px;font-weight:700;color:#1a1f2e}
 .pie-leg-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;margin-left:4px}
-.pie-leg-amt{font-size:13px;font-weight:800;color:#1a1f2e}
+.pie-leg-amt{font-size:11px;font-weight:800;color:#1a1f2e}
 .pie-total-row{margin-top:10px;padding-top:10px;border-top:2px solid #f0f2f8;display:flex;justify-content:space-between;align-items:center}
 .pie-total-label{font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;font-weight:700}
-.pie-total-val{font-size:15px;font-weight:800;color:#1a1f2e}
+.pie-total-val{font-size:12px;font-weight:800;color:#1a1f2e}
 
 @media(max-width:900px){.top-stats{grid-template-columns:repeat(2,1fr)}.rev-grid{grid-template-columns:1fr}}
 @media(max-width:600px){.top-stats{grid-template-columns:1fr}.content{margin-left:0;padding:8px 12px}}
@@ -230,7 +230,7 @@ body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
     </div>
 
     <!-- STAT CARDS -->
-    <div class="sec-label">Overview</div>
+    <div class="sec-label" style="margin-bottom:4px">Overview</div>
     <?php
     // Period-aware stat card values — all driven by $from / $to
     $cardRevenue  = $filteredAmount;
@@ -267,7 +267,7 @@ body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
     </div>
 
     <!-- CHARTS -->
-    <div class="sec-label">Revenue &amp; Payment Status — <span style="color:#f97316;font-style:italic;text-transform:none;letter-spacing:0"><?=$periodLabel?></span></div>
+    <div class="sec-label" style="margin-bottom:4px">Revenue &amp; Payment Status — <span style="color:#f97316;font-style:italic;text-transform:none;letter-spacing:0"><?=$periodLabel?></span></div>
     <div class="rev-grid">
 
         <!-- BAR CHART: highlights selected period bar -->
@@ -286,7 +286,7 @@ body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
             // for today, highlight index 4
             if($period==='today') $activeIdx=4;
             ?>
-            <div style="position:relative;height:170px;width:100%;">
+            <div style="position:relative;height:120px;width:100%;">
                 <canvas id="revBarChart"></canvas>
             </div>
             <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -353,8 +353,8 @@ body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
             <div class="card-subtitle">Showing: <?=htmlspecialchars($periodLabel)?></div>
             <?php $grandInvTotal = max($paidAmt + $partialRecv + $unpaidAmt, 1); ?>
             <div style="display:flex;align-items:center;gap:20px;padding:4px 0 10px;">
-                <div style="position:relative;width:150px;height:150px;flex-shrink:0;">
-                    <canvas id="payPieChart" width="150" height="150"></canvas>
+                <div style="position:relative;width:110px;height:110px;flex-shrink:0;">
+                    <canvas id="payPieChart" width="110" height="110"></canvas>
                 </div>
                 <div style="flex:1;">
                     <div class="pie-legend-row" onclick="openPieModal('Paid')" style="cursor:pointer">
@@ -396,7 +396,7 @@ body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
                 const colors=['#16a34a','#f97316','#dc2626'];
                 const darker=['#15803d','#ea6a00','#b91c1c'];
                 const labels=['Paid','Partial','Unpaid'];
-                const cx=75,cy=75,R=68,ir=40;
+                const cx=55,cy=55,R=50,ir=28;
                 let startAngle=-Math.PI/2;
                 const slices=data.map((v,i)=>{
                     const a=(v/total)*2*Math.PI;
@@ -494,10 +494,10 @@ body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
 
 
     <!-- ── CASH FLOW + GOALS GRID ── -->
-    <div class="sec-label" style="margin-top:18px">Cash Flow — Last 6 Months</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;align-items:stretch">
+    <div class="sec-label" style="margin-top:6px">Cash Flow — Last 6 Months</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;align-items:stretch">
     <div class="rev-card">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:6px">
             <div>
                 <div class="card-title"><i class="fas fa-water"></i> Revenue Cash Flow</div>
                 <div class="card-subtitle">Invoiced → Collected → Outstanding flow per month</div>
@@ -508,7 +508,7 @@ body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
                 <span style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:#6b7280"><span style="width:28px;height:3px;background:linear-gradient(90deg,#dc2626,#f87171);border-radius:2px;display:inline-block;opacity:.7"></span>Outstanding</span>
             </div>
         </div>
-        <div style="position:relative;height:240px;width:100%;">
+        <div style="position:relative;height:150px;width:100%;">
             <canvas id="cashFlowChart"></canvas>
         </div>
         <?php
@@ -599,22 +599,22 @@ body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
         $rate6     = $totalInv6 > 0 ? round($totalCol6/$totalInv6*100) : 0;
         $bestMonth = $cfLabels[array_search(max($cfCollect),$cfCollect)];
         ?>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0;margin-top:20px;border-top:1px solid #f0f2f8;padding-top:16px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0;margin-top:8px;border-top:1px solid #f0f2f8;padding-top:8px">
             <div style="text-align:center;padding:0 12px;border-right:1px solid #f0f2f8">
-                <div style="font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">6-Month Invoiced</div>
-                <div style="font-size:16px;font-weight:800;color:#f97316">&#8377;&nbsp;<?=indianFormat($totalInv6,0)?></div>
+                <div style="font-size:9px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px">6-Month Invoiced</div>
+                <div style="font-size:13px;font-weight:800;color:#f97316">&#8377;&nbsp;<?=indianFormat($totalInv6,0)?></div>
             </div>
             <div style="text-align:center;padding:0 12px;border-right:1px solid #f0f2f8">
-                <div style="font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">6-Month Collected</div>
-                <div style="font-size:16px;font-weight:800;color:#16a34a">&#8377;&nbsp;<?=indianFormat($totalCol6,0)?></div>
+                <div style="font-size:9px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px">6-Month Collected</div>
+                <div style="font-size:13px;font-weight:800;color:#16a34a">&#8377;&nbsp;<?=indianFormat($totalCol6,0)?></div>
             </div>
             <div style="text-align:center;padding:0 12px;border-right:1px solid #f0f2f8">
-                <div style="font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Overall Rate</div>
-                <div style="font-size:16px;font-weight:800;color:<?=$rate6>=70?'#16a34a':($rate6>=40?'#f97316':'#dc2626')?>"><?=$rate6?>%</div>
+                <div style="font-size:9px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px">Overall Rate</div>
+                <div style="font-size:13px;font-weight:800;color:<?=$rate6>=70?'#16a34a':($rate6>=40?'#f97316':'#dc2626')?>"><?=$rate6?>%</div>
             </div>
             <div style="text-align:center;padding:0 12px">
-                <div style="font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Best Month</div>
-                <div style="font-size:16px;font-weight:800;color:#2563eb"><?=date('M Y',strtotime($bestMonth))?></div>
+                <div style="font-size:9px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px">Best Month</div>
+                <div style="font-size:13px;font-weight:800;color:#2563eb"><?=date('M Y',strtotime($bestMonth))?></div>
             </div>
         </div>
     </div>
@@ -623,7 +623,7 @@ body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
     <div class="rev-card" style="padding:0;overflow:hidden;">
 
         <!-- Header -->
-        <div style="padding:16px 18px 12px;border-bottom:1px solid #f0f2f8;">
+        <div style="padding:8px 14px 6px;border-bottom:1px solid #f0f2f8;">
             <div class="card-title"><i class="fas fa-trophy"></i> Customer Leaderboard</div>
             <div class="card-subtitle">Top customers by revenue — <?=htmlspecialchars($periodLabel)?></div>
         </div>
@@ -649,7 +649,7 @@ body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
         <?php if(empty($leaders)): ?>
         <div style="text-align:center;padding:40px;color:#9ca3af;font-size:12px">No data for this period</div>
         <?php else: ?>
-        <div style="padding:10px 0;">
+        <div style="padding:4px 0;">
         <?php foreach($leaders as $li => $ldr):
             $pct   = $maxC > 0 ? round($ldr['collected']/$maxC*100) : 0;
             $lc    = $lColors[$li];
@@ -658,7 +658,7 @@ body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
             $init  = strtoupper(substr($ldr['customer'],0,1));
             $isTop = $li === 0;
         ?>
-        <div style="display:flex;align-items:center;gap:12px;padding:10px 18px;background:<?=$bg?>;<?=$isTop?'border-left:3px solid #f59e0b;':''?>transition:background .15s" onmouseenter="this.style.background='#f0f2f8'" onmouseleave="this.style.background='<?=$bg?>'">
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 14px;background:<?=$bg?>;<?=$isTop?'border-left:3px solid #f59e0b;':''?>transition:background .15s" onmouseenter="this.style.background='#f0f2f8'" onmouseleave="this.style.background='<?=$bg?>'">
 
             <!-- Rank -->
             <div style="font-size:<?=$li<3?'20px':'13px'?>;width:24px;text-align:center;flex-shrink:0;font-weight:800;color:<?=$lc?>"><?=$medals[$li]?></div>
@@ -688,7 +688,7 @@ body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
 
         <!-- Total footer -->
         <?php $grandTotal = array_sum(array_column($leaders,'collected')); ?>
-        <div style="padding:12px 18px;border-top:1px solid #f0f2f8;display:flex;justify-content:space-between;align-items:center;background:#fafbfd">
+        <div style="padding:6px 14px;border-top:1px solid #f0f2f8;display:flex;justify-content:space-between;align-items:center;background:#fafbfd">
             <span style="font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px">Top <?=count($leaders)?> Total</span>
             <span style="font-size:14px;font-weight:800;color:#1a1f2e">&#8377;&nbsp;<?=indianFormat($grandTotal,0)?></span>
         </div>

@@ -113,7 +113,7 @@ if ($format === 'pdf') {
 <head>
 <meta charset="UTF-8">
 <style>
-@page { margin: 75px 40px 110px 40px; }
+@page { margin: 90px 40px 130px 40px; }
 body  { font-family: "Times New Roman", serif; font-size: 10pt; color: #222; margin:0; padding:0; }
 
 .info-table { width:100%; border-collapse:collapse; margin-bottom:12px; }
@@ -134,6 +134,42 @@ p.d     { font-size:9.5pt; color:#333; line-height:1.55; margin-bottom:5px; }
 p.i1    { margin-left:14px; }
 p.i2    { margin-left:28px; }
 p.i3    { margin-left:42px; }
+body {
+    margin: 0;
+    padding: 0;
+}
+
+@page {
+    margin: 90px 40px 130px 40px;
+}
+
+.content {
+    padding: 10px;
+}
+    .page-border {
+    
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    
+    box-sizing: border-box;
+}
+    .header {
+    border-bottom: 2px solid #000;
+    padding: 10px 15px;
+}
+    .footer {
+    border-top: 2px solid #000;
+    padding: 10px 15px;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+    .content {
+    padding: 15px;
+    margin-bottom: 60px; /* prevents overlap with footer */
+}
 </style>
 </head>
 <body>';
@@ -251,13 +287,17 @@ p.i3    { margin-left:42px; }
              $t_company, $t_email, $t_title, $t_version, $t_docKey,
              $t_templateVer, $t_designedBy, $t_designedRole,
              $t_releasedBy,  $t_releasedRole) {
-
+        $margin = 10;
         $green  = [0.239, 0.729, 0.435]; // #3dba6f
         $black  = [0, 0, 0];
         $white  = [1, 1, 1];
         $gray   = [0.94, 0.94, 0.94];
         $dgray  = [0.33, 0.33, 0.33];
+$x = $margin;
+$y = $H - $margin - $fTotalH;
+$w = $W - (2 * $margin);
 
+$canvas->rectangle($x, $y, $w, $fTotalH, $black, 0.3);
         // ══════════════════════════════════════════════════════════════════
         // HEADER  (top of page)
         // ══════════════════════════════════════════════════════════════════
@@ -304,7 +344,7 @@ p.i3    { margin-left:42px; }
         $c4 = $cW * 0.21;  // value
 
         // Draw outer border
-        $canvas->rectangle($lm, $fTop, $cW, $fTotalH, $black, 0.5);
+       $canvas->rectangle($margin, $margin, $W - (2 * $margin), $H - (2 * $margin), $black, 0.8);
 
         // Helper: draw cell border (right + bottom)
         $drawCell = function($x, $y, $w, $h) use ($canvas, $black) {

@@ -167,8 +167,8 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'search_invoices') {
     $bindParams   = [];
 
     if ($statusF === 'paid')    $whereClauses[] = "i.payment_status='Paid'";
-    elseif ($statusF === 'unpaid')  $whereClauses[] = "i.payment_status='Unpaid'";
     elseif ($statusF === 'partial') $whereClauses[] = "i.payment_status='Partial'";
+    elseif ($statusF === 'unpaid')  $whereClauses[] = "i.payment_status IN ('Unpaid','Partial')";
 
     if ($execFilter === 'unassigned') {
         $whereClauses[] = "(i.executive_id IS NULL OR i.executive_id = 0)";
@@ -289,6 +289,7 @@ $invPage  = max(1, (int)($_GET['inv_page']  ?? 1));
 $custPage = max(1, (int)($_GET['cust_page'] ?? 1));
 $period   = $_GET['period']  ?? 'all';
 $statusF  = $_GET['status']  ?? 'all';
+$finYear  = $_GET['fin_year'] ?? '';
 $dateFrom = $_GET['date_from'] ?? '';
 $dateTo   = $_GET['date_to']   ?? '';
 
@@ -322,17 +323,32 @@ switch($period){
     case 'this_quarter':
         $qS=[1=>1,2=>1,3=>1,4=>4,5=>4,6=>4,7=>7,8=>7,9=>7,10=>10,11=>10,12=>10][$m];
         $from=date("Y-$qS-01"); $to=date('Y-m-t',strtotime(date("Y-".($qS+2)."-01"))); break;
-    case 'this_year':   $from=$finYearStart; $to=$finYearEnd; break;
-    case 'last_year':   $from=($m>=4)?(($y-1).'-04-01'):(($y-2).'-04-01'); $to=($m>=4)?("$y-03-31"):(($y-1).'-03-31'); break;
     case 'all':         $from='2000-01-01'; $to='2099-12-31'; break;
     case 'custom':      $from=$dateFrom?:$finYearStart; $to=$dateTo?:$today2; break;
-    default:            $from=$finYearStart; $to=$finYearEnd;
+    default:            $from='2000-01-01'; $to='2099-12-31';
+}
+
+// Financial Year dropdown overrides the period date range if selected
+if ($finYear !== '') {
+    $fyMap = [
+        'fy_2023_24' => ['2023-04-01','2024-03-31'],
+        'fy_2024_25' => ['2024-04-01','2025-03-31'],
+        'fy_2025_26' => ['2025-04-01','2026-03-31'],
+        'fy_2026_27' => ['2026-04-01','2027-03-31'],
+    ];
+    if (isset($fyMap[$finYear])) {
+        $from = $fyMap[$finYear][0];
+        $to   = $fyMap[$finYear][1];
+    }
 }
 
 $whereClauses=["i.invoice_date BETWEEN ? AND ?"]; $bindParams=[$from,$to];
 if($statusF==='paid')    $whereClauses[]="i.payment_status='Paid'";
-elseif($statusF==='unpaid')  $whereClauses[]="i.payment_status='Unpaid'";
 elseif($statusF==='partial') $whereClauses[]="i.payment_status='Partial'";
+elseif($statusF==='unpaid')  {
+    // Show ALL invoices that have any remaining balance (Unpaid + Partial)
+    $whereClauses[]="i.payment_status IN ('Unpaid','Partial')";
+}
 
 // Executive filter
 $execFilter = $_GET['executive_id'] ?? '';
@@ -447,51 +463,52 @@ $customers=$custStmt->fetchAll(PDO::FETCH_ASSOC);
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-.pagination{display:flex;justify-content:center;align-items:center;gap:5px;padding:16px 0 8px}
+.pagination{display:flex;justify-content:center;align-items:center;gap:4px;padding:4px 0 2px}
 .pagination a,.pagination span{display:inline-flex;align-items:center;justify-content:center;
   min-width:32px;height:32px;padding:0 8px;border-radius:7px;font-size:13px;font-weight:600;
   text-decoration:none;border:1.5px solid #e4e8f0;color:#374151;background:#fff;transition:all .15s}
 .pagination a:hover{border-color:#16a34a;color:#16a34a;background:#f0fdf4}
 .pagination span.active{background:#16a34a;color:#fff;border-color:#16a34a}
 .pagination span.dots{border:none;background:none;color:#9ca3af}
-body{font-family:'Times New Roman',Times,serif;background:#f4f6fb}
-.content{margin-left:220px;padding:32px 28px 28px}
-h2{font-weight:700;margin-bottom:20px;color:#1a1f2e;font-size:22px}
+body{font-family:'Times New Roman',Times,serif;background:#f4f6fb;height:100vh;overflow:hidden}
+.content{margin-left:220px;padding:10px 18px 6px;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+h2{font-weight:700;margin-bottom:0;color:#1a1f2e;font-size:18px}
 
 /* Filter */
-.filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
 .filter-bar select,.filter-bar input[type=date]{
-    padding:7px 12px;border:1.5px solid #e2e8f0;border-radius:8px;
-    font-size:13px;font-family:'Times New Roman',Times,serif;
+    padding:4px 8px;border:1.5px solid #e2e8f0;border-radius:8px;
+    font-size:12px;font-family:'Times New Roman',Times,serif;
     color:#374151;background:#fff;cursor:pointer;outline:none}
 .filter-bar select:focus,.filter-bar input[type=date]:focus{border-color:#f97316}
 .custom-dates{display:none;gap:8px;align-items:center}
 .custom-dates.show{display:flex}
 
 /* Stat badges */
-.stat-badges{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.stat-badges{display:flex;gap:8px;margin-bottom:6px;flex-wrap:wrap}
 .stat-badge{
-    display:inline-flex;align-items:center;gap:6px;
-    padding:6px 16px;border-radius:8px;border:1.5px solid #f97316;
-    background:#fff;font-size:13px;color:#374151;white-space:nowrap}
+    display:inline-flex;align-items:center;gap:5px;
+    padding:4px 12px;border-radius:8px;border:1.5px solid #f97316;
+    background:#fff;font-size:12px;color:#374151;white-space:nowrap}
 .stat-badge .label{color:#6b7280}
 .stat-badge .value{font-weight:700;color:#f97316}
 .stat-badge.green{border-color:#16a34a}.stat-badge.green .value{color:#16a34a}
 .stat-badge.blue {border-color:#2563eb}.stat-badge.blue  .value{color:#2563eb}
 .stat-badge.red  {border-color:#f97316}.stat-badge.red   .value{color:#f97316}
+.stat-badge[onclick]:hover{background:#fff7ed;box-shadow:0 2px 8px rgba(249,115,22,.15);transform:translateY(-1px);transition:all .15s}
 
 /* Card & table */
-.card{background:#fff;border-radius:14px;padding:20px;border:1px solid #e4e8f0}
+.card{background:#fff;border-radius:12px;padding:8px 12px;border:1px solid #e4e8f0;flex:1;overflow-y:auto;}
 table{width:100%;border-collapse:collapse}
-th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;padding:0 12px 12px 0}
-td{padding:13px 12px 13px 0;border-top:1px solid #f1f5f9;font-size:14px;color:#1a1f2e}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;padding:0 8px 6px 0}
+td{padding:5px 6px 5px 0;border-top:1px solid #f1f5f9;font-size:12px;color:#1a1f2e}
 .invoice-row{cursor:pointer;transition:background .15s}
 .invoice-row:hover{background:#fff7f0}
 
 /* Status pills — matching orange theme */
 .status-pill{
-    display:inline-flex;align-items:center;gap:5px;
-    padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;
+    display:inline-flex;align-items:center;gap:4px;
+    padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;
     cursor:pointer;transition:transform .15s,box-shadow .15s;white-space:nowrap}
 .status-pill:hover{transform:scale(1.06);box-shadow:0 3px 10px rgba(0,0,0,.1)}
 .status-pill.paid   {background:#dcfce7;color:#16a34a}
@@ -503,11 +520,11 @@ td{padding:13px 12px 13px 0;border-top:1px solid #f1f5f9;font-size:14px;color:#1
 .pnd-zero{color:#9ca3af}
 
 /* Buttons */
-.header-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.header-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .btn{
-    display:inline-flex;align-items:center;gap:6px;padding:10px 18px;
+    display:inline-flex;align-items:center;gap:6px;padding:6px 14px;
     border-radius:8px;background:#f97316;color:#fff;text-decoration:none;
-    font-size:14px;font-weight:600;border:none;cursor:pointer;
+    font-size:12px;font-weight:600;border:none;cursor:pointer;
     font-family:'Times New Roman',Times,serif;transition:background .2s}
 .btn:hover{background:#fb923c}
 .btn-green{background:#16a34a}.btn-green:hover{background:#15803d}
@@ -678,7 +695,7 @@ td{padding:13px 12px 13px 0;border-top:1px solid #f1f5f9;font-size:14px;color:#1
 .sort-th .si { font-size:10px; color:#d1d5db; margin-left:4px; }
 .sort-th.asc .si, .sort-th.desc .si { color:#f97316; }
 /* Show entries */
-.show-entries { display:flex; align-items:center; gap:8px; font-size:13px; color:#374151; margin-bottom:10px; }
+.show-entries { display:flex; align-items:center; gap:6px; font-size:12px; color:#374151; margin-bottom:4px; }
 .show-entries select { padding:5px 10px; border:1.5px solid #e2e8f0; border-radius:7px; font-size:13px;
     font-family:'Times New Roman',Times,serif; color:#374151; background:#fff; outline:none; cursor:pointer; }
 .show-entries select:focus { border-color:#f97316; }
@@ -715,14 +732,32 @@ td{padding:13px 12px 13px 0;border-top:1px solid #f1f5f9;font-size:14px;color:#1
 <input type="hidden" name="view" value="invoices">
 <input type="hidden" name="sort_col" value="<?=htmlspecialchars($sortCol)?>">
 <input type="hidden" name="sort_dir" value="<?=htmlspecialchars($sortDir)?>">
-<div class="filter-bar">
+<div class="filter-bar" style="display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:nowrap;">
     <select name="period" onchange="this.form.submit();toggleCustom(this.value);">
-        <?php $periods=['today'=>'Today','this_week'=>'This Week','this_month'=>'This Month',
-            'last_month'=>'Last Month','this_quarter'=>'This Quarter',
-            'this_year'=>'This Financial Year','last_year'=>'Last Financial Year',
-            'all'=>'All Invoices','custom'=>'Custom Range']; ?>
+        <?php $periods=[
+            'today'        => 'Today',
+            'this_week'    => 'This Week',
+            'this_month'   => 'This Month',
+            'last_month'   => 'Last Month',
+            'this_quarter' => 'This Quarter',
+            'all'          => 'All Invoices',
+            'custom'       => 'Custom Range',
+        ]; ?>
         <?php foreach($periods as $val=>$label): ?>
         <option value="<?=$val?>" <?=$period==$val?'selected':''?>><?=$label?></option>
+        <?php endforeach; ?>
+    </select>
+    <select name="fin_year" onchange="this.form.submit();">
+        <option value="">Fin Year</option>
+        <?php
+        $fyOptions = [
+            'fy_2023_24' => 'FY 2023-24',
+            'fy_2024_25' => 'FY 2024-25',
+            'fy_2025_26' => 'FY 2025-26',
+            'fy_2026_27' => 'FY 2026-27',
+        ];
+        foreach($fyOptions as $val=>$label):?>
+        <option value="<?=$val?>" <?=$finYear===$val?'selected':''?>><?=$label?></option>
         <?php endforeach; ?>
     </select>
     <div class="custom-dates <?=$period=='custom'?'show':''?>" id="customDates">
@@ -736,21 +771,63 @@ td{padding:13px 12px 13px 0;border-top:1px solid #f1f5f9;font-size:14px;color:#1
         <option value="partial" <?=$statusF=='partial'?'selected':''?>>Partial</option>
         <option value="unpaid"  <?=$statusF=='unpaid' ?'selected':''?>>Unpaid</option>
     </select>
-    <select name="executive_id" onchange="this.form.submit();" style="padding:7px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-family:'Times New Roman',Times,serif;color:#374151;background:#fff;outline:none;">
+    <select name="executive_id" onchange="this.form.submit();" style="padding:4px 8px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;font-family:'Times New Roman',Times,serif;color:#374151;background:#fff;outline:none;">
         <option value="">All Executives</option>
         <option value="unassigned" <?=$execFilter==='unassigned'?'selected':''?>>Unassigned</option>
         <?php foreach($allExecs as $ex): ?>
         <option value="<?=$ex['id']?>" <?=$execFilter==(string)$ex['id']?'selected':''?>><?=htmlspecialchars($ex['name'])?></option>
         <?php endforeach; ?>
     </select>
+    <div class="stat-badge" title="Show all invoices" style="cursor:pointer;" onclick="filterByStatus('all')">
+        <span class="label">Count</span><span class="value"><?=$invoiceCount?></span>
+    </div>
+    <div class="stat-badge" title="Pre-Tax total">
+        <span class="label">Pre-Tax</span><span class="value">&#8377; <?=indianFormat(floatval($countRow['basic_total']),2)?></span>
+    </div>
+    <div class="stat-badge blue" title="Show all invoices" style="cursor:pointer;" onclick="filterByStatus('all')">
+        <span class="label">Total</span><span class="value">&#8377; <?=indianFormat($totalAmount,2)?></span>
+    </div>
+    <div class="stat-badge red" title="Click to show only pending invoices" style="cursor:pointer;" onclick="filterByStatus('unpaid')" id="pendingPill">
+        <span class="label">Pending</span><span class="value">&#8377; <?=indianFormat($totalPending,2)?></span>
+    </div>
 </div>
-<div class="stat-badges">
-    <div class="stat-badge"><span class="label">Count</span><span class="value"><?=$invoiceCount?></span></div>
-    <div class="stat-badge blue"><span class="label">Total</span><span class="value">&#8377; <?=indianFormat($totalAmount,2)?></span></div>
-    <div class="stat-badge red"><span class="label">Pending</span><span class="value">&#8377; <?=indianFormat($totalPending,2)?></span></div>
+<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;margin-bottom:4px;">Show
+    <select name="per_page" form="filterForm" onchange="document.getElementById('filterForm').submit();" style="padding:3px 6px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12px;font-family:'Times New Roman',Times,serif;color:#374151;background:#fff;outline:none;">
+        <?php foreach([10,25,50,100] as $n): ?>
+        <option value="<?=$n?>" <?=$perPage==$n?'selected':''?>><?=$n?></option>
+        <?php endforeach; ?>
+    </select> entries
 </div>
 </form>
-<script>function toggleCustom(v){document.getElementById('customDates').classList.toggle('show',v==='custom');}</script>
+<script>function toggleCustom(v){document.getElementById('customDates').classList.toggle('show',v==='custom');}
+
+function filterByStatus(status) {
+    var form = document.getElementById('filterForm');
+    var sel = form.querySelector('[name="status"]');
+    if (sel) sel.value = status;
+    var pg = form.querySelector('[name="inv_page"]');
+    if (pg) pg.value = 1; else { var h=document.createElement('input');h.type='hidden';h.name='inv_page';h.value='1';form.appendChild(h); }
+    if (status === 'unpaid') {
+        // Show ALL pending across all dates — reset period and fin_year
+        var periodSel = form.querySelector('[name="period"]');
+        if (periodSel) periodSel.value = 'all';
+        var fySel = form.querySelector('select[name="fin_year"]');
+        if (fySel) fySel.value = '';
+        var ppSel = form.querySelector('[name="per_page"]');
+        if (ppSel) ppSel.value = 100;
+    }
+    form.submit();
+}
+
+// Highlight active pill
+(function(){
+    var s = '<?= addslashes($statusF) ?>';
+    if (s === 'unpaid') {
+        var pill = document.getElementById('pendingPill');
+        if (pill) { pill.style.background='#fff7ed'; pill.style.boxShadow='0 0 0 2px #f97316'; }
+    }
+})();
+</script>
 
 <!-- Invoice Table -->
 <?php
@@ -765,15 +842,7 @@ function thSort($col, $label, $sortCol, $sortDir, $get) {
          . $label . '<i class="fas '.$icon.' si"></i></th>';
 }
 ?>
-<div class="show-entries">
-    Show
-    <select name="per_page" form="filterForm" onchange="document.getElementById('filterForm').submit();">
-        <?php foreach([10,25,50,100] as $n): ?>
-        <option value="<?=$n?>" <?=$perPage==$n?'selected':''?>><?=$n?></option>
-        <?php endforeach; ?>
-    </select>
-    entries
-</div>
+
 <div class="card">
 <table>
 <thead>

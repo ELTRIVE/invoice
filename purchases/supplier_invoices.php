@@ -81,6 +81,7 @@ function indFmt($n){
 }
 
 $period   = $_GET['period']   ?? 'all';
+$fin_year = $_GET['fin_year'] ?? '';
 $search   = trim($_GET['search'] ?? '');
 $per_page = in_array((int)($_GET['per_page'] ?? 10), [10,25,50,100]) ? (int)($_GET['per_page'] ?? 10) : 10;
 $cur_page = max(1,(int)($_GET['page'] ?? 1));
@@ -110,6 +111,17 @@ switch($period){
     default:           $df=date('Y-m-01'); $dt=date('Y-m-t');
 }
 
+// Financial Year dropdown overrides period date range if selected
+if ($fin_year !== '') {
+    $fyMap = [
+        'fy_2023_24' => ['2023-04-01','2024-03-31'],
+        'fy_2024_25' => ['2024-04-01','2025-03-31'],
+        'fy_2025_26' => ['2025-04-01','2026-03-31'],
+        'fy_2026_27' => ['2026-04-01','2027-03-31'],
+    ];
+    if (isset($fyMap[$fin_year])) { $df=$fyMap[$fin_year][0]; $dt=$fyMap[$fin_year][1]; }
+}
+
 $where  = ['invoice_date BETWEEN :df AND :dt'];
 $params = [':df'=>$df,':dt'=>$dt];
 if($search!==''){
@@ -129,7 +141,11 @@ $stmt=$pdo->prepare("SELECT * FROM purchases WHERE $wsql ORDER BY $order_sql LIM
 $stmt->execute($params);
 $invoices=$stmt->fetchAll(PDO::FETCH_ASSOC);
 
-function pageUrl($pg,$pf,$sr,$pp=10,$sc='',$sd='asc'){return '?'.http_build_query(['period'=>$pf,'search'=>$sr,'page'=>$pg,'per_page'=>$pp,'sort_col'=>$sc,'sort_dir'=>$sd]);}
+function pageUrl($pg,$pf,$sr,$pp=10,$sc='',$sd='asc',$fy=''){
+    $q=['period'=>$pf,'search'=>$sr,'page'=>$pg,'per_page'=>$pp,'sort_col'=>$sc,'sort_dir'=>$sd];
+    if($fy!=='') $q['fin_year']=$fy;
+    return '?'.http_build_query($q);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -141,12 +157,12 @@ function pageUrl($pg,$pf,$sr,$pp=10,$sc='',$sd='asc'){return '?'.http_build_quer
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Times New Roman',Times,serif;background:#f4f6fb;color:#1a1f2e;font-size:15px}
-.content{margin-left:220px;padding:32px 28px 28px;padding-top:68px!important}
-.header-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-h2{font-weight:700;color:#1a1f2e;font-size:22px}
-.filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
-.filter-bar select{padding:7px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-family:'Times New Roman',Times,serif;color:#374151;background:#fff;cursor:pointer;outline:none}
+body{font-family:'Times New Roman',Times,serif;background:#f4f6fb;color:#1a1f2e;font-size:15px;height:100vh;overflow:hidden}
+.content{margin-left:220px;padding:10px 18px 6px;padding-top:58px!important;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.header-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+h2{font-weight:700;color:#1a1f2e;font-size:18px}
+.filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:nowrap}
+.filter-bar select{padding:4px 8px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;font-family:'Times New Roman',Times,serif;color:#374151;background:#fff;cursor:pointer;outline:none}
 .filter-bar select:focus{border-color:#f97316}
 /* ── SEARCH BAR ── */
 .search-wrap{position:relative;width:230px}
@@ -154,15 +170,15 @@ h2{font-weight:700;color:#1a1f2e;font-size:22px}
 .search-wrap input[type=text]{width:100%;padding:7px 28px 7px 34px;border:1.5px solid #d1d5db;border-radius:50px;font-size:12.5px;font-family:'Times New Roman',Times,serif;color:#374151;background:#fff;outline:none;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:border-color .2s,box-shadow .2s}
 .search-wrap input[type=text]:focus{border-color:#93c5fd;box-shadow:0 0 0 3px rgba(147,197,253,.2)}
 .search-wrap input[type=text]::placeholder{color:#9ca3af;font-size:12px}
-.stat-badges{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-.stat-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:8px;border:1.5px solid #f97316;background:#fff;font-size:13px;color:#374151;white-space:nowrap}
+.stat-badges{display:flex;gap:10px;margin-bottom:5px;flex-wrap:wrap}
+.stat-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:8px;border:1.5px solid #f97316;background:#fff;font-size:11px;color:#374151;white-space:nowrap}
 .stat-badge .label{color:#6b7280}.stat-badge .value{font-weight:700;color:#f97316}
 .stat-badge.blue{border-color:#2563eb}.stat-badge.blue .value{color:#2563eb}
 .stat-badge.green{border-color:#16a34a}.stat-badge.green .value{color:#16a34a}
-.card{background:#fff;border-radius:14px;padding:20px;border:1px solid #e4e8f0}
+.card{background:#fff;border-radius:12px;padding:8px 12px;border:1px solid #e4e8f0;flex:1;overflow-y:auto}
 table{width:100%;border-collapse:collapse}
-th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;padding:0 12px 12px 12px;font-weight:700}
-td{padding:13px 12px 13px 12px;border-top:1px solid #f1f5f9;font-size:14px;color:#1a1f2e}
+th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;padding:0 8px 5px 8px;font-weight:700}
+td{padding:5px 6px 5px 6px;border-top:1px solid #f1f5f9;font-size:12px;color:#1a1f2e}
 .col-amount{text-align:right;width:130px}
 .col-actions{text-align:left;width:90px}
 .si-row{cursor:pointer;transition:background .15s}
@@ -171,9 +187,9 @@ td{padding:13px 12px 13px 12px;border-top:1px solid #f1f5f9;font-size:14px;color
 .action-btn{width:30px;height:30px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;border:none;cursor:pointer;text-decoration:none;transition:all .2s}
 .btn-edit{background:#f4f6fb;color:#6b7280;border:1px solid #e4e8f0}.btn-edit:hover{background:#f97316;color:#fff;border-color:#f97316}
 .btn-pdf{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}.btn-pdf:hover{background:#dc2626;color:#fff}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:8px;background:#f97316;color:#fff;text-decoration:none;font-size:14px;font-weight:600;border:none;cursor:pointer;font-family:'Times New Roman',Times,serif;transition:background .2s}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:#f97316;color:#fff;text-decoration:none;font-size:12px;font-weight:600;border:none;cursor:pointer;font-family:'Times New Roman',Times,serif;transition:background .2s}
 .btn:hover{background:#fb923c}
-.pagination{display:flex;justify-content:center;align-items:center;gap:5px;padding:16px 0 8px}
+.pagination{display:flex;justify-content:center;align-items:center;gap:5px;padding:4px 0 2px}
 .pagination a,.pagination span{display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:32px;padding:0 8px;border-radius:7px;font-size:13px;font-weight:600;text-decoration:none;border:1.5px solid #e4e8f0;color:#374151;background:#fff;transition:all .15s}
 .pagination a:hover{border-color:#f97316;color:#f97316;background:#fff7f0}
 .pagination span.active{background:#f97316;color:#fff;border-color:#f97316}
@@ -244,7 +260,7 @@ td{padding:13px 12px 13px 12px;border-top:1px solid #f1f5f9;font-size:14px;color
         <input type="hidden" name="per_page" value="<?= $per_page ?>">
         <input type="hidden" name="sort_col" value="<?= htmlspecialchars($sort_col) ?>">
         <input type="hidden" name="sort_dir" value="<?= htmlspecialchars($sort_dir) ?>">
-        <div class="filter-bar">
+        <div class="filter-bar" style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:nowrap;">
             <select name="period" onchange="document.getElementById('filterForm').submit()">
                 <option value="this_month" <?= $period==='this_month'?'selected':'' ?>>This Month</option>
                 <option value="last_month" <?= $period==='last_month'?'selected':'' ?>>Last Month</option>
@@ -252,23 +268,32 @@ td{padding:13px 12px 13px 12px;border-top:1px solid #f1f5f9;font-size:14px;color
                 <option value="last_year"  <?= $period==='last_year'?'selected':'' ?>>Last Financial Year</option>
                 <option value="all"        <?= $period==='all'?'selected':'' ?>>All Invoices</option>
             </select>
+            <select name="fin_year" onchange="document.getElementById('filterForm').submit()">
+                <option value="">Fin Year</option>
+                <option value="fy_2023_24" <?= $fin_year==='fy_2023_24'?'selected':'' ?>>FY 2023-24</option>
+                <option value="fy_2024_25" <?= $fin_year==='fy_2024_25'?'selected':'' ?>>FY 2024-25</option>
+                <option value="fy_2025_26" <?= $fin_year==='fy_2025_26'?'selected':'' ?>>FY 2025-26</option>
+                <option value="fy_2026_27" <?= $fin_year==='fy_2026_27'?'selected':'' ?>>FY 2026-27</option>
+            </select>
         </div>
     </form>
-
-    <div class="stat-badges">
-        <div class="stat-badge"><span class="label">Count</span><span class="value"><?= $count ?></span></div>
-        <div class="stat-badge blue"><span class="label">Pre-Tax</span><span class="value">&#8377; <?= indFmt($total_taxable) ?></span></div>
-        <div class="stat-badge green"><span class="label">Total</span><span class="value">&#8377; <?= indFmt($total_amount) ?></span></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:nowrap;">
+        <div class="stat-badge" style="cursor:pointer;" title="Show all" onclick="filterByStatus()">
+            <span class="label">Count</span><span class="value"><?= $count ?></span>
+        </div>
+        <div class="stat-badge blue" style="cursor:pointer;" title="Show all" onclick="filterByStatus()">
+            <span class="label">Pre-Tax</span><span class="value">&#8377; <?= indFmt($total_taxable) ?></span>
+        </div>
+        <div class="stat-badge green" style="cursor:pointer;" title="Show all" onclick="filterByStatus()">
+            <span class="label">Total</span><span class="value">&#8377; <?= indFmt($total_amount) ?></span>
+        </div>
     </div>
-
-    <div class="show-entries">
-        Show
-        <select name="per_page" form="filterForm" onchange="document.getElementById('filterForm').submit();">
+    <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;margin-bottom:4px;">Show
+        <select name="per_page" form="filterForm" onchange="document.getElementById('filterForm').submit();" style="padding:3px 6px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12px;font-family:'Times New Roman',Times,serif;color:#374151;background:#fff;outline:none;">
             <?php foreach([10,25,50,100] as $n): ?>
             <option value="<?=$n?>" <?=$per_page==$n?'selected':''?>><?=$n?></option>
             <?php endforeach; ?>
-        </select>
-        entries
+        </select> entries
     </div>
 
     <div class="card">
@@ -329,7 +354,7 @@ td{padding:13px 12px 13px 12px;border-top:1px solid #f1f5f9;font-size:14px;color
         <?php
         $prevDisabled = $cur_page <= 1;
         $nextDisabled = $cur_page >= $total_pages;
-        echo $prevDisabled ? '<span class="disabled">&laquo;</span>' : '<a href="'.pageUrl($cur_page-1,$period,$search,$per_page,$sort_col,$sort_dir).'">&laquo;</a>';
+        echo $prevDisabled ? '<span class="disabled">&laquo;</span>' : '<a href="'.pageUrl($cur_page-1,$period,$search,$per_page,$sort_col,$sort_dir,$fin_year).'">&laquo;</a>';
         $pages = [];
         for ($i = 1; $i <= $total_pages; $i++) {
             if ($i <= 3 || $i == $total_pages || abs($i - $cur_page) <= 1) $pages[] = $i;
@@ -339,10 +364,10 @@ td{padding:13px 12px 13px 12px;border-top:1px solid #f1f5f9;font-size:14px;color
         foreach ($pages as $p) {
             if ($prev !== null && $p - $prev > 1) echo '<span class="dots">…</span>';
             if ($p == $cur_page) echo '<span class="active">'.$p.'</span>';
-            else echo '<a href="'.pageUrl($p,$period,$search,$per_page,$sort_col,$sort_dir).'">'.$p.'</a>';
+            else echo '<a href="'.pageUrl($p,$period,$search,$per_page,$sort_col,$sort_dir,$fin_year).'">'.$p.'</a>';
             $prev = $p;
         }
-        echo $nextDisabled ? '<span class="disabled">&raquo;</span>' : '<a href="'.pageUrl($cur_page+1,$period,$search,$per_page,$sort_col,$sort_dir).'">&raquo;</a>';
+        echo $nextDisabled ? '<span class="disabled">&raquo;</span>' : '<a href="'.pageUrl($cur_page+1,$period,$search,$per_page,$sort_col,$sort_dir,$fin_year).'">&raquo;</a>';
         ?>
     </div>
 </div>
@@ -385,6 +410,16 @@ function openPopup(inv){
 function closePopup(){ document.getElementById('popupOverlay').classList.remove('open'); }
 document.getElementById('popupOverlay').addEventListener('click',function(e){if(e.target===this)closePopup();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closePopup();});
+</script>
+<script>
+function filterByStatus() {
+    var form = document.getElementById('filterForm');
+    var periodSel = form.querySelector('[name="period"]');
+    if (periodSel) periodSel.value = 'all';
+    var fySel = form.querySelector('[name="fin_year"]');
+    if (fySel) fySel.value = '';
+    form.submit();
+}
 </script>
 <script>
 var _ajaxTimer;

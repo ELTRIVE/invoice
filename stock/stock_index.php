@@ -338,17 +338,17 @@ function pageUrl($pg, $sr, $pp=10, $sc='', $sd='asc') { return '?' . http_build_
 <style>
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Times New Roman', Times, serif; background: #f4f6fb; color: #1a1f2e; }
-.content { margin-left: 220px; padding: 68px 28px 40px; min-height: 100vh; }
+.content { margin-left: 220px; padding: 58px 18px 6px; height:100vh;display:flex;flex-direction:column;overflow:hidden;}
 
 /* ── Header ── */
-.header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-h2 { font-size: 22px; font-weight: 700; color: #1a1f2e; }
+.header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+h2 { font-size: 18px; font-weight: 700; color: #1a1f2e; }
 .topbar-right { display: flex; align-items: center; gap: 10px; }
 .btn-create {
     display: inline-flex; align-items: center; gap: 6px;
-    padding: 10px 18px; border-radius: 8px;
+    padding: 6px 12px; border-radius: 8px;
     background: #f97316; color: #fff; text-decoration: none;
-    font-size: 14px; font-weight: 600; border: none; cursor: pointer;
+    font-size: 12px; font-weight: 600; border: none; cursor: pointer;
     font-family: 'Times New Roman', Times, serif; transition: background .2s;
 }
 .btn-create:hover { background: #fb923c; }
@@ -367,11 +367,11 @@ h2 { font-size: 22px; font-weight: 700; color: #1a1f2e; }
 .search-wrap input::placeholder { color: #9ca3af; font-size: 12px; }
 
 /* ── Stat pill ── */
-.summary-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.summary-row { display: flex; align-items:center; gap: 8px; margin-bottom: 5px; flex-wrap: nowrap; }
 .sum-pill {
     display: inline-flex; align-items: center; gap: 6px;
-    padding: 6px 16px; border-radius: 8px; border: 1.5px solid;
-    background: #fff; font-size: 13px; color: #374151; white-space: nowrap;
+    padding: 3px 10px; border-radius: 8px; border: 1.5px solid;
+    background: #fff; font-size: 11px; color: #374151; white-space: nowrap;
 }
 .sum-pill .label { color: #6b7280; }
 .sum-pill .val   { font-weight: 700; }
@@ -380,16 +380,16 @@ h2 { font-size: 22px; font-weight: 700; color: #1a1f2e; }
 .sum-pill.red    { border-color: #dc2626; } .sum-pill.red    .val { color: #dc2626; }
 
 /* ── Card / table ── */
-.stock-card { background: #fff; border-radius: 14px; padding: 20px; border: 1px solid #e4e8f0; }
-.stock-table { width: 100%; border-collapse: collapse; }
+.stock-card { background: #fff; border-radius: 12px; padding: 8px 12px; border: 1px solid #e4e8f0; flex:1;overflow-y:auto;min-height:0;display:flex;flex-direction:column;}
+.stock-table { width: 100%; border-collapse: collapse; flex:1; }
 .stock-table thead tr { background: #fff; }
 .stock-table th {
-    text-align: left; font-size: 12px; text-transform: uppercase;
-    letter-spacing: .05em; color: #6b7280; padding: 0 12px 12px 0; font-weight: 700;
+    text-align: left; font-size: 11px; text-transform: uppercase;
+    letter-spacing: .05em; color: #6b7280; padding: 0 6px 4px 0; font-weight: 700;
 }
 .stock-table tbody tr { cursor: default; transition: background .15s; }
 .stock-table tbody tr:hover { background: #fff7f0; }
-.stock-table td { padding: 13px 12px 13px 0; border-top: 1px solid #f1f5f9; font-size: 13px; }
+.stock-table td { padding: 4px 6px 4px 0; border-top: 1px solid #f1f5f9; font-size: 12px; }
 
 /* ── Qty pills ── */
 .qty-pill {
@@ -415,7 +415,7 @@ h2 { font-size: 22px; font-weight: 700; color: #1a1f2e; }
 .btn-update:hover { background: #fb923c; }
 
 /* ── Pagination ── */
-.pagination { display: flex; justify-content: center; align-items: center; gap: 4px; padding: 20px 0 8px; }
+.pagination { display: flex; justify-content: center; align-items: center; gap: 4px; padding: 4px 0 2px; flex-shrink:0; }
 .pagination a, .pagination span {
     display: inline-flex; align-items: center; justify-content: center;
     min-width: 34px; height: 34px; padding: 0 10px; border-radius: 8px;
@@ -424,7 +424,7 @@ h2 { font-size: 22px; font-weight: 700; color: #1a1f2e; }
     cursor: pointer;
 }
 .pagination a:hover { border-color: #f97316; color: #f97316; background: #fff7f0; }
-.pagination span.active { background: #16a34a; color: #fff; border-color: #16a34a; }
+.pagination span.active { background: #f97316; color: #fff; border-color: #f97316; }
 .pagination span.dots   { border: none; background: none; color: #9ca3af; min-width: 20px; }
 .pagination span.disabled { opacity: .4; cursor: not-allowed; pointer-events: none; }
 
@@ -545,11 +545,9 @@ h2 { font-size: 22px; font-weight: 700; color: #1a1f2e; }
     </div>
 
     <!-- SUMMARY -->
-    <div class="summary-row">
-        <div class="sum-pill orange">
-            <span class="label">Total Items</span>
-            <span class="val" id="totalCount"><?= $count ?></span>
-        </div>
+    <div class="filter-bar" style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:nowrap;">
+        <div class="sum-pill orange"><span class="label">Total Items</span><span class="val" id="totalCount"><?= $count ?></span></div>
+
         <select id="hsnFilter" onchange="filterByHsn(this.value)" style="
             padding:6px 14px; border:1.5px solid #f97316; border-radius:8px;
             font-size:12.5px; font-family:'Times New Roman',Times,serif;
@@ -558,15 +556,12 @@ h2 { font-size: 22px; font-weight: 700; color: #1a1f2e; }
             <option value="">All HSN Codes</option>
         </select>
     </div>
-
-    <!-- SHOW ENTRIES (outside the card) -->
-    <div class="show-entries" style="margin-bottom:8px">
-        Show
+    <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;margin-bottom:4px;">Show
         <form method="GET" id="ppForm" style="display:inline">
             <input type="hidden" name="search" value="<?= htmlspecialchars($search) ?>">
             <input type="hidden" name="sort_col" value="<?= htmlspecialchars($sort_col_st) ?>">
             <input type="hidden" name="sort_dir" value="<?= htmlspecialchars($sort_dir_st) ?>">
-            <select name="per_page" onchange="this.form.submit();">
+            <select name="per_page" onchange="this.form.submit();" style="padding:3px 6px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12px;font-family:'Times New Roman',Times,serif;color:#374151;background:#fff;outline:none;">
                 <?php foreach([10,25,50,100] as $n): ?>
                 <option value="<?=$n?>" <?=$per_page==$n?'selected':''?>><?=$n?></option>
                 <?php endforeach; ?>
@@ -616,9 +611,7 @@ h2 { font-size: 22px; font-weight: 700; color: #1a1f2e; }
             </tbody>
         </table>
     </div>
-
-    <!-- PAGINATION -->
-    <div class="pagination" id="paginationWrap"></div>
+    <div class="pagination" id="paginationWrap" style="flex-shrink:0;min-height:32px;"></div>
 
 </div><!-- /.content -->
 
@@ -1182,7 +1175,7 @@ var _sortCol   = '<?= htmlspecialchars($sort_col_st) ?>';
 var _sortDir   = '<?= htmlspecialchars($sort_dir_st) ?>';
 
 function renderPagination(cur, total) {
-    if (total <= 1) { document.getElementById('paginationWrap').innerHTML = ''; return; }
+    if (total <= 1) { document.getElementById('paginationWrap').innerHTML = '<span class="active">1</span>'; return; }
     var h = '';
     if (cur <= 1) h += '<span class="disabled">&laquo;</span>';
     else          h += '<a onclick="goPage(' + (cur-1) + ')">&laquo;</a>';

@@ -234,7 +234,7 @@ body { font-family: 'Times New Roman', Times, serif !important; }
         </a>
 
         <a href="/invoice/index.php?view=invoices"
-           class="<?= (basename($_SERVER['PHP_SELF']) === 'index.php' && ($_GET['view'] ?? 'invoices') === 'invoices') ? 'active' : '' ?>">
+           class="<?= (basename($_SERVER['PHP_SELF']) === 'index.php' && ($_GET['view'] ?? 'invoices') === 'invoices') || basename($_SERVER['PHP_SELF']) === 'create_invoice.php' ? 'active' : '' ?>">
             <i class="icon fas fa-file-invoice"></i>Invoices
         </a>
 

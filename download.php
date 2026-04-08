@@ -410,9 +410,7 @@ foreach ($items as $index => $item) {
     <div style="font-weight:600; font-size:9px;">
         ' . htmlspecialchars($item['item_name']) . '
     </div>
-    <div style="font-size:8px; color:#444; line-height:1.3;">
-        ' . htmlspecialchars($item['material_description']) . '
-    </div>
+    ' . (!empty(trim($item['material_description'])) && trim($item['material_description']) !== trim($item['item_name']) ? '<div style="font-size:8px; color:#444; line-height:1.3;">' . htmlspecialchars($item['material_description']) . '</div>' : '') . '
 </td>
 <td>' . htmlspecialchars($item['uom']) . '</td>
 <td class="right">' . number_format($item['qty'], 3) . '</td>

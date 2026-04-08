@@ -726,6 +726,18 @@ $popupCompany = !empty($existingOverride) ? array_merge($companyData, $existingO
             box-shadow: 0 0 0 3px rgba(249, 115, 22, .12) !important;
         }
 
+        /* Select2 dropdown highlighted and selected options - orange theme */
+        .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+            background-color: #f97316 !important;
+            color: #fff !important;
+        }
+
+        .select2-container--default .select2-results__option--selected {
+            background-color: #fff7ed !important;
+            color: #f97316 !important;
+            font-weight: 600;
+        }
+
         /* BUTTONS */
         .btn-theme {
             display: inline-flex;
@@ -1466,6 +1478,23 @@ $popupCompany = !empty($existingOverride) ? array_merge($companyData, $existingO
                                 <td id="totalTax" style="text-align:right;color:#374151">₹ 0.00</td>
                                 <td colspan="5"></td>
                             </tr>
+                            <tr id="roundOffRow" style="display:none">
+                                <td colspan="7" style="text-align:right;color:#6b7280;font-size:12px">
+                                    <span style="margin-right:4px;">🗑</span> Round off :
+                                </td>
+                                <td id="roundOffAmt"
+                                    style="text-align:right;color:#374151">₹ 0.00</td>
+                                <td colspan="5"></td>
+                            </tr>
+                            <tr>
+                                <td colspan="7" style="text-align:right;padding-top:6px;">
+                                    <button type="button" id="addRoundOffBtn" onclick="toggleRoundOff()"
+                                        style="padding:5px 13px;border-radius:7px;border:1.5px solid #16a34a;background:#f0fdf4;color:#16a34a;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">
+                                        <i class="fas fa-plus"></i> Add Round Off
+                                    </button>
+                                </td>
+                                <td colspan="6"></td>
+                            </tr>
                             <tr>
                                 <td colspan="7" style="text-align:right;color:#15803d;font-size:14px;font-weight:700">
                                     Grand Total :</td>
@@ -1478,8 +1507,8 @@ $popupCompany = !empty($existingOverride) ? array_merge($companyData, $existingO
                     </table>
                 </div>
             </div>
-<div style="display:flex; justify-content:flex-start; gap:10px; margin-top:20px;">
-    
+<div style="display:flex; justify-content:flex-start; gap:10px; margin-top:20px; flex-wrap:wrap; align-items:center;">
+
     <button type="submit" name="save_invoice" class="btn-theme" style="padding:10px 18px;">
         <i class="fas fa-save"></i>
         <?= $isEdit ? 'Update Invoice' : 'Save Invoice' ?>
@@ -1491,6 +1520,33 @@ $popupCompany = !empty($existingOverride) ? array_merge($companyData, $existingO
     </a>
 
 </div>
+
+<script>
+function toggleRoundOff() {
+    const row = document.getElementById('roundOffRow');
+    const btn = document.getElementById('addRoundOffBtn');
+    const grandEl = document.getElementById('grandTotal');
+    const isHidden = row.style.display === 'none' || row.style.display === '';
+    if (isHidden) {
+        const grandVal = parseFloat(grandEl.textContent.replace(/[₹,\s]/g, '')) || 0;
+        const paise    = parseFloat((grandVal - Math.floor(grandVal)).toFixed(2));
+        if (paise === 0) { alert('No paise to round off. Grand Total is already a whole number.'); return; }
+        const roundOff = -paise;
+        document.getElementById('roundOffAmt').textContent = '₹ ' + roundOff.toFixed(2);
+        grandEl.textContent = '₹ ' + (grandVal + roundOff).toFixed(2);
+        row.style.display = '';
+        btn.style.background = '#fef2f2'; btn.style.borderColor = '#dc2626'; btn.style.color = '#dc2626';
+        btn.innerHTML = '<i class="fas fa-times"></i> Remove Round Off';
+    } else {
+        const grandVal = parseFloat(grandEl.textContent.replace(/[₹,\s]/g, '')) || 0;
+        const roundVal = parseFloat(document.getElementById('roundOffAmt').textContent.replace(/[₹,\s]/g, '')) || 0;
+        grandEl.textContent = '₹ ' + (grandVal - roundVal).toFixed(2);
+        row.style.display = 'none';
+        btn.style.background = '#f0fdf4'; btn.style.borderColor = '#16a34a'; btn.style.color = '#16a34a';
+        btn.innerHTML = '<i class="fas fa-plus"></i> Add Round Off';
+    }
+}
+</script>
         </form>
         <!-- ADD BANK MODAL -->
         <div class="modal fade" id="addBankModal" tabindex="-1" aria-hidden="true">
@@ -1940,8 +1996,19 @@ $popupCompany = !empty($existingOverride) ? array_merge($companyData, $existingO
                 });
 
                 document.getElementById('totalTaxable').textContent = '₹ ' + totalTaxable.toFixed(2);
-                document.getElementById('totalTax').textContent = '₹ ' + totalTax.toFixed(2);
-                document.getElementById('grandTotal').textContent = '₹ ' + grandTotal.toFixed(2);
+                document.getElementById('totalTax').textContent     = '₹ ' + totalTax.toFixed(2);
+
+                // Recalculate round off only if user has already enabled it
+                const roundOffRow = document.getElementById('roundOffRow');
+                if (roundOffRow && roundOffRow.style.display !== 'none') {
+                    const floored  = Math.floor(grandTotal);
+                    const paise    = parseFloat((grandTotal - floored).toFixed(2));
+                    const roundOff = paise > 0 ? -paise : 0;
+                    document.getElementById('roundOffAmt').textContent = '₹ ' + roundOff.toFixed(2);
+                    document.getElementById('grandTotal').textContent  = '₹ ' + (grandTotal + roundOff).toFixed(2);
+                } else {
+                    document.getElementById('grandTotal').textContent = '₹ ' + grandTotal.toFixed(2);
+                }
             }
 
             document.getElementById('itemTable').addEventListener('input', function (e) {

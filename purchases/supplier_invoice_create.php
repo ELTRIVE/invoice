@@ -822,7 +822,19 @@ textarea.form-control{height:52px;resize:vertical;line-height:1.5}
     </div>
     <div class="bottom-actions">
         <button type="button" class="btn-add-item" onclick="openSelectItemModal()"><i class="fas fa-plus"></i> Add Item</button>
-        <div style="flex:1;text-align:right;font-size:12px;color:#6b7280">Grand Total: <strong style="color:#f97316;font-size:14px;font-weight:800" id="grandTotalDisplay">&#8377; 0.00</strong></div>
+        <div style="text-align:right;font-size:12px;color:#6b7280;display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+            <div id="roundOffRow" style="display:none;color:#6b7280;font-size:12px;">
+                <span style="margin-right:2px;">🗑</span> Round off :
+                <strong id="roundOffAmt" style="color:#374151;">₹ 0.00</strong>
+                <button type="button" onclick="toggleRoundOff()" title="Remove Round Off"
+                    style="margin-left:6px;background:none;border:none;color:#dc2626;cursor:pointer;font-size:11px;padding:0;">✕</button>
+            </div>
+            <div>Grand Total: <strong style="color:#f97316;font-size:14px;font-weight:800" id="grandTotalDisplay">&#8377; 0.00</strong></div>
+            <button type="button" id="addRoundOffBtn" onclick="toggleRoundOff()"
+                style="padding:5px 12px;border-radius:7px;border:1.5px solid #16a34a;background:#f0fdf4;color:#16a34a;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;margin-top:2px;">
+                <i class="fas fa-plus"></i> Add Round Off
+            </button>
+        </div>
     </div>
 </div>
 
@@ -1172,9 +1184,41 @@ function recalcFooter(){
         totTaxable += parseFloat(tr.querySelector('.taxable')?.textContent || 0);
         totTotal   += parseFloat(tr.querySelector('.amount')?.textContent  || 0);
     });
-    document.getElementById('footTaxable').textContent       = totTaxable.toFixed(2);
-    document.getElementById('footTotal').textContent         = totTotal.toFixed(2);
-    document.getElementById('grandTotalDisplay').textContent = '₹ '+totTotal.toLocaleString('en-IN',{minimumFractionDigits:2});
+    document.getElementById('footTaxable').textContent = totTaxable.toFixed(2);
+    document.getElementById('footTotal').textContent   = totTotal.toFixed(2);
+    const roundOffRow=document.getElementById('roundOffRow');
+    if(roundOffRow && roundOffRow.style.display!=='none'){
+        const paise=parseFloat((totTotal-Math.floor(totTotal)).toFixed(2));
+        const roundOff=paise>0?-paise:0;
+        document.getElementById('roundOffAmt').textContent='₹ '+roundOff.toFixed(2);
+        document.getElementById('grandTotalDisplay').textContent='₹ '+(totTotal+roundOff).toLocaleString('en-IN',{minimumFractionDigits:2});
+    } else {
+        document.getElementById('grandTotalDisplay').textContent='₹ '+totTotal.toLocaleString('en-IN',{minimumFractionDigits:2});
+    }
+}
+function toggleRoundOff(){
+    const row=document.getElementById('roundOffRow');
+    const btn=document.getElementById('addRoundOffBtn');
+    const grandEl=document.getElementById('grandTotalDisplay');
+    const isHidden=row.style.display==='none'||row.style.display==='';
+    if(isHidden){
+        const grandVal=parseFloat(grandEl.textContent.replace(/[₹,\s]/g,''))||0;
+        const paise=parseFloat((grandVal-Math.floor(grandVal)).toFixed(2));
+        if(paise===0){alert('No paise to round off. Grand Total is already a whole number.');return;}
+        const roundOff=-paise;
+        document.getElementById('roundOffAmt').textContent='₹ '+roundOff.toFixed(2);
+        grandEl.textContent='₹ '+(grandVal+roundOff).toLocaleString('en-IN',{minimumFractionDigits:2});
+        row.style.display='';
+        btn.style.background='#fef2f2';btn.style.borderColor='#dc2626';btn.style.color='#dc2626';
+        btn.innerHTML='<i class="fas fa-times"></i> Remove Round Off';
+    } else {
+        const grandVal=parseFloat(grandEl.textContent.replace(/[₹,\s]/g,''))||0;
+        const roundVal=parseFloat(document.getElementById('roundOffAmt').textContent.replace(/[₹,\s]/g,''))||0;
+        grandEl.textContent='₹ '+(grandVal-roundVal).toLocaleString('en-IN',{minimumFractionDigits:2});
+        row.style.display='none';
+        btn.style.background='#f0fdf4';btn.style.borderColor='#16a34a';btn.style.color='#16a34a';
+        btn.innerHTML='<i class="fas fa-plus"></i> Add Round Off';
+    }
 }
 
 /* ── Supplier Popup ── */

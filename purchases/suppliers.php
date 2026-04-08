@@ -134,11 +134,11 @@ if (!$isEdit) {
 <style>
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Times New Roman', Times, serif; background: #f4f6fb; color: #222; }
-.content { margin-left: 220px; padding: 68px 24px 28px; min-height: 100vh; background: #f4f6fb; }
+.content { margin-left: 220px; padding: 58px 18px 6px; height:100vh;display:flex;flex-direction:column;overflow:hidden;background:#f4f6fb;}
 
 /* ════ LIST STYLES ════ */
-.header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-h2 { font-weight: 700; color: #1a1f2e; font-size: 22px; }
+.header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+h2 { font-weight: 700; color: #1a1f2e; font-size: 18px; }
 .topbar-right { display: flex; align-items: center; gap: 8px; }
 /* ── SEARCH BAR ── */
 .search-wrap { position: relative; width: 230px; }
@@ -148,20 +148,20 @@ h2 { font-weight: 700; color: #1a1f2e; font-size: 22px; }
 .search-wrap input[type=text]::placeholder { color: #9ca3af; font-size: 12px; }
 .search-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 12px; display: none; padding: 2px 3px; line-height: 1; }
 .search-clear:hover { color: #374151; }
-.summary-row { display: flex; gap: 10px; margin-bottom: 16px; }
-.sum-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px;
-    border-radius: 8px; border: 1.5px solid; background: #fff; font-size: 13px; color: #374151; }
+.summary-row { display: flex; align-items:center; gap: 8px; margin-bottom: 5px; flex-wrap:nowrap; }
+.sum-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px;
+    border-radius: 8px; border: 1.5px solid; background: #fff; font-size: 11px; color: #374151; }
 .sum-pill .label { color: #6b7280; }
 .sum-pill .val { font-weight: 700; }
 .sum-pill.orange { border-color: #f97316; }
 .sum-pill.orange .val { color: #f97316; }
-.po-card { background: #fff; border-radius: 14px; padding: 12px 20px; border: 1px solid #e4e8f0; }
+.po-card { background: #fff; border-radius: 12px; padding: 8px 12px; border: 1px solid #e4e8f0; flex:1;overflow-y:auto;}
 .po-table { width: 100%; border-collapse: collapse; }
 .po-table th { text-align: left; font-size: 12px; text-transform: uppercase;
-letter-spacing: .05em; color: #6b7280; padding: 0 0 8px 0; font-weight: 700; }
+letter-spacing: .05em; color: #6b7280; padding: 0 0 4px 0; font-weight: 700; }
 .po-table tbody tr { transition: background .15s; }
 .po-table tbody tr:hover { background: #fff7f0; }
-.po-table td { padding: 9px 0px 9px 0; border-top: 1px solid #f1f5f9; font-size: 13px; color: #1a1f2e; line-height: 1; }
+.po-table td { padding: 4px 0 4px 0; border-top: 1px solid #f1f5f9; font-size: 12px; color: #1a1f2e; line-height: 1; }
 .po-table td:nth-child(1), .po-table th:nth-child(1) { width: 45%; }
 .po-table td:nth-child(2), .po-table th:nth-child(2) { width: 45%; }
 .po-table td:nth-child(3), .po-table th:nth-child(3) { width: 40px; }
@@ -175,7 +175,7 @@ letter-spacing: .05em; color: #6b7280; padding: 0 0 8px 0; font-weight: 700; }
     border: none; cursor: pointer; text-decoration: none; transition: all .2s; }
 .btn-edit { background: #f4f6fb; color: #6b7280; border: 1px solid #e2e8f0; }
 .btn-edit:hover { background: #f97316; color: #fff; border-color: #f97316; }
-.pagination { display: flex; justify-content: center; align-items: center; gap: 5px; padding: 16px 0 8px; }
+.pagination { display: flex; justify-content: center; align-items: center; gap: 5px; padding: 4px 0 2px; }
 .pagination a, .pagination span { display: inline-flex; align-items: center; justify-content: center;
     min-width: 32px; height: 32px; padding: 0 8px; border-radius: 7px; font-size: 13px; font-weight: 600;
     text-decoration: none; border: 1.5px solid #e4e8f0; color: #374151; background: #fff; transition: all .15s; }
@@ -278,7 +278,7 @@ input.invalid { border-color: #dc2626 !important; box-shadow: 0 0 0 3px rgba(220
     border-radius: 50%; display: flex; align-items: center; justify-content: center;
     margin: 0 auto 16px; font-size: 24px; color: #fff; }
 .success-card h3 { font-size: 18px; font-weight: 800; color: #1a1f2e; margin-bottom: 6px; }
-.success-card p  { font-size: 13px; color: #6b7280; margin-bottom: 20px; }
+.success-card p  { font-size: 13px; color: #6b7280; margin-bottom: 6px; }
 #okBtn { padding: 10px 28px; background: linear-gradient(135deg,#f97316,#fb923c);
     color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 700;
     cursor: pointer; font-family: 'Times New Roman',Times,serif;
@@ -413,8 +413,18 @@ input.invalid { border-color: #dc2626 !important; box-shadow: 0 0 0 3px rgba(220
     </div>
 
 </div>
-</form>
-</div>
+<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;margin-bottom:4px;">Show
+        <form method="GET" id="ppForm" style="display:inline">
+            <input type="hidden" name="search" value="<?= htmlspecialchars($search) ?>">
+            <input type="hidden" name="sort_col" value="<?= htmlspecialchars($sort_col) ?>">
+            <input type="hidden" name="sort_dir" value="<?= htmlspecialchars($sort_dir) ?>">
+            <select name="per_page" onchange="this.form.submit();" style="padding:3px 6px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12px;font-family:'Times New Roman',Times,serif;">
+                <?php foreach([10,25,50,100] as $n): ?>
+                <option value="<?=$n?>" <?=$per_page==$n?'selected':''?>><?=$n?></option>
+                <?php endforeach; ?>
+            </select>
+        </form>
+        entries</div>
 
 <?php else: ?>
 <!-- ══ LIST VIEW ══════════════════════════════════════════════════════════════ -->
@@ -429,20 +439,15 @@ input.invalid { border-color: #dc2626 !important; box-shadow: 0 0 0 3px rgba(220
         </div>
     </div>
 
-    <div class="summary-row">
-        <div class="sum-pill orange">
-            <span class="label">Total Suppliers</span>
-            <span class="val"><?= $count ?></span>
-        </div>
+    <div class="filter-bar" style="display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:nowrap;">
+        <div class="sum-pill orange"><span class="label">Total Suppliers</span><span class="val"><?= $count ?></span></div>
     </div>
-
-    <div class="show-entries">
-        Show
+    <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;margin-bottom:4px;">Show
         <form method="GET" id="ppForm" style="display:inline">
             <input type="hidden" name="search" value="<?= htmlspecialchars($search) ?>">
             <input type="hidden" name="sort_col" value="<?= htmlspecialchars($sort_col) ?>">
             <input type="hidden" name="sort_dir" value="<?= htmlspecialchars($sort_dir) ?>">
-            <select name="per_page" onchange="this.form.submit();">
+            <select name="per_page" onchange="this.form.submit();" style="padding:3px 6px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12px;font-family:'Times New Roman',Times,serif;color:#374151;background:#fff;outline:none;">
                 <?php foreach([10,25,50,100] as $n): ?>
                 <option value="<?=$n?>" <?=$per_page==$n?'selected':''?>><?=$n?></option>
                 <?php endforeach; ?>

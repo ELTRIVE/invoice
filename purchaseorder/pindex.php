@@ -190,6 +190,7 @@ try {
 
 $status_filter = $_GET['status'] ?? 'All';
 $period_filter = $_GET['period'] ?? 'all';
+$fin_year      = $_GET['fin_year'] ?? '';
 $search        = trim($_GET['search'] ?? '');
 $per_page      = in_array((int)($_GET['per_page'] ?? 10), [10,25,50,100]) ? (int)($_GET['per_page'] ?? 10) : 10;
 $current_page  = max(1, (int)($_GET['page'] ?? 1));
@@ -220,6 +221,17 @@ switch ($period_filter) {
     case 'last_year':  $fm=date('n');$fy=date('Y'); $date_from=($fm>=4)?(($fy-1)."-04-01"):(($fy-2)."-04-01"); $date_to=($fm>=4)?("$fy-03-31"):(($fy-1)."-03-31"); break;
     case 'all':        $date_from='2000-01-01';    $date_to='2099-12-31';    break;
     default:           $date_from=date('Y-m-01');  $date_to=date('Y-m-t');
+}
+
+// Financial Year dropdown overrides period date range if selected
+if ($fin_year !== '') {
+    $fyMap = [
+        'fy_2023_24' => ['2023-04-01','2024-03-31'],
+        'fy_2024_25' => ['2024-04-01','2025-03-31'],
+        'fy_2025_26' => ['2025-04-01','2026-03-31'],
+        'fy_2026_27' => ['2026-04-01','2027-03-31'],
+    ];
+    if (isset($fyMap[$fin_year])) { $date_from=$fyMap[$fin_year][0]; $date_to=$fyMap[$fin_year][1]; }
 }
 
 $where  = ['po_date BETWEEN :df AND :dt'];
@@ -260,8 +272,10 @@ $stmt->execute($params);
 $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Build pagination URL preserving current filters
-function pageUrl($pg, $st, $pf, $sr) {
-    return '?' . http_build_query(['status'=>$st, 'period'=>$pf, 'search'=>$sr, 'page'=>$pg]);
+function pageUrl($pg, $st, $pf, $sr, $fy='') {
+    $q = ['status'=>$st,'period'=>$pf,'search'=>$sr,'page'=>$pg];
+    if ($fy !== '') $q['fin_year'] = $fy;
+    return '?' . http_build_query($q);
 }
 ?>
 <!DOCTYPE html>
@@ -274,16 +288,16 @@ function pageUrl($pg, $st, $pf, $sr) {
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Times New Roman',Times,serif;background:#f4f6fb;color:#222}
-.content{margin-left:220px;padding:32px 28px 28px;background:#f4f6fb;min-height:100vh}
+body{font-family:'Times New Roman',Times,serif;background:#f4f6fb;color:#222;height:100vh;overflow:hidden}
+.content{margin-left:220px;padding:10px 18px 6px;height:100vh;display:flex;flex-direction:column;overflow:hidden}
 
 /* ── Top bar ── */
-.header-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-h2{font-weight:700;color:#1a1f2e;font-size:22px}
+.header-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+h2{font-weight:700;color:#1a1f2e;font-size:18px}
 .btn-create{
-    display:inline-flex;align-items:center;gap:6px;padding:10px 18px;
+    display:inline-flex;align-items:center;gap:6px;padding:6px 14px;
     border-radius:8px;background:#f97316;color:#fff;text-decoration:none;
-    font-size:14px;font-weight:600;border:none;cursor:pointer;
+    font-size:12px;font-weight:600;border:none;cursor:pointer;
     font-family:'Times New Roman',Times,serif;transition:background .2s}
 .btn-create:hover{background:#fb923c}
 
@@ -296,55 +310,65 @@ h2{font-weight:700;color:#1a1f2e;font-size:22px}
 .topbar-right{display:flex;align-items:center;gap:8px}
 
 /* ── Filter bar ── */
-.filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
-.filter-select{padding:7px 12px;border:1.5px solid #e2e8f0;border-radius:8px;
-    font-size:13px;font-family:'Times New Roman',Times,serif;
+.filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:nowrap}
+.filter-select{padding:4px 8px;border:1.5px solid #e2e8f0;border-radius:8px;
+    font-size:12px;font-family:'Times New Roman',Times,serif;
     color:#374151;background:#fff;cursor:pointer;outline:none}
 .filter-select:focus{border-color:#f97316}
 
 /* ── Stat badges ── */
-.summary-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.summary-row{display:flex;gap:8px;margin-bottom:3px;flex-wrap:wrap}
 .sum-pill{
-    display:inline-flex;align-items:center;gap:6px;
-    padding:6px 16px;border-radius:8px;border:1.5px solid;
-    background:#fff;font-size:13px;color:#374151;white-space:nowrap}
+    display:inline-flex;align-items:center;gap:5px;
+    padding:4px 12px;border-radius:8px;border:1.5px solid;
+    background:#fff;font-size:12px;color:#374151;white-space:nowrap}
 .sum-pill .label{color:#6b7280}
 .sum-pill .val{font-weight:700}
 .sum-pill.orange{border-color:#f97316}.sum-pill.orange .val{color:#f97316}
 .sum-pill.blue  {border-color:#2563eb}.sum-pill.blue   .val{color:#2563eb}
 .sum-pill.red   {border-color:#f97316}.sum-pill.red    .val{color:#f97316}
+.sum-pill[onclick]:hover{background:#fff7ed;box-shadow:0 2px 8px rgba(249,115,22,.15);transform:translateY(-1px);transition:all .15s}
 
-/* ── Card & table ── */
-.po-card{background:#fff;border-radius:14px;padding:20px;border:1px solid #e4e8f0;margin-bottom:0}
-.po-table{width:100%;border-collapse:collapse}
-.po-table thead tr{background:#fff}
-.po-table th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.05em;
-    color:#6b7280;padding:0 12px 12px 0;font-weight:700}
-.po-table tbody tr{cursor:pointer;transition:background .15s}
-.po-table tbody tr:hover{background:#fff7f0}
-.po-table td{padding:13px 12px 13px 0;border-top:1px solid #f1f5f9;font-size:14px;color:#1a1f2e}
-.po-table td.num{text-align:right;padding-right:4px}
-
-/* ── Status badge — light like index.php ── */
-.badge-status{
-    display:inline-flex;align-items:center;gap:5px;
-    padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap}
+/* ── Status badge ── */
 .badge-status         {background:#fff7ed;color:#f97316;border:1px solid #fed7aa}
 .badge-status.approved{background:#dcfce7;color:#16a34a;border:1px solid #bbf7d0}
 .badge-status.completed{background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd}
 .badge-status.rejected{background:#fee2e2;color:#dc2626;border:1px solid #fecaca}
 
+/* ── Action button colors ── */
+.btn-approve{background:#dcfce7;color:#16a34a}.btn-approve:hover{background:#bbf7d0}
+.btn-complete{background:#e0f2fe;color:#0369a1}.btn-complete:hover{background:#bae6fd}
+.btn-bell   {background:#fff7ed;color:#f97316}.btn-bell:hover{background:#fed7aa}
+.btn-edit   {background:#f4f6fb;color:#6b7280;border:1px solid #e2e8f0}.btn-edit:hover{background:#f97316;color:#fff}
+
+/* ── Card & table ── */
+.po-card{background:#fff;border-radius:12px;padding:8px 12px;border:1px solid #e4e8f0;flex:1;overflow-y:auto;}
+.po-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.po-table thead tr{background:#fff}
+.po-table th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;
+    color:#6b7280;padding:0 8px 6px 0;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.po-table tbody tr{cursor:pointer;transition:background .15s}
+.po-table tbody tr:hover{background:#fff7f0}
+.po-table td{padding:5px 6px 5px 0;border-top:1px solid #f1f5f9;font-size:12px;color:#1a1f2e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.po-table td.num{text-align:left}
+.po-table th.num{text-align:left}
+
+/* ── Status badge ── */
+.badge-status{
+    display:inline-flex;align-items:center;gap:5px;
+    padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+
 /* ── Action buttons ── */
-.action-btns{display:flex;gap:6px}
-.action-btn{width:30px;height:30px;border-radius:8px;display:inline-flex;align-items:center;
-    justify-content:center;font-size:13px;border:none;cursor:pointer;text-decoration:none;
+.action-btns{display:flex;gap:5px}
+.action-btn{width:26px;height:26px;border-radius:7px;display:inline-flex;align-items:center;
+    justify-content:center;font-size:12px;border:none;cursor:pointer;text-decoration:none;
     transition:all .2s}
 .btn-approve{background:#dcfce7;color:#16a34a}.btn-approve:hover{background:#bbf7d0}
 .btn-bell   {background:#fff7ed;color:#f97316}.btn-bell:hover{background:#fed7aa}
 .btn-edit   {background:#f4f6fb;color:#6b7280;border:1px solid #e2e8f0}.btn-edit:hover{background:#f97316;color:#fff}
 
 /* ── Pagination ── */
-.pagination{display:flex;justify-content:center;align-items:center;gap:5px;padding:16px 0 8px}
+.pagination{display:flex;justify-content:center;align-items:center;gap:4px;padding:4px 0 2px}
 .pagination a,.pagination span{display:inline-flex;align-items:center;justify-content:center;
   min-width:32px;height:32px;padding:0 8px;border-radius:7px;font-size:13px;font-weight:600;
   text-decoration:none;border:1.5px solid #e4e8f0;color:#374151;background:#fff;transition:all .15s}
@@ -352,7 +376,15 @@ h2{font-weight:700;color:#1a1f2e;font-size:22px}
 .pagination span.active{background:#16a34a;color:#fff;border-color:#16a34a}
 .pagination span.dots{border:none;background:none;color:#9ca3af}
 
-/* ── Popup ── */
+/* show entries */
+.show-entries{display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;margin-bottom:4px}
+.show-entries select{padding:3px 6px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12px;
+    font-family:'Times New Roman',Times,serif;color:#374151;background:#fff;outline:none;cursor:pointer}
+.show-entries select:focus{border-color:#f97316}
+
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:#e2e8f0;border-radius:99px}
+@media(max-width:900px){.content{margin-left:0!important;padding:70px 12px 20px}}
 .popup-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);
     backdrop-filter:blur(3px);z-index:2000;align-items:center;justify-content:center}
 .popup-overlay.open{display:flex}
@@ -381,12 +413,6 @@ h2{font-weight:700;color:#1a1f2e;font-size:22px}
     border-radius:8px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;
     display:flex;align-items:center;justify-content:center;gap:6px}
 .btn-popup-cancel:hover{border-color:#f97316;color:#f97316}
-
-::-webkit-scrollbar{width:3px}
-::-webkit-scrollbar-thumb{background:#e2e8f0;border-radius:99px}
-
-/* ── Complete button ── */
-.btn-complete{background:#e0f2fe;color:#0369a1}.btn-complete:hover{background:#bae6fd}
 
 /* ── Approve Modal ── */
 .apr-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);
@@ -444,11 +470,6 @@ h2{font-weight:700;color:#1a1f2e;font-size:22px}
 .sort-th:hover { color:#f97316; }
 .sort-th .si { font-size:10px; color:#d1d5db; margin-left:4px; }
 .sort-th.asc .si, .sort-th.desc .si { color:#f97316; }
-/* Show entries */
-.show-entries { display:flex; align-items:center; gap:8px; font-size:13px; color:#374151; margin-bottom:10px; }
-.show-entries select { padding:5px 10px; border:1.5px solid #e2e8f0; border-radius:7px; font-size:13px;
-    font-family:'Times New Roman',Times,serif; color:#374151; background:#fff; outline:none; cursor:pointer; }
-.show-entries select:focus { border-color:#f97316; }
 </style>
 </head>
 <body>
@@ -457,7 +478,6 @@ h2{font-weight:700;color:#1a1f2e;font-size:22px}
 <?php include dirname(__DIR__) . '/header.php'; ?>
 
 <div class="content">
-<div class="po-wrapper">
 
     <!-- TOP BAR -->
     <div class="header-bar">
@@ -486,6 +506,13 @@ h2{font-weight:700;color:#1a1f2e;font-size:22px}
             <option value="last_year"  <?= $period_filter==='last_year' ?'selected':'' ?>>Last Financial Year</option>
             <option value="all"        <?= $period_filter==='all'       ?'selected':'' ?>>All Invoices</option>
         </select>
+        <select class="filter-select" name="fin_year" oninput="debounceSubmit(this.form)">
+            <option value="">Fin Year</option>
+            <option value="fy_2023_24" <?= $fin_year==='fy_2023_24'?'selected':'' ?>>FY 2023-24</option>
+            <option value="fy_2024_25" <?= $fin_year==='fy_2024_25'?'selected':'' ?>>FY 2024-25</option>
+            <option value="fy_2025_26" <?= $fin_year==='fy_2025_26'?'selected':'' ?>>FY 2025-26</option>
+            <option value="fy_2026_27" <?= $fin_year==='fy_2026_27'?'selected':'' ?>>FY 2026-27</option>
+        </select>
         <select class="filter-select" name="status" oninput="debounceSubmit(this.form)">
             <option value="All"       <?= $status_filter==='All'      ?'selected':'' ?>>All Status</option>
             <option value="Pending"   <?= $status_filter==='Pending'  ?'selected':'' ?>>Pending</option>
@@ -497,21 +524,30 @@ h2{font-weight:700;color:#1a1f2e;font-size:22px}
 
     <!-- SUMMARY PILLS -->
     <div class="summary-row">
-        <div class="sum-pill orange"><span class="label">Count</span><span class="val"><?= $count ?></span></div>
-        <div class="sum-pill blue"><span class="label">Total</span><span class="val">&#8377; <?= indFmt($total_amount) ?></span></div>
-        <div class="sum-pill red"><span class="label">Pending</span><span class="val">&#8377; <?= indFmt($pending_amount) ?></span></div>
+        <div class="sum-pill orange" style="cursor:pointer;" title="Show all" onclick="filterByStatus('All')">
+            <span class="label">Count</span><span class="val"><?= $count ?></span>
+        </div>
+        <div class="sum-pill blue" style="cursor:pointer;" title="Show all" onclick="filterByStatus('All')">
+            <span class="label">Pre-Tax</span><span class="val">&#8377; <?= indFmt($total_taxable) ?></span>
+        </div>
+        <div class="sum-pill blue" style="cursor:pointer;" title="Show all" onclick="filterByStatus('All')">
+            <span class="label">Total</span><span class="val">&#8377; <?= indFmt($total_amount) ?></span>
+        </div>
+        <div class="sum-pill red" id="pendingPill" style="cursor:pointer;" title="Click to show all pending orders" onclick="filterByStatus('Pending')">
+            <span class="label">Pending</span><span class="val">&#8377; <?= indFmt($pending_amount) ?></span>
+        </div>
     </div>
 
     <!-- Show entries + sort helper -->
     <?php
-    function poThSort($col, $label, $sort_col, $sort_dir, $get) {
+    function poThSort($col, $label, $sort_col, $sort_dir, $get, $extraClass='') {
         $active  = $sort_col === $col;
         $nextDir = ($active && $sort_dir === 'asc') ? 'desc' : 'asc';
         $qs = $get; $qs['sort_col'] = $col; $qs['sort_dir'] = $nextDir; unset($qs['page']);
         $url  = '?' . http_build_query($qs);
-        $cls  = $active ? $sort_dir : '';
+        $cls  = trim('sort-th ' . ($active ? $sort_dir : '') . ' ' . $extraClass);
         $icon = $active ? ($sort_dir === 'asc' ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort';
-        return '<th class="sort-th '.$cls.'" onclick="location.href=\''.htmlspecialchars($url,ENT_QUOTES).'\'">'
+        return '<th class="'.$cls.'" onclick="location.href=\''.htmlspecialchars($url,ENT_QUOTES).'\'">'
              . $label . '<i class="fas '.$icon.' si"></i></th>';
     }
     ?>
@@ -528,6 +564,18 @@ h2{font-weight:700;color:#1a1f2e;font-size:22px}
     <!-- TABLE -->
     <div class="po-card">
         <table class="po-table">
+            <colgroup>
+                <col style="width:16%"><!-- Supplier -->
+                <col style="width:11%"><!-- Contact -->
+                <col style="width:10%"><!-- Order No. -->
+                <col style="width:9%"> <!-- Status -->
+                <col style="width:9%"> <!-- Order Date -->
+                <col style="width:8%"> <!-- Due On -->
+                <col style="width:9%"> <!-- Taxable -->
+                <col style="width:9%"> <!-- Amount -->
+                <col style="width:10%"><!-- Created By -->
+                <col style="width:9%"> <!-- Actions -->
+            </colgroup>
             <thead>
                 <tr>
                     <?=poThSort('supplier_name',  'Supplier',       $sort_col,$sort_dir,$_GET)?>
@@ -536,8 +584,8 @@ h2{font-weight:700;color:#1a1f2e;font-size:22px}
                     <?=poThSort('status',          'Status',         $sort_col,$sort_dir,$_GET)?>
                     <?=poThSort('po_date',         'Order Date',     $sort_col,$sort_dir,$_GET)?>
                     <?=poThSort('due_date',        'Due on',         $sort_col,$sort_dir,$_GET)?>
-                    <?=poThSort('total_taxable',   'Taxable (₹)',    $sort_col,$sort_dir,$_GET)?>
-                    <?=poThSort('grand_total',     'Amount (₹)',     $sort_col,$sort_dir,$_GET)?>
+                    <?=poThSort('total_taxable',   'Taxable (₹)',    $sort_col,$sort_dir,$_GET,'num')?>
+                    <?=poThSort('grand_total',     'Amount (₹)',     $sort_col,$sort_dir,$_GET,'num')?>
                     <?=poThSort('created_by',      'Created by',     $sort_col,$sort_dir,$_GET)?>
                     <th></th>
                 </tr>
@@ -600,6 +648,7 @@ h2{font-weight:700;color:#1a1f2e;font-size:22px}
     <div class="pagination">
     <?php
     $qs = ['status'=>$status_filter,'period'=>$period_filter,'search'=>$search,'per_page'=>$per_page,'sort_col'=>$sort_col,'sort_dir'=>$sort_dir];
+    if ($fin_year !== '') $qs['fin_year'] = $fin_year;
     $pg = $current_page; $tp = $total_pages;
     $qs['page'] = $pg - 1;
     echo $pg <= 1 ? '<span class="disabled">&laquo;</span>' : "<a href='".htmlspecialchars('?'.http_build_query($qs))."'>&laquo;</a>";
@@ -620,7 +669,6 @@ h2{font-weight:700;color:#1a1f2e;font-size:22px}
     ?>
     </div>
 
-</div>
 </div>
 
 <!-- POPUP -->
@@ -1011,6 +1059,29 @@ function debounceSubmit(form) {
     clearTimeout(_debTimer);
     _debTimer = setTimeout(function(){ form.submit(); }, 300);
 }
+
+function filterByStatus(status) {
+    var form = document.getElementById('filterForm');
+    var statusSel = form.querySelector('[name="status"]');
+    if (statusSel) statusSel.value = status;
+    var pgInput = form.querySelector('[name="page"]');
+    if (pgInput) pgInput.value = 1;
+    if (status === 'Pending') {
+        var periodSel = form.querySelector('[name="period"]');
+        if (periodSel) periodSel.value = 'all';
+        var fySel = form.querySelector('[name="fin_year"]');
+        if (fySel) fySel.value = '';
+        var ppSel = form.querySelector('[name="per_page"]');
+        if (ppSel) ppSel.value = 100;
+    }
+    form.submit();
+}
+(function(){
+    if ('<?= addslashes($status_filter) ?>' === 'Pending') {
+        var pill = document.getElementById('pendingPill');
+        if (pill) { pill.style.background='#fff7ed'; pill.style.boxShadow='0 0 0 2px #f97316'; }
+    }
+})();
 var _ajaxTimer;
 function ajaxSearch(q) {
     clearTimeout(_ajaxTimer);

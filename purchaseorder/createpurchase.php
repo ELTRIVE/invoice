@@ -831,7 +831,18 @@ textarea.form-control{height:48px;resize:vertical}
                 <div style="color:#6b7280">CGST : ₹ <span id="totalCgst">0.00</span></div>
                 <div style="color:#6b7280">SGST : ₹ <span id="totalSgst">0.00</span></div>
                 <div style="color:#6b7280">IGST : ₹ <span id="totalIgst">0.00</span></div>
+                <div id="roundOffRow" style="display:none;color:#6b7280">
+                    <span style="margin-right:2px;">🗑</span> Round off : ₹ <span id="roundOffAmt">0.00</span>
+                    <button type="button" onclick="toggleRoundOff()" title="Remove Round Off"
+                        style="margin-left:6px;background:none;border:none;color:#dc2626;cursor:pointer;font-size:11px;padding:0;">✕</button>
+                </div>
                 <div class="grand">Grand Total : ₹ <span id="grandTotal">0.00</span></div>
+                <div style="margin-top:8px;">
+                    <button type="button" id="addRoundOffBtn" onclick="toggleRoundOff()"
+                        style="padding:6px 14px;border-radius:7px;border:1.5px solid #16a34a;background:#f0fdf4;color:#16a34a;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">
+                        <i class="fas fa-plus"></i> Add Round Off
+                    </button>
+                </div>
             </div>
         </div>
         </div>
@@ -1215,7 +1226,39 @@ function updateTotals(){
     document.getElementById('totalCgst').textContent=fmt(cg);
     document.getElementById('totalSgst').textContent=fmt(sg);
     document.getElementById('totalIgst').textContent=fmt(ig);
-    document.getElementById('grandTotal').textContent=fmt(grand);
+    const roundOffRow=document.getElementById('roundOffRow');
+    if(roundOffRow && roundOffRow.style.display!=='none'){
+        const paise=parseFloat((grand-Math.floor(grand)).toFixed(2));
+        const roundOff=paise>0?-paise:0;
+        document.getElementById('roundOffAmt').textContent=roundOff.toFixed(2);
+        document.getElementById('grandTotal').textContent=fmt(grand+roundOff);
+    } else {
+        document.getElementById('grandTotal').textContent=fmt(grand);
+    }
+}
+function toggleRoundOff(){
+    const row=document.getElementById('roundOffRow');
+    const btn=document.getElementById('addRoundOffBtn');
+    const grandEl=document.getElementById('grandTotal');
+    const isHidden=row.style.display==='none'||row.style.display==='';
+    if(isHidden){
+        const grandVal=parseFloat(grandEl.textContent.replace(/[,]/g,''))||0;
+        const paise=parseFloat((grandVal-Math.floor(grandVal)).toFixed(2));
+        if(paise===0){alert('No paise to round off. Grand Total is already a whole number.');return;}
+        const roundOff=-paise;
+        document.getElementById('roundOffAmt').textContent=roundOff.toFixed(2);
+        grandEl.textContent=fmt(grandVal+roundOff);
+        row.style.display='';
+        btn.style.background='#fef2f2';btn.style.borderColor='#dc2626';btn.style.color='#dc2626';
+        btn.innerHTML='<i class="fas fa-times"></i> Remove Round Off';
+    } else {
+        const grandVal=parseFloat(grandEl.textContent.replace(/[,]/g,''))||0;
+        const roundVal=parseFloat(document.getElementById('roundOffAmt').textContent)||0;
+        grandEl.textContent=fmt(grandVal-roundVal);
+        row.style.display='none';
+        btn.style.background='#f0fdf4';btn.style.borderColor='#16a34a';btn.style.color='#16a34a';
+        btn.innerHTML='<i class="fas fa-plus"></i> Add Round Off';
+    }
 }
 
 function buildRowHTML(i,name,desc,hsn,qty,unit,rate,disc,cgstP,sgstP,igstP,itemId){
