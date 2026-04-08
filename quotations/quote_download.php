@@ -391,7 +391,7 @@ $html .= '
         <td style="border:0.5px solid #000; padding:20px 8px 6px 8px; width:50%; vertical-align:bottom; font-size:9px;">
             This is a computer-generated quotation. E. &amp; O. E.
         </td>
-        <td style="border:0.5px solid #000; padding:8px; width:50%; text-align:right; vertical-align:top; font-size:9px;">
+        <td style="border:0.5px solid #000; padding:8px; width:50%; text-align:center; vertical-align:middle; font-size:9px;">
             For, ' . htmlspecialchars($company['company_name']) . '<br><br>
             ' . ($signatureBase64 ? '<img src="' . $signatureBase64 . '" style="max-height:75px; max-width:175px; object-fit:contain; display:inline-block;" /><br>' : '<br><br><br>') . '
             <strong>Authorised Signatory</strong>
@@ -489,3 +489,4 @@ $filename     = "QT_{$customerSlug}_{$quotSlug}_{$dateSlug}_ELTRIVE.pdf";
 $dompdf->stream($filename, ["Attachment" => true]);
 exit;
 ?>
+
