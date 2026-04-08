@@ -168,35 +168,104 @@ if (isset($_GET['get_items'])) {
 
         // Backfill missing master item HSN/rate from historical quotation items_json
         // so older items still show meaningful values in the Add Item popup.
+        $normKey = static function(string $s): string {
+            $s = strtolower(trim($s));
+            return preg_replace('/[^a-z0-9]+/', '', $s) ?? '';
+        };
         $histMap = [];
         $qRows = $pdo->query("SELECT items_json FROM quotations WHERE items_json IS NOT NULL AND items_json <> ''")->fetchAll(PDO::FETCH_ASSOC);
         foreach ($qRows as $qRow) {
             $arr = json_decode($qRow['items_json'] ?? '[]', true);
             if (!is_array($arr)) continue;
             foreach ($arr as $it) {
-                $nm = strtolower(trim((string)($it['item_name'] ?? '')));
-                if ($nm === '') continue;
-                if (!isset($histMap[$nm])) $histMap[$nm] = ['hsn_sac' => '', 'rate' => 0.0];
-                $hsn = trim((string)($it['hsn_sac'] ?? ''));
-                $rate = (float)($it['rate'] ?? 0);
-                if ($histMap[$nm]['hsn_sac'] === '' && $hsn !== '' && $hsn !== '0') $histMap[$nm]['hsn_sac'] = $hsn;
-                if ($histMap[$nm]['rate'] <= 0 && $rate > 0) $histMap[$nm]['rate'] = $rate;
+                $name = trim((string)($it['item_name'] ?? ''));
+                $desc = trim((string)($it['description'] ?? ''));
+                $keys = array_values(array_filter([$normKey($name), $normKey($desc)]));
+                if (!$keys) continue;
+
+                $hsn = trim((string)($it['hsn_sac'] ?? ($it['hsn'] ?? ($it['hsn_code'] ?? ''))));
+                $qty = (float)($it['qty'] ?? 0);
+                $rate = (float)($it['rate'] ?? ($it['unit_price'] ?? 0));
+                if ($rate <= 0) {
+                    $amt = (float)($it['amount'] ?? ($it['taxable'] ?? 0));
+                    if ($qty > 0 && $amt > 0) $rate = $amt / $qty;
+                }
+
+                foreach ($keys as $k) {
+                    if (!isset($histMap[$k])) $histMap[$k] = ['hsn_sac' => '', 'rate' => 0.0];
+                    if ($histMap[$k]['hsn_sac'] === '' && $hsn !== '' && $hsn !== '0') $histMap[$k]['hsn_sac'] = $hsn;
+                    if ($histMap[$k]['rate'] <= 0 && $rate > 0) $histMap[$k]['rate'] = $rate;
+                }
             }
         }
 
         foreach ($rows as &$r) {
-            $nm = strtolower(trim((string)($r['item_name'] ?? '')));
-            if ($nm === '' || !isset($histMap[$nm])) continue;
+            $k1 = $normKey((string)($r['item_name'] ?? ''));
+            $k2 = $normKey((string)($r['description'] ?? ''));
+            $pick = '';
+            if ($k1 !== '' && isset($histMap[$k1])) $pick = $k1;
+            elseif ($k2 !== '' && isset($histMap[$k2])) $pick = $k2;
+            if ($pick === '') continue;
+
             $curHsn = trim((string)($r['hsn_sac'] ?? ''));
             $curRate = (float)($r['rate'] ?? 0);
-            if (($curHsn === '' || $curHsn === '0') && $histMap[$nm]['hsn_sac'] !== '') {
-                $r['hsn_sac'] = $histMap[$nm]['hsn_sac'];
+            if (($curHsn === '' || $curHsn === '0') && $histMap[$pick]['hsn_sac'] !== '') {
+                $r['hsn_sac'] = $histMap[$pick]['hsn_sac'];
             }
-            if ($curRate <= 0 && $histMap[$nm]['rate'] > 0) {
-                $r['rate'] = $histMap[$nm]['rate'];
+            if ($curRate <= 0 && $histMap[$pick]['rate'] > 0) {
+                $r['rate'] = $histMap[$pick]['rate'];
             }
         }
         unset($r);
+
+        // Include history-only items (present in quotation edit via items_json,
+        // but missing in master `items` table) so popup search can still show them.
+        $existingKeys = [];
+        foreach ($rows as $r) {
+            $k1 = $normKey((string)($r['item_name'] ?? ''));
+            $k2 = $normKey((string)($r['description'] ?? ''));
+            if ($k1 !== '') $existingKeys[$k1] = true;
+            if ($k2 !== '') $existingKeys[$k2] = true;
+        }
+
+        $histId = -1;
+        foreach ($qRows as $qRow) {
+            $arr = json_decode($qRow['items_json'] ?? '[]', true);
+            if (!is_array($arr)) continue;
+            foreach ($arr as $it) {
+                $name = trim((string)($it['item_name'] ?? ''));
+                $desc = trim((string)($it['description'] ?? ''));
+                $k1 = $normKey($name);
+                $k2 = $normKey($desc);
+                $matchKey = $k1 !== '' ? $k1 : $k2;
+                if ($matchKey === '' || isset($existingKeys[$matchKey])) continue;
+
+                $hsn  = trim((string)($it['hsn_sac'] ?? ($it['hsn'] ?? ($it['hsn_code'] ?? ''))));
+                $unit = trim((string)($it['unit'] ?? 'no.s'));
+                $qty  = (float)($it['qty'] ?? 0);
+                $rate = (float)($it['rate'] ?? ($it['unit_price'] ?? 0));
+                if ($rate <= 0) {
+                    $amt = (float)($it['amount'] ?? ($it['taxable'] ?? 0));
+                    if ($qty > 0 && $amt > 0) $rate = $amt / $qty;
+                }
+
+                $rows[] = [
+                    'id' => $histId--,
+                    'service_code' => '',
+                    'item_name' => $name !== '' ? $name : $desc,
+                    'description' => $desc,
+                    'hsn_sac' => $hsn,
+                    'unit' => $unit !== '' ? $unit : 'no.s',
+                    'rate' => $rate > 0 ? $rate : 0,
+                    'cgst_pct' => 0,
+                    'sgst_pct' => 0,
+                    'igst_pct' => 0,
+                ];
+
+                $existingKeys[$matchKey] = true;
+                if ($k2 !== '') $existingKeys[$k2] = true;
+            }
+        }
 
         ob_clean(); echo json_encode($rows);
     } catch (Exception $e) { ob_clean(); echo json_encode([]); }
