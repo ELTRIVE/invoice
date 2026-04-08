@@ -109,6 +109,22 @@ if (!empty($company['company_logo'])) {
     }
 }
 
+// Signature image as base64 (same pattern as invoice download.php)
+$signatureBase64 = '';
+if (!empty($quot['signature_id'])) {
+    $sigStmt = $pdo->prepare("SELECT file_path FROM signatures WHERE id = ?");
+    $sigStmt->execute([$quot['signature_id']]);
+    $sigData = $sigStmt->fetch(PDO::FETCH_ASSOC);
+    if ($sigData && !empty($sigData['file_path'])) {
+        $sigFile = dirname(__DIR__) . '/' . ltrim($sigData['file_path'], '/');
+        if (file_exists($sigFile)) {
+            $ext = pathinfo($sigFile, PATHINFO_EXTENSION);
+            $data = file_get_contents($sigFile);
+            $signatureBase64 = 'data:image/' . $ext . ';base64,' . base64_encode($data);
+        }
+    }
+}
+
 // Dates
 $quotDate = !empty($quot['quot_date']) ? date('d-M-Y', strtotime($quot['quot_date'])) : date('d-M-Y');
 
@@ -376,7 +392,8 @@ $html .= '
             This is a computer-generated quotation. E. &amp; O. E.
         </td>
         <td style="border:0.5px solid #000; padding:8px; width:50%; text-align:right; vertical-align:top; font-size:9px;">
-            For, ' . htmlspecialchars($company['company_name']) . '<br><br><br><br>
+            For, ' . htmlspecialchars($company['company_name']) . '<br><br>
+            ' . ($signatureBase64 ? '<img src="' . $signatureBase64 . '" style="max-height:70px; max-width:170px; object-fit:contain; display:inline-block;" /><br>' : '<br><br><br>') . '
             <strong>Authorised Signatory</strong>
         </td>
     </tr>
