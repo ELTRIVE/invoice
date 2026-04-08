@@ -74,6 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['save_master_item']))
     $valid_till       = $_POST['valid_till'] ?? date('Y-m-d', strtotime('+30 days'));
     $notes            = trim($_POST['notes'] ?? '');
     $bank_id          = !empty($_POST['bank_id']) ? (int)$_POST['bank_id'] : null;
+    $signature_id     = !empty($_POST['signature_id']) ? (int)$_POST['signature_id'] : null;
     $created_by       = 'Gayatri Geeta Gopisetty';
 
     // Company override snapshot (invoice_company fields)
@@ -138,11 +139,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['save_master_item']))
     try {
         $pdo->beginTransaction();
         if ($post_edit_id) {
-            $pdo->prepare("UPDATE quotations SET quot_number=:qn,customer_name=:cn,contact_person=:cp,billing_details=:ca,customer_gstin=:cg,customer_phone=:cph,shipping_details=:sd,billing_gstin=:bg,billing_phone=:bp,shipping_gstin=:sg,shipping_phone=:sph,reference=:ref,quot_date=:qd,valid_till=:vt,notes=:notes,bank_id=:bid,status=:st,total_taxable=:tt,total_cgst=:tc,total_sgst=:ts,total_igst=:ti,grand_total=:gt,items_json=:ij,item_list=:il,terms_list=:tl, company_override=:co WHERE id=:id")
-                ->execute([':qn'=>$quot_number,':cn'=>$customer_name,':cp'=>$contact_person,':ca'=>$billing_details,':cg'=>$customer_gstin,':cph'=>$customer_phone,':sd'=>$shipping_details,':bg'=>$billing_gstin,':bp'=>$billing_phone,':sg'=>$shipping_gstin,':sph'=>$shipping_phone,':ref'=>$reference,':qd'=>$quot_date,':vt'=>$valid_till,':notes'=>$notes,':bid'=>$bank_id,':st'=>$status,':tt'=>$total_taxable,':tc'=>$total_cgst,':ts'=>$total_sgst,':ti'=>$total_igst,':gt'=>$grand_total,':ij'=>$items_json,':il'=>$item_list_json,':tl'=>$terms_list_json,':co'=>$company_override,':id'=>$post_edit_id]);
+            $pdo->prepare("UPDATE quotations SET quot_number=:qn,customer_name=:cn,contact_person=:cp,billing_details=:ca,customer_gstin=:cg,customer_phone=:cph,shipping_details=:sd,billing_gstin=:bg,billing_phone=:bp,shipping_gstin=:sg,shipping_phone=:sph,reference=:ref,quot_date=:qd,valid_till=:vt,notes=:notes,bank_id=:bid,signature_id=:sid,status=:st,total_taxable=:tt,total_cgst=:tc,total_sgst=:ts,total_igst=:ti,grand_total=:gt,items_json=:ij,item_list=:il,terms_list=:tl, company_override=:co WHERE id=:id")
+                ->execute([':qn'=>$quot_number,':cn'=>$customer_name,':cp'=>$contact_person,':ca'=>$billing_details,':cg'=>$customer_gstin,':cph'=>$customer_phone,':sd'=>$shipping_details,':bg'=>$billing_gstin,':bp'=>$billing_phone,':sg'=>$shipping_gstin,':sph'=>$shipping_phone,':ref'=>$reference,':qd'=>$quot_date,':vt'=>$valid_till,':notes'=>$notes,':bid'=>$bank_id,':sid'=>$signature_id,':st'=>$status,':tt'=>$total_taxable,':tc'=>$total_cgst,':ts'=>$total_sgst,':ti'=>$total_igst,':gt'=>$grand_total,':ij'=>$items_json,':il'=>$item_list_json,':tl'=>$terms_list_json,':co'=>$company_override,':id'=>$post_edit_id]);
         } else {
-            $pdo->prepare("INSERT INTO quotations (quot_number,customer_name,contact_person,billing_details,customer_gstin,customer_phone,shipping_details,billing_gstin,billing_phone,shipping_gstin,shipping_phone,reference,quot_date,valid_till,notes,bank_id,status,total_taxable,total_cgst,total_sgst,total_igst,grand_total,items_json,item_list,terms_list,created_by, company_override) VALUES (:qn,:cn,:cp,:ca,:cg,:cph,:sd,:bg,:bp,:sg,:sph,:ref,:qd,:vt,:notes,:bid,:st,:tt,:tc,:ts,:ti,:gt,:ij,:il,:tl,:cb,:co) ON DUPLICATE KEY UPDATE id=id")
-                ->execute([':qn'=>$quot_number,':cn'=>$customer_name,':cp'=>$contact_person,':ca'=>$billing_details,':cg'=>$customer_gstin,':cph'=>$customer_phone,':sd'=>$shipping_details,':bg'=>$billing_gstin,':bp'=>$billing_phone,':sg'=>$shipping_gstin,':sph'=>$shipping_phone,':ref'=>$reference,':qd'=>$quot_date,':vt'=>$valid_till,':notes'=>$notes,':bid'=>$bank_id,':st'=>$status,':tt'=>$total_taxable,':tc'=>$total_cgst,':ts'=>$total_sgst,':ti'=>$total_igst,':gt'=>$grand_total,':ij'=>$items_json,':il'=>$item_list_json,':tl'=>$terms_list_json,':cb'=>$created_by,':co'=>$company_override]);
+            $pdo->prepare("INSERT INTO quotations (quot_number,customer_name,contact_person,billing_details,customer_gstin,customer_phone,shipping_details,billing_gstin,billing_phone,shipping_gstin,shipping_phone,reference,quot_date,valid_till,notes,bank_id,signature_id,status,total_taxable,total_cgst,total_sgst,total_igst,grand_total,items_json,item_list,terms_list,created_by, company_override) VALUES (:qn,:cn,:cp,:ca,:cg,:cph,:sd,:bg,:bp,:sg,:sph,:ref,:qd,:vt,:notes,:bid,:sid,:st,:tt,:tc,:ts,:ti,:gt,:ij,:il,:tl,:cb,:co) ON DUPLICATE KEY UPDATE id=id")
+                ->execute([':qn'=>$quot_number,':cn'=>$customer_name,':cp'=>$contact_person,':ca'=>$billing_details,':cg'=>$customer_gstin,':cph'=>$customer_phone,':sd'=>$shipping_details,':bg'=>$billing_gstin,':bp'=>$billing_phone,':sg'=>$shipping_gstin,':sph'=>$shipping_phone,':ref'=>$reference,':qd'=>$quot_date,':vt'=>$valid_till,':notes'=>$notes,':bid'=>$bank_id,':sid'=>$signature_id,':st'=>$status,':tt'=>$total_taxable,':tc'=>$total_cgst,':ts'=>$total_sgst,':ti'=>$total_igst,':gt'=>$grand_total,':ij'=>$items_json,':il'=>$item_list_json,':tl'=>$terms_list_json,':cb'=>$created_by,':co'=>$company_override]);
             $quot_id = $pdo->lastInsertId();
             if (!$quot_id) { $s=$pdo->prepare("SELECT id FROM quotations WHERE quot_number=?"); $s->execute([$quot_number]); $quot_id=(int)$s->fetchColumn(); }
         }
@@ -156,8 +157,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['save_master_item']))
 }
 
 // Ensure tables exist
-$pdo->exec("CREATE TABLE IF NOT EXISTS quotations (id INT AUTO_INCREMENT PRIMARY KEY,quot_number VARCHAR(50) NOT NULL UNIQUE,customer_name VARCHAR(255) NOT NULL DEFAULT '',contact_person VARCHAR(255) DEFAULT '',billing_details TEXT,customer_gstin VARCHAR(100) DEFAULT '',customer_phone VARCHAR(50) DEFAULT '',reference VARCHAR(255) DEFAULT '',quot_date DATE NOT NULL,valid_till DATE NOT NULL,notes TEXT,shipping_details TEXT,status ENUM('Draft','Sent','Approved','Rejected') DEFAULT 'Draft',total_taxable DECIMAL(15,2) DEFAULT 0.00,total_cgst DECIMAL(15,2) DEFAULT 0.00,total_sgst DECIMAL(15,2) DEFAULT 0.00,total_igst DECIMAL(15,2) DEFAULT 0.00,grand_total DECIMAL(15,2) DEFAULT 0.00,items_json LONGTEXT NULL,item_list LONGTEXT NULL,terms_list LONGTEXT NULL,created_by VARCHAR(255) DEFAULT '',created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)");
+$pdo->exec("CREATE TABLE IF NOT EXISTS quotations (id INT AUTO_INCREMENT PRIMARY KEY,quot_number VARCHAR(50) NOT NULL UNIQUE,customer_name VARCHAR(255) NOT NULL DEFAULT '',contact_person VARCHAR(255) DEFAULT '',billing_details TEXT,customer_gstin VARCHAR(100) DEFAULT '',customer_phone VARCHAR(50) DEFAULT '',reference VARCHAR(255) DEFAULT '',quot_date DATE NOT NULL,valid_till DATE NOT NULL,notes TEXT,shipping_details TEXT,signature_id INT DEFAULT NULL,status ENUM('Draft','Sent','Approved','Rejected') DEFAULT 'Draft',total_taxable DECIMAL(15,2) DEFAULT 0.00,total_cgst DECIMAL(15,2) DEFAULT 0.00,total_sgst DECIMAL(15,2) DEFAULT 0.00,total_igst DECIMAL(15,2) DEFAULT 0.00,grand_total DECIMAL(15,2) DEFAULT 0.00,items_json LONGTEXT NULL,item_list LONGTEXT NULL,terms_list LONGTEXT NULL,created_by VARCHAR(255) DEFAULT '',created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)");
 try { $pdo->exec("ALTER TABLE quotations ADD COLUMN company_override TEXT DEFAULT NULL"); } catch(Exception $e){}
+try { $pdo->exec("ALTER TABLE quotations ADD COLUMN signature_id INT DEFAULT NULL"); } catch(Exception $e){}
 $pdo->exec("CREATE TABLE IF NOT EXISTS po_master_terms (id INT AUTO_INCREMENT PRIMARY KEY,term_text TEXT NOT NULL,is_active TINYINT(1) DEFAULT 1,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
 
 // AJAX endpoints
@@ -359,6 +361,9 @@ if(empty($terms)) $terms=$default_terms;
 // Fetch banks
 $banks = [];
 try { $banks = $pdo->query("SELECT * FROM bank_details ORDER BY bank_name ASC")->fetchAll(PDO::FETCH_ASSOC); } catch(Exception $e){ $banks=[]; }
+// Fetch signatures
+$signatures = [];
+try { $signatures = $pdo->query("SELECT * FROM signatures ORDER BY signature_name ASC")->fetchAll(PDO::FETCH_ASSOC); } catch(Exception $e){ $signatures=[]; }
 
 $last=$pdo->query("SELECT quot_number FROM quotations ORDER BY id DESC LIMIT 1")->fetchColumn();
 if($last){preg_match('/(\d+)$/',$last,$m);$next_num='ELT-QT-'.str_pad((int)($m[1]??0)+1,7,'0',STR_PAD_LEFT);}
@@ -752,6 +757,20 @@ textarea.form-control{height:52px;resize:vertical;line-height:1.5}
                         <button type="button" class="btn-plus" onclick="openModal('addBankModal')" title="Add Bank"><i class="fas fa-plus"></i></button>
                     </div>
                 </div>
+
+                <div style="margin-top:8px;border-top:1px dashed #e4e8f0;padding-top:8px">
+                    <label>Authorised Signature</label>
+                    <div style="display:flex;gap:8px;align-items:center">
+                        <select name="signature_id" id="signature_select" class="form-control">
+                            <option value="">-- Select Signature --</option>
+                            <?php foreach ($signatures as $sig): ?>
+                                <option value="<?= $sig['id']; ?>" data-path="<?= htmlspecialchars($sig['file_path']); ?>" <?= (!empty($quot['signature_id']) && (string)$quot['signature_id'] === (string)$sig['id']) ? 'selected' : '' ?>><?= htmlspecialchars($sig['signature_name']); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <button type="button" class="btn-plus" onclick="openModal('addSignatureModal')" title="Add Signature"><i class="fas fa-plus"></i></button>
+                        <img id="signature_preview" src="" style="max-height:32px;max-width:80px;object-fit:contain;display:none;border:1px dashed #ccc;border-radius:4px;padding:2px">
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -944,6 +963,26 @@ textarea.form-control{height:52px;resize:vertical;line-height:1.5}
     <div class="modal-footer-box" style="justify-content:flex-end;gap:8px">
         <button type="button" style="display:inline-flex;align-items:center;gap:6px;padding:9px 22px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(22,163,74,.3)" onclick="saveNewBank()"><i class="fas fa-save"></i> Save Bank</button>
         <button type="button" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:#f5f5f5;color:#374151;border:1px solid #d1d5db;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit" onclick="closeModal('addBankModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Signature Modal -->
+<div class="modal-overlay" id="addSignatureModal">
+  <div class="modal-box" style="width:460px">
+    <div class="modal-header-box">
+        <h3><i class="fas fa-signature" style="color:#10b981;margin-right:8px"></i>Add Signature</h3>
+        <button class="modal-close-btn" onclick="closeModal('addSignatureModal')">✕</button>
+    </div>
+    <div style="padding:20px 20px 10px">
+        <div class="mf-group"><label class="mf-label">Signature Name</label><input class="mf-input" id="new_signature_name" placeholder="e.g. CEO Signature"></div>
+        <div class="mf-group"><label class="mf-label">Signature Image</label><input class="mf-input" id="new_signature_image" type="file" accept="image/png, image/jpeg, image/webp"></div>
+        <small style="color:#6b7280;font-size:11px;display:block;margin-bottom:8px;">Upload clear PNG/JPG/WEBP signature.</small>
+        <div id="add_sig_error" style="color:#dc2626;font-size:12px;margin-bottom:8px;display:none"></div>
+    </div>
+    <div class="modal-footer-box" style="justify-content:flex-end;gap:8px">
+        <button type="button" style="display:inline-flex;align-items:center;gap:6px;padding:9px 22px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(16,185,129,.3)" onclick="saveNewSignature()"><i class="fas fa-save"></i> Save Signature</button>
+        <button type="button" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:#f5f5f5;color:#374151;border:1px solid #d1d5db;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit" onclick="closeModal('addSignatureModal')">Cancel</button>
     </div>
   </div>
 </div>
@@ -1449,6 +1488,67 @@ function saveNewBank(){
         }
     }).catch(()=>{errEl.textContent='Network error. Try again.';errEl.style.display='block';});
 }
+
+function refreshSignaturePreview(){
+    const sel = document.getElementById('signature_select');
+    const preview = document.getElementById('signature_preview');
+    if(!sel || !preview) return;
+    const opt = sel.options[sel.selectedIndex];
+    const path = opt && opt.dataset ? (opt.dataset.path || '') : '';
+    if(path){
+        preview.src = '/invoice/' + String(path).replace(/^\/+/, '');
+        preview.style.display = 'inline-block';
+    } else {
+        preview.src = '';
+        preview.style.display = 'none';
+    }
+}
+
+async function saveNewSignature(){
+    const name = document.getElementById('new_signature_name').value.trim();
+    const fileInput = document.getElementById('new_signature_image');
+    const errDiv = document.getElementById('add_sig_error');
+
+    if(!name){ errDiv.textContent='Signature name is required.'; errDiv.style.display='block'; return; }
+    if(!fileInput.files.length){ errDiv.textContent='Signature image is required.'; errDiv.style.display='block'; return; }
+    errDiv.style.display='none';
+
+    const fd = new FormData();
+    fd.append('signature_name', name);
+    fd.append('signature_image', fileInput.files[0]);
+
+    try{
+        const res = await fetch('/invoice/addsignature.php', { method:'POST', body:fd });
+        const json = await res.json();
+        if(json.status === 'success'){
+            const sel = document.getElementById('signature_select');
+            const opt = document.createElement('option');
+            opt.value = json.id;
+            opt.textContent = json.signature_name;
+            opt.dataset.path = json.file_path;
+            sel.appendChild(opt);
+            sel.value = String(json.id);
+            refreshSignaturePreview();
+
+            document.getElementById('new_signature_name').value='';
+            fileInput.value='';
+            closeModal('addSignatureModal');
+        } else {
+            errDiv.textContent = json.message || 'Error uploading signature.';
+            errDiv.style.display='block';
+        }
+    } catch(e){
+        errDiv.textContent = 'Network error: ' + e.message;
+        errDiv.style.display='block';
+    }
+}
+
+const __sigSel = document.getElementById('signature_select');
+if(__sigSel){
+    __sigSel.addEventListener('change', refreshSignaturePreview);
+    refreshSignaturePreview();
+}
+
 function submitForm(action){
     let valid = true;
     const GSTIN_RE = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
