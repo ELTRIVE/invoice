@@ -165,6 +165,39 @@ if (isset($_GET['get_items'])) {
     header('Content-Type: application/json');
     try {
         $rows = $pdo->query("SELECT id, service_code, COALESCE(NULLIF(item_name,''), material_description) AS item_name, material_description AS description, hsn_sac, uom AS unit, unit_price AS rate, 0 AS cgst_pct, 0 AS sgst_pct, 0 AS igst_pct FROM items ORDER BY service_code ASC")->fetchAll(PDO::FETCH_ASSOC);
+
+        // Backfill missing master item HSN/rate from historical quotation items_json
+        // so older items still show meaningful values in the Add Item popup.
+        $histMap = [];
+        $qRows = $pdo->query("SELECT items_json FROM quotations WHERE items_json IS NOT NULL AND items_json <> ''")->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($qRows as $qRow) {
+            $arr = json_decode($qRow['items_json'] ?? '[]', true);
+            if (!is_array($arr)) continue;
+            foreach ($arr as $it) {
+                $nm = strtolower(trim((string)($it['item_name'] ?? '')));
+                if ($nm === '') continue;
+                if (!isset($histMap[$nm])) $histMap[$nm] = ['hsn_sac' => '', 'rate' => 0.0];
+                $hsn = trim((string)($it['hsn_sac'] ?? ''));
+                $rate = (float)($it['rate'] ?? 0);
+                if ($histMap[$nm]['hsn_sac'] === '' && $hsn !== '' && $hsn !== '0') $histMap[$nm]['hsn_sac'] = $hsn;
+                if ($histMap[$nm]['rate'] <= 0 && $rate > 0) $histMap[$nm]['rate'] = $rate;
+            }
+        }
+
+        foreach ($rows as &$r) {
+            $nm = strtolower(trim((string)($r['item_name'] ?? '')));
+            if ($nm === '' || !isset($histMap[$nm])) continue;
+            $curHsn = trim((string)($r['hsn_sac'] ?? ''));
+            $curRate = (float)($r['rate'] ?? 0);
+            if (($curHsn === '' || $curHsn === '0') && $histMap[$nm]['hsn_sac'] !== '') {
+                $r['hsn_sac'] = $histMap[$nm]['hsn_sac'];
+            }
+            if ($curRate <= 0 && $histMap[$nm]['rate'] > 0) {
+                $r['rate'] = $histMap[$nm]['rate'];
+            }
+        }
+        unset($r);
+
         ob_clean(); echo json_encode($rows);
     } catch (Exception $e) { ob_clean(); echo json_encode([]); }
     exit;
