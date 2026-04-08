@@ -1163,17 +1163,24 @@ function filterItems(q){renderItemList(allItems.filter(it=>(it.item_name||'').to
 function saveAddItem(saveToMaster){
     const name=document.getElementById('ai_name').value.trim();
     if(!name){alert('Item name is required.');return;}
-    addItemRowWithData(name,document.getElementById('ai_desc').value.trim(),document.getElementById('ai_hsn').value.trim(),1,document.getElementById('ai_unit').value,parseFloat(document.getElementById('ai_rate').value)||0,0,parseFloat(document.getElementById('ai_cgst').value)||0,parseFloat(document.getElementById('ai_sgst').value)||0,parseFloat(document.getElementById('ai_igst').value)||0,0);
+    const desc=document.getElementById('ai_desc').value.trim();
+    const hsn=document.getElementById('ai_hsn').value.trim();
+    const unit=document.getElementById('ai_unit').value;
+    const rate=document.getElementById('ai_rate').value;
+    const cgst=document.getElementById('ai_cgst').value;
+    const sgst=document.getElementById('ai_sgst').value;
+    const igst=document.getElementById('ai_igst').value;
+    addItemRowWithData(name,desc,hsn,1,unit,parseFloat(rate)||0,0,parseFloat(cgst)||0,parseFloat(sgst)||0,parseFloat(igst)||0,0);
+    if(saveToMaster){
+        const fd=new FormData();fd.append('save_master_item','1');fd.append('item_type','Product');fd.append('item_name',name);
+        fd.append('description',desc);fd.append('hsn_sac',hsn);
+        fd.append('unit',unit);fd.append('rate',rate);
+        fd.append('cgst_pct',cgst);fd.append('sgst_pct',sgst);fd.append('igst_pct',igst);
+        fetch('/invoice/quotations/quote_create.php',{method:'POST',body:fd}).then(r=>r.json()).then(d=>{if(d.success){showMiniToast('✓ '+name+' saved to library');fetch('/invoice/quotations/quote_create.php?get_items=1').then(r=>r.json()).then(data=>{allItems=data;renderItemList(data);});}});
+    } else {showMiniToast('✓ '+name+' added to quotation');}
     ['ai_name','ai_desc','ai_hsn'].forEach(id=>document.getElementById(id).value='');
     ['ai_rate','ai_cgst','ai_sgst','ai_igst'].forEach(id=>document.getElementById(id).value=0);
     closeModal('addItemModal');
-    if(saveToMaster){
-        const fd=new FormData();fd.append('save_master_item','1');fd.append('item_type','Product');fd.append('item_name',name);
-        fd.append('description',document.getElementById('ai_desc').value);fd.append('hsn_sac',document.getElementById('ai_hsn').value);
-        fd.append('unit',document.getElementById('ai_unit').value);fd.append('rate',document.getElementById('ai_rate').value);
-        fd.append('cgst_pct',document.getElementById('ai_cgst').value);fd.append('sgst_pct',document.getElementById('ai_sgst').value);fd.append('igst_pct',document.getElementById('ai_igst').value);
-        fetch('/invoice/quotations/quote_create.php',{method:'POST',body:fd}).then(r=>r.json()).then(d=>{if(d.success){showMiniToast('✓ '+name+' saved to library');fetch('/invoice/quotations/quote_create.php?get_items=1').then(r=>r.json()).then(data=>{allItems=data;renderItemList(data);});}});
-    } else {showMiniToast('✓ '+name+' added to quotation');}
 }
 
 // ── Terms System ──────────────────────────────────────────────────────────────
