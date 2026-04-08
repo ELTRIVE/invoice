@@ -139,10 +139,10 @@ function formatINR($n){return '&#8377;'.indianFormat($n);}
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow-x:hidden;overflow-y:auto}
+html,body{height:100%;overflow:hidden}
 body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
 
-.content{margin-left:220px;padding:8px 16px 8px;background:#f0f2f8;min-height:100vh;overflow:visible;display:flex;flex-direction:column;}
+.content{margin-left:220px;padding:60px 16px 8px !important;background:#f0f2f8;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
 
 /* ── FILTER BAR ── */
 .filter-wrap{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:6px}
@@ -208,7 +208,21 @@ body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
 .pie-total-val{font-size:12px;font-weight:800;color:#1a1f2e}
 
 @media(max-width:900px){.top-stats{grid-template-columns:repeat(2,1fr)}.rev-grid{grid-template-columns:1fr}}
-@media(max-width:600px){.top-stats{grid-template-columns:1fr}.content{margin-left:0;padding:8px 12px}}
+@media(max-width:600px){.top-stats{grid-template-columns:1fr}.content{margin-left:0;padding:60px 12px 8px !important}}
+@media (max-height:820px){
+    .filter-wrap{margin-bottom:4px;gap:4px}
+    .filter-bar{padding:2px 5px}
+    .filter-bar a{padding:3px 8px;font-size:10px}
+    .period-badge{font-size:9px}
+    .sec-label{font-size:8px;letter-spacing:1.4px;margin-bottom:4px}
+    .top-stats{gap:6px;margin-bottom:4px}
+    .ts{padding:8px 10px}
+    .ts-label{font-size:9px}
+    .ts-value{font-size:13px}
+    .ts-sub{font-size:9px}
+    .rev-grid{gap:8px}
+    .rev-card{padding:10px 12px}
+}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#e2e8f0;border-radius:99px}
 </style>
 </head>
@@ -287,7 +301,7 @@ body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
             // for today, highlight index 4
             if($period==='today') $activeIdx=4;
             ?>
-            <div style="position:relative;height:120px;width:100%;">
+            <div style="position:relative;height:108px;width:100%;">
                 <canvas id="revBarChart"></canvas>
             </div>
             <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -509,7 +523,7 @@ body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
                 <span style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:#6b7280"><span style="width:28px;height:3px;background:linear-gradient(90deg,#dc2626,#f87171);border-radius:2px;display:inline-block;opacity:.7"></span>Outstanding</span>
             </div>
         </div>
-        <div style="position:relative;height:150px;width:100%;">
+        <div style="position:relative;height:130px;width:100%;">
             <canvas id="cashFlowChart"></canvas>
         </div>
         <?php
