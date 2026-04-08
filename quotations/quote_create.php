@@ -173,6 +173,7 @@ if (isset($_GET['get_items'])) {
             return preg_replace('/[^a-z0-9]+/', '', $s) ?? '';
         };
         $histMap = [];
+        $histById = [];
         $qRows = $pdo->query("SELECT items_json FROM quotations WHERE items_json IS NOT NULL AND items_json <> ''")->fetchAll(PDO::FETCH_ASSOC);
         foreach ($qRows as $qRow) {
             $arr = json_decode($qRow['items_json'] ?? '[]', true);
@@ -180,8 +181,8 @@ if (isset($_GET['get_items'])) {
             foreach ($arr as $it) {
                 $name = trim((string)($it['item_name'] ?? ''));
                 $desc = trim((string)($it['description'] ?? ''));
+                $itemId = (int)($it['item_id'] ?? 0);
                 $keys = array_values(array_filter([$normKey($name), $normKey($desc)]));
-                if (!$keys) continue;
 
                 $hsn = trim((string)($it['hsn_sac'] ?? ($it['hsn'] ?? ($it['hsn_code'] ?? ''))));
                 $qty = (float)($it['qty'] ?? 0);
@@ -191,6 +192,13 @@ if (isset($_GET['get_items'])) {
                     if ($qty > 0 && $amt > 0) $rate = $amt / $qty;
                 }
 
+                if ($itemId > 0) {
+                    if (!isset($histById[$itemId])) $histById[$itemId] = ['hsn_sac' => '', 'rate' => 0.0];
+                    if ($histById[$itemId]['hsn_sac'] === '' && $hsn !== '' && $hsn !== '0') $histById[$itemId]['hsn_sac'] = $hsn;
+                    if ($histById[$itemId]['rate'] <= 0 && $rate > 0) $histById[$itemId]['rate'] = $rate;
+                }
+
+                if (!$keys) continue;
                 foreach ($keys as $k) {
                     if (!isset($histMap[$k])) $histMap[$k] = ['hsn_sac' => '', 'rate' => 0.0];
                     if ($histMap[$k]['hsn_sac'] === '' && $hsn !== '' && $hsn !== '0') $histMap[$k]['hsn_sac'] = $hsn;
@@ -200,20 +208,28 @@ if (isset($_GET['get_items'])) {
         }
 
         foreach ($rows as &$r) {
+            $rowId = (int)($r['id'] ?? 0);
+            $idHsn = '';
+            $idRate = 0.0;
+            if ($rowId > 0 && isset($histById[$rowId])) {
+                $idHsn = (string)$histById[$rowId]['hsn_sac'];
+                $idRate = (float)$histById[$rowId]['rate'];
+            }
             $k1 = $normKey((string)($r['item_name'] ?? ''));
             $k2 = $normKey((string)($r['description'] ?? ''));
             $pick = '';
             if ($k1 !== '' && isset($histMap[$k1])) $pick = $k1;
             elseif ($k2 !== '' && isset($histMap[$k2])) $pick = $k2;
-            if ($pick === '') continue;
 
             $curHsn = trim((string)($r['hsn_sac'] ?? ''));
             $curRate = (float)($r['rate'] ?? 0);
-            if (($curHsn === '' || $curHsn === '0') && $histMap[$pick]['hsn_sac'] !== '') {
-                $r['hsn_sac'] = $histMap[$pick]['hsn_sac'];
+            if ($curHsn === '' || $curHsn === '0') {
+                if ($idHsn !== '') $r['hsn_sac'] = $idHsn;
+                elseif ($pick !== '' && $histMap[$pick]['hsn_sac'] !== '') $r['hsn_sac'] = $histMap[$pick]['hsn_sac'];
             }
-            if ($curRate <= 0 && $histMap[$pick]['rate'] > 0) {
-                $r['rate'] = $histMap[$pick]['rate'];
+            if ($curRate <= 0) {
+                if ($idRate > 0) $r['rate'] = $idRate;
+                elseif ($pick !== '' && $histMap[$pick]['rate'] > 0) $r['rate'] = $histMap[$pick]['rate'];
             }
         }
         unset($r);
@@ -1248,10 +1264,21 @@ function loadItemList(){
 function renderItemList(items){
     const el=document.getElementById('itemSelectList');
     if(!items.length){el.innerHTML='<div class="sp-empty">No items yet.</div>';return;}
-    el.innerHTML=items.map((it,idx)=>{const itemId=it.id||idx;return `<div class="item-select-row" onclick="addItemFromListById(${itemId})">
+    el.innerHTML=items.map((it,idx)=>{const itemId=it.id||idx;
+        const parts=[];
+        const unit=(it.unit||'').trim();
+        const hsn=(it.hsn_sac||'').trim();
+        const rateNum=parseFloat(it.rate||0);
+        if(unit) parts.push(esc(unit));
+        if(hsn) parts.push('HSN: '+esc(hsn));
+        if(rateNum>0) parts.push('₹ '+rateNum.toLocaleString('en-IN'));
+        if(parseFloat(it.cgst_pct||0)>0) parts.push('C+S: '+(parseFloat(it.cgst_pct||0)+parseFloat(it.sgst_pct||0))+'%');
+        if(parseFloat(it.igst_pct||0)>0) parts.push('IGST: '+it.igst_pct+'%');
+        const sub=parts.join(' | ');
+        return `<div class="item-select-row" onclick="addItemFromListById(${itemId})">
         <div style="flex:1;min-width:0">
             <div class="item-select-name">${esc(it.item_name||'')}</div>
-            <div class="item-select-sub">${it.unit?esc(it.unit):''}${it.hsn_sac?' | HSN: '+esc(it.hsn_sac):''}${it.rate?' | ₹ '+parseFloat(it.rate).toLocaleString('en-IN'):''}${parseFloat(it.cgst_pct||0)>0?' | C+S: '+(parseFloat(it.cgst_pct||0)+parseFloat(it.sgst_pct||0))+'%':''}${parseFloat(it.igst_pct||0)>0?' | IGST: '+it.igst_pct+'%':''}</div>
+            <div class="item-select-sub">${sub}</div>
         </div>
     </div>`;}).join('');
 }
