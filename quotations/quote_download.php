@@ -245,7 +245,7 @@ body { font-family: DejaVu Sans, sans-serif; font-size: 10px; }
 .header-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
 .logo-cell { width: 40%; vertical-align: top; }
 .company-cell { width: 60%; text-align: right; vertical-align: top; }
-.logo-cell img { height: 120px; }
+.logo-cell img { height: 135px; }
 .company-name { font-size: 18px; font-weight: bold; }
 .company-details { line-height: 1.4; font-size: 10px; }
 .invoice-title { text-align: center; font-size: 18px; font-weight: bold; margin: 8px 0; }
@@ -272,7 +272,7 @@ body { font-family: DejaVu Sans, sans-serif; font-size: 10px; }
 <table class="header-table" style="width:100%; border:none; border-collapse:collapse;">
 <tr>
     <td class="logo-cell" style="border:none; vertical-align:top; width:40%;">
-        ' . ($logoBase64 ? '<img src="' . $logoBase64 . '" style="height:120px;">' : '') . '
+        ' . ($logoBase64 ? '<img src="' . $logoBase64 . '" style="height:135px;max-width:240px;object-fit:contain;">' : '') . '
     </td>
     <td class="company-cell" style="border:none; vertical-align:top; width:60%;">
         <div class="company-name" style="font-size:18px; font-weight:bold;">
