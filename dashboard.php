@@ -142,7 +142,7 @@ function formatINR($n){return '&#8377;'.indianFormat($n);}
 html,body{height:100%;overflow:hidden}
 body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
 
-.content{margin-left:220px;padding:60px 16px 8px !important;background:#f0f2f8;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+.content{margin-left:220px;padding:56px 16px 6px !important;background:#f0f2f8;height:calc(100vh - 52px);overflow:hidden;display:flex;flex-direction:column;}
 
 /* ── FILTER BAR ── */
 .filter-wrap{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:6px}
@@ -208,7 +208,7 @@ body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e}
 .pie-total-val{font-size:12px;font-weight:800;color:#1a1f2e}
 
 @media(max-width:900px){.top-stats{grid-template-columns:repeat(2,1fr)}.rev-grid{grid-template-columns:1fr}}
-@media(max-width:600px){.top-stats{grid-template-columns:1fr}.content{margin-left:0;padding:60px 12px 8px !important}}
+@media(max-width:600px){.top-stats{grid-template-columns:1fr}.content{margin-left:0;padding:56px 12px 6px !important;height:calc(100vh - 52px)}}
 @media (max-height:820px){
     .filter-wrap{margin-bottom:4px;gap:4px}
     .filter-bar{padding:2px 5px}
