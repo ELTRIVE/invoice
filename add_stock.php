@@ -92,7 +92,7 @@ body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e;
 .fg3 .span2{grid-column:span 2}
 
 /* LABELS & INPUTS */
-.field label{display:block;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px}
+.field label{display:block;font-size:10px;font-weight:900;color:#1f2937;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
 .field input,.field select,.field textarea{
     width:100%;padding:9px 12px;
     border:1.5px solid #e4e8f0;border-radius:8px;

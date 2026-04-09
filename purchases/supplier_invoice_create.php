@@ -446,7 +446,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f8;color:#1a1f2
 .form-card-body{padding:8px 14px 10px}
 
 /* UNIFIED FIELD LABELS + INPUTS */
-.field-section-label,label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;margin-bottom:3px}
+.field-section-label,label{display:block;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.6px;color:#1f2937;margin-bottom:3px}
 .field-input-styled,
 .field-select-styled,
 .form-control,
@@ -542,7 +542,7 @@ textarea.form-control{height:52px;resize:vertical;line-height:1.5}
 .modal-close{background:none;border:none;font-size:18px;color:#9ca3af;cursor:pointer}
 .modal-body{padding:12px 14px}
 .mf-group{margin-bottom:8px}
-.mf-label{display:block;font-size:10px;font-weight:700;color:#9ca3af;margin-bottom:3px;text-transform:uppercase;letter-spacing:.7px}
+.mf-label{display:block;font-size:10px;font-weight:900;color:#1f2937;margin-bottom:3px;text-transform:uppercase;letter-spacing:.6px}
 .mf-input{width:100%;border:1.5px solid #e4e8f0;border-radius:7px;padding:6px 10px;font-size:12px;font-family:inherit;outline:none}
 .mf-input:focus{border-color:#f97316;box-shadow:0 0 0 2px rgba(249,115,22,.08)}
 .mf-textarea{width:100%;border:1.5px solid #e4e8f0;border-radius:7px;padding:6px 10px;font-size:12px;font-family:inherit;outline:none;resize:vertical;min-height:50px}

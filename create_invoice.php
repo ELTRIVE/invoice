@@ -664,10 +664,10 @@ $popupCompany = !empty($existingOverride) ? array_merge($companyData, $existingO
         label {
             display: block;
             font-size: 12px;
-            font-weight: 700;
-            color: #9ca3af;
+            font-weight: 900;
+            color: #1f2937;
             text-transform: uppercase;
-            letter-spacing: .7px;
+            letter-spacing: .6px;
             margin-bottom: 5px
         }
 

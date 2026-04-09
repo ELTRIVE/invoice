@@ -471,7 +471,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f8;color:#1a1f2
 .form-card-body{padding:8px 14px 10px}
 
 /* FIELD LABELS + INPUTS – unified across all sections */
-.field-section-label,label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;margin-bottom:3px}
+.field-section-label,label{display:block;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.6px;color:#1f2937;margin-bottom:3px}
 .field-input-styled,
 .form-control,
 .form-select{
@@ -566,7 +566,7 @@ textarea.form-control{height:52px;resize:vertical;line-height:1.5}
 .item-select-name{font-size:13px;font-weight:700;color:#1a1f2e}
 .item-select-sub{font-size:11px;color:#9ca3af;margin-top:1px}
 .mf-group{margin-bottom:8px}
-.mf-label{display:block;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px}
+.mf-label{display:block;font-size:10px;font-weight:900;color:#1f2937;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px}
 .mf-input,.mf-select,.mf-textarea{width:100%;border:1.5px solid #e4e8f0;border-radius:7px;padding:6px 10px;font-size:12px;font-family:inherit;outline:none;background:#fff}
 .mf-input:focus,.mf-select:focus,.mf-textarea:focus{border-color:#f97316}
 .mf-textarea{resize:vertical;min-height:50px}
