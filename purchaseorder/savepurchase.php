@@ -200,6 +200,7 @@ try {
     if ($edit_id) {
         $pdo->prepare("
             UPDATE purchase_orders SET
+                po_number=:pn,
                 supplier_name=:sn, contact_person=:cp, contact_phone=:cph,
                 billing_address=:ba, billing_gstin=:bg, billing_phone=:bp,
                 billing_city=:bc, billing_state=:bst, billing_pincode=:bpin,
@@ -211,6 +212,7 @@ try {
                 , company_override=:co
             WHERE id=:id
         ")->execute([
+            ':pn'=>$po_number,
             ':sn'=>$supplier_name,  ':cp'=>$contact_person, ':cph'=>$contact_phone,
             ':ba'=>$billing_address,':bg'=>$billing_gstin,  ':bp'=>$billing_phone,
             ':bc'=>$billing_city,   ':bst'=>$billing_state, ':bpin'=>$billing_pincode,
