@@ -108,7 +108,7 @@ if (!empty($po['signature_id'])) {
 
 $supplier_row = null;
 try {
-    $ss = $pdo->prepare("SELECT * FROM suppliers WHERE supplier_name=? LIMIT 1");
+    $ss = $pdo->prepare("SELECT * FROM po_suppliers WHERE supplier_name=? ORDER BY id DESC LIMIT 1");
     $ss->execute([$po['supplier_name']]);
     $supplier_row = $ss->fetch(PDO::FETCH_ASSOC);
 } catch(Exception $e) {}
@@ -159,12 +159,30 @@ function wrap_words_for_pdf($text, $chunkSize = 2) {
     return implode('<br>', array_map(fn($chunk) => h(implode(' ', $chunk)), $chunks));
 }
 
+$source_address = trim((string)($po['source_address'] ?? ''));
+$source_city = trim((string)($po['source_city'] ?? ''));
+$source_state = trim((string)($po['source_state'] ?? ''));
+$source_pincode = trim((string)($po['source_pincode'] ?? ''));
+$source_gstin = trim((string)($po['source_gstin'] ?? ''));
+$source_phone = trim((string)($po['source_phone'] ?? ''));
+if ($source_address === '' && !empty($po['billing_address']) && empty($po['source_address'])) {
+    $source_address = trim((string)($po['billing_address'] ?? ''));
+    $source_city = trim((string)($po['billing_city'] ?? ''));
+    $source_state = trim((string)($po['billing_state'] ?? ''));
+    $source_pincode = trim((string)($po['billing_pincode'] ?? ''));
+    $source_gstin = trim((string)($po['billing_gstin'] ?? ''));
+    $source_phone = trim((string)($po['billing_phone'] ?? ''));
+}
+
 $co_name    = $company['company_name']  ?? 'ELTRIVE AUTOMATIONS PVT LTD';
-$co_address = $company['address_line1'] ?? '';
-$co_address .= !empty($company['address_line2']) ? "\n" . $company['address_line2'] : '';
-$co_address .= (!empty($company['city']) || !empty($company['state']) || !empty($company['pincode']))
-    ? "\n" . trim(($company['city'] ?? '') . (empty($company['state']) ? '' : ', ' . $company['state']) . (empty($company['pincode']) ? '' : ' - ' . $company['pincode']))
-    : '';
+$co_address = trim((string)($po['billing_address'] ?? ''));
+if (trim($co_address) === '') {
+    $co_address = $company['address_line1'] ?? '';
+    $co_address .= !empty($company['address_line2']) ? "\n" . $company['address_line2'] : '';
+    $co_address .= (!empty($company['city']) || !empty($company['state']) || !empty($company['pincode']))
+        ? "\n" . trim(($company['city'] ?? '') . (empty($company['state']) ? '' : ', ' . $company['state']) . (empty($company['pincode']) ? '' : ' - ' . $company['pincode']))
+        : '';
+}
 if (trim($co_address) === '') {
     $co_address = "1st floor, plot NO 33, 34 P Aditya Nagar\nColony, madinaguda village,\nHyderabad";
 }
@@ -211,13 +229,16 @@ if ($co_website) $co_addr_html .= '<strong>Website:</strong> ' . h($co_website) 
 $billing_html = '';
 if (!empty($po['contact_person'])) $billing_html .= h($po['contact_person']) . '<br>';
 $billing_html .= '<strong>' . h($po['supplier_name']) . '</strong><br>';
-if (!empty($po['billing_address'])) {
-    $addr_lines = array_filter(array_map('trim', explode("\n", $po['billing_address'])));
+if ($source_address !== '') {
+    $addr_lines = array_filter(array_map('trim', explode("\n", $source_address)));
     $billing_html .= implode(', ', array_map('h', $addr_lines)) . '<br>';
 }
-if (!empty($po['billing_phone']))        $billing_html .= '<strong>Phone :</strong> ' . h($po['billing_phone']) . '<br>';
+if ($source_city || $source_state || $source_pincode) {
+    $billing_html .= h(trim($source_city . ($source_state ? ', ' . $source_state : '') . ($source_pincode ? ' - ' . $source_pincode : ''))) . '<br>';
+}
+if (!empty($source_phone))        $billing_html .= '<strong>Phone :</strong> ' . h($source_phone) . '<br>';
 elseif (!empty($supplier_row['phone'])) $billing_html .= '<strong>Phone :</strong> ' . h($supplier_row['phone']) . '<br>';
-if (!empty($po['billing_gstin']))        $billing_html .= '<strong>GSTIN :</strong> ' . h($po['billing_gstin']) . '<br>';
+if (!empty($source_gstin))        $billing_html .= '<strong>GSTIN :</strong> ' . h($source_gstin) . '<br>';
 elseif (!empty($supplier_row['gstin'])) $billing_html .= '<strong>GSTIN :</strong> ' . h($supplier_row['gstin']) . '<br>';
 
 // ── Shipping block ────────────────────────────────────────────────────────────
@@ -258,8 +279,8 @@ if (!empty($po['shipping_address']) || !empty($po['shipping_city'])) {
     }
     $shipping_info_html = implode(', ', $ship_parts);
 } else {
-    if (!empty($po['billing_address'])) {
-        $ship_parts = array_filter(array_map('trim', explode("\n", $po['billing_address'])));
+    if ($source_address !== '') {
+        $ship_parts = array_filter(array_map('trim', explode("\n", $source_address)));
         $shipping_info_html = implode(', ', array_map('h', $ship_parts));
     }
 }

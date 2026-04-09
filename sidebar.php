@@ -327,7 +327,7 @@ body { font-family: 'Times New Roman', Times, serif !important; }
                         $isActive = ($tcPage === $key) ? 'active' : '';
                     ?>
                     <a class="tc-ter-item <?= $isActive ?>"
-                       href="/invoice/techno_commercial/tc_index.php?tc_sub=create&tc_page=<?= $key ?>"
+                       href="/invoice/techno_commercial/index.php?tc_sub=create&tc_page=<?= $key ?>"
                        title="<?= htmlspecialchars($label) ?>">
                         <?= $label ?>
                     </a>
@@ -340,7 +340,7 @@ body { font-family: 'Times New Roman', Times, serif !important; }
             <div class="tc-block" style="margin-top:3px;">
                
                 <a class="tc-sec-item <?= ($isTechno && $tcSub === 'documents') ? 'active' : '' ?>"
-                   href="/invoice/techno_commercial/tc_index.php?tc_sub=documents"
+                   href="/invoice/techno_commercial/index.php?tc_sub=documents"
                    style="display:flex;">
                     <i class="tc-sec-icon fas fa-file-contract"></i>
                     All Documents

@@ -37,6 +37,12 @@ $supplier_contact_person = trim($_POST['supplier_contact_person'] ?? '');
 $supplier_phone_display  = trim($_POST['supplier_phone_display']  ?? '');
 $supplier_gstin_display  = strtoupper(trim($_POST['supplier_gstin_display'] ?? ''));
 $contact_person   = trim($_POST['contact_person']   ?? '');
+$source_address    = trim($_POST['source_address']    ?? '');
+$source_gstin      = trim($_POST['source_gstin']      ?? '');
+$source_phone      = trim($_POST['source_phone']      ?? '');
+$source_city       = trim($_POST['source_city']       ?? '');
+$source_state      = trim($_POST['source_state']      ?? '');
+$source_pincode    = trim($_POST['source_pincode']    ?? '');
 $billing_address   = trim($_POST['billing_address']   ?? '');
 $billing_gstin     = trim($_POST['billing_gstin']     ?? '');
 $billing_phone     = trim($_POST['billing_phone']     ?? '');
@@ -108,6 +114,12 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS po_master_terms (
 try { $pdo->exec("ALTER TABLE purchase_orders ADD COLUMN items_json LONGTEXT NULL"); } catch(Exception $e){}
 try { $pdo->exec("ALTER TABLE purchase_orders ADD COLUMN item_list LONGTEXT NULL"); } catch(Exception $e){}
 try { $pdo->exec("ALTER TABLE purchase_orders ADD COLUMN terms_list LONGTEXT NULL"); } catch(Exception $e){}
+try { $pdo->exec("ALTER TABLE purchase_orders ADD COLUMN source_address TEXT NULL"); } catch(Exception $e){}
+try { $pdo->exec("ALTER TABLE purchase_orders ADD COLUMN source_gstin VARCHAR(20) DEFAULT ''"); } catch(Exception $e){}
+try { $pdo->exec("ALTER TABLE purchase_orders ADD COLUMN source_phone VARCHAR(20) DEFAULT ''"); } catch(Exception $e){}
+try { $pdo->exec("ALTER TABLE purchase_orders ADD COLUMN source_city VARCHAR(100) DEFAULT ''"); } catch(Exception $e){}
+try { $pdo->exec("ALTER TABLE purchase_orders ADD COLUMN source_state VARCHAR(100) DEFAULT ''"); } catch(Exception $e){}
+try { $pdo->exec("ALTER TABLE purchase_orders ADD COLUMN source_pincode VARCHAR(10) DEFAULT ''"); } catch(Exception $e){}
 try { $pdo->exec("ALTER TABLE purchase_orders ADD COLUMN billing_gstin VARCHAR(20) DEFAULT ''"); } catch(Exception $e){}
 try { $pdo->exec("ALTER TABLE purchase_orders ADD COLUMN billing_phone VARCHAR(20) DEFAULT ''"); } catch(Exception $e){}
 try { $pdo->exec("ALTER TABLE purchase_orders ADD COLUMN billing_city VARCHAR(100) DEFAULT ''"); } catch(Exception $e){}
@@ -226,6 +238,8 @@ try {
             UPDATE purchase_orders SET
                 po_number=:pn,
                 supplier_name=:sn, contact_person=:cp, contact_phone=:cph,
+                source_address=:soa, source_gstin=:sog, source_phone=:sop,
+                source_city=:soc, source_state=:sos, source_pincode=:sopin,
                 billing_address=:ba, billing_gstin=:bg, billing_phone=:bp,
                 billing_city=:bc, billing_state=:bst, billing_pincode=:bpin,
                 shipping_address=:sa, shipping_gstin=:sg, shipping_phone=:sph,
@@ -238,6 +252,8 @@ try {
         ")->execute([
             ':pn'=>$po_number,
             ':sn'=>$supplier_name,  ':cp'=>$contact_person, ':cph'=>$contact_phone,
+            ':soa'=>$source_address, ':sog'=>$source_gstin, ':sop'=>$source_phone,
+            ':soc'=>$source_city,    ':sos'=>$source_state, ':sopin'=>$source_pincode,
             ':ba'=>$billing_address,':bg'=>$billing_gstin,  ':bp'=>$billing_phone,
             ':bc'=>$billing_city,   ':bst'=>$billing_state, ':bpin'=>$billing_pincode,
             ':sa'=>$shipping_address,':sg'=>$shipping_gstin,':sph'=>$shipping_phone,
@@ -256,6 +272,7 @@ try {
         $pdo->prepare("
             INSERT INTO purchase_orders
                 (po_number,supplier_name,contact_person,contact_phone,
+                 source_address,source_gstin,source_phone,source_city,source_state,source_pincode,
                  billing_address,billing_gstin,billing_phone,billing_city,billing_state,billing_pincode,
                  shipping_address,shipping_gstin,shipping_phone,shipping_city,shipping_state,shipping_pincode,
                  reference,po_date,due_date,notes,
@@ -263,6 +280,7 @@ try {
                  created_by,items_json,item_list,terms_list,signature_id,company_override)
             VALUES
                 (:pn,:sn,:cp,:cph,
+                 :soa,:sog,:sop,:soc,:sos,:sopin,
                  :ba,:bg,:bp,:bc,:bst,:bpin,
                  :sa,:sg,:sph,:sc,:sst,:spin,
                  :ref,:pd,:dd,:notes,
@@ -272,6 +290,8 @@ try {
         ")->execute([
             ':pn'=>$po_number,        ':sn'=>$supplier_name,
             ':cp'=>$contact_person,   ':cph'=>$contact_phone,
+            ':soa'=>$source_address,  ':sog'=>$source_gstin,  ':sop'=>$source_phone,
+            ':soc'=>$source_city,     ':sos'=>$source_state,  ':sopin'=>$source_pincode,
             ':ba'=>$billing_address,  ':bg'=>$billing_gstin,  ':bp'=>$billing_phone,
             ':bc'=>$billing_city,     ':bst'=>$billing_state, ':bpin'=>$billing_pincode,
             ':sa'=>$shipping_address, ':sg'=>$shipping_gstin, ':sph'=>$shipping_phone,

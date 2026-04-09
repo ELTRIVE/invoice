@@ -318,6 +318,47 @@ if (!empty($popupCompany['company_name'])) {
     }
 }
 if (!$selectedCompanyId && !empty($companyBase['id'])) $selectedCompanyId = (int)$companyBase['id'];
+
+$legacySourceOnly = empty(trim((string)($po['source_address'] ?? ''))) && !empty(trim((string)($po['billing_address'] ?? '')));
+$sourceAddressValue = trim((string)($po['source_address'] ?? ''));
+if ($sourceAddressValue === '' && $legacySourceOnly) $sourceAddressValue = trim((string)($po['billing_address'] ?? ''));
+$sourceCityValue = trim((string)($po['source_city'] ?? ''));
+if ($sourceCityValue === '' && $legacySourceOnly) $sourceCityValue = trim((string)($po['billing_city'] ?? ''));
+$sourceStateValue = trim((string)($po['source_state'] ?? ''));
+if ($sourceStateValue === '' && $legacySourceOnly) $sourceStateValue = trim((string)($po['billing_state'] ?? ''));
+$sourcePincodeValue = trim((string)($po['source_pincode'] ?? ''));
+if ($sourcePincodeValue === '' && $legacySourceOnly) $sourcePincodeValue = trim((string)($po['billing_pincode'] ?? ''));
+$sourceGstinValue = trim((string)($po['source_gstin'] ?? ''));
+if ($sourceGstinValue === '' && $legacySourceOnly) $sourceGstinValue = trim((string)($po['billing_gstin'] ?? ''));
+$sourcePhoneValue = trim((string)($po['source_phone'] ?? ''));
+if ($sourcePhoneValue === '' && $legacySourceOnly) $sourcePhoneValue = trim((string)($po['billing_phone'] ?? ''));
+
+$companyBillingAddressDefault = trim((string)($popupCompany['address_line1'] ?? ''));
+if (!empty($popupCompany['address_line2'])) $companyBillingAddressDefault .= ($companyBillingAddressDefault !== '' ? "\n" : '') . trim((string)$popupCompany['address_line2']);
+$companyBillingCityDefault = trim((string)($popupCompany['city'] ?? ''));
+$companyBillingStateDefault = trim((string)($popupCompany['state'] ?? ''));
+$companyBillingPincodeDefault = trim((string)($popupCompany['pincode'] ?? ''));
+
+$billingAddressValue = trim((string)($po['billing_address'] ?? ''));
+$billingCityValue = trim((string)($po['billing_city'] ?? ''));
+$billingStateValue = trim((string)($po['billing_state'] ?? ''));
+$billingPincodeValue = trim((string)($po['billing_pincode'] ?? ''));
+$billingGstinValue = trim((string)($po['billing_gstin'] ?? ''));
+$billingPhoneValue = trim((string)($po['billing_phone'] ?? ''));
+
+if ($legacySourceOnly) {
+    $billingAddressValue = '';
+    $billingCityValue = '';
+    $billingStateValue = '';
+    $billingPincodeValue = '';
+    $billingGstinValue = '';
+    $billingPhoneValue = '';
+}
+if ($billingAddressValue === '') $billingAddressValue = $companyBillingAddressDefault;
+if ($billingCityValue === '') $billingCityValue = $companyBillingCityDefault;
+if ($billingStateValue === '') $billingStateValue = $companyBillingStateDefault;
+if ($billingPincodeValue === '') $billingPincodeValue = $companyBillingPincodeDefault;
+
 try { $pdo->exec("ALTER TABLE purchase_orders ADD COLUMN signature_id INT DEFAULT NULL"); } catch(Exception $e) {}
 ?>
 <!DOCTYPE html>
@@ -656,7 +697,7 @@ textarea.form-control{height:48px;resize:vertical}
     </div>
 
     <!-- ── 3-Column Grid ─────────────────────────────────────────── -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-bottom:6px">
 
 
     <!-- COL 1: Source Address -->
@@ -668,38 +709,78 @@ textarea.form-control{height:48px;resize:vertical}
         <div class="form-card-body">
             <div style="margin-bottom:6px">
                 <label>Address</label>
-                <textarea class="form-control" name="billing_address" id="sourceAddrHidden" style="height:52px;font-size:12px;padding:5px 8px" placeholder="Enter billing address"><?= htmlspecialchars($po['billing_address'] ?? '') ?></textarea>
+                <textarea class="form-control" name="source_address" id="sourceAddrHidden" style="height:52px;font-size:12px;padding:5px 8px" placeholder="Enter source address"><?= htmlspecialchars($sourceAddressValue) ?></textarea>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:6px">
                 <div>
                     <label>City</label>
-                    <input type="text" class="form-control" name="billing_city" id="billing_city" style="font-size:12px;padding:5px 8px" value="<?= htmlspecialchars($po['billing_city'] ?? '') ?>" placeholder="City">
+                    <input type="text" class="form-control" name="source_city" id="source_city" style="font-size:12px;padding:5px 8px" value="<?= htmlspecialchars($sourceCityValue) ?>" placeholder="City">
                 </div>
                 <div>
                     <label>State</label>
-                    <input type="text" class="form-control" name="billing_state" id="billing_state" style="font-size:12px;padding:5px 8px" value="<?= htmlspecialchars($po['billing_state'] ?? '') ?>" placeholder="State">
+                    <input type="text" class="form-control" name="source_state" id="source_state" style="font-size:12px;padding:5px 8px" value="<?= htmlspecialchars($sourceStateValue) ?>" placeholder="State">
                 </div>
                 <div>
                     <label>Pincode</label>
-                    <input type="text" class="form-control" name="billing_pincode" id="billing_pincode" maxlength="6" style="font-size:12px;padding:5px 8px" value="<?= htmlspecialchars($po['billing_pincode'] ?? '') ?>" placeholder="500001">
+                    <input type="text" class="form-control" name="source_pincode" id="source_pincode" maxlength="6" style="font-size:12px;padding:5px 8px" value="<?= htmlspecialchars($sourcePincodeValue) ?>" placeholder="500001">
                 </div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
                 <div>
                     <label>GSTIN</label>
-                    <input type="text" class="form-control" name="billing_gstin" id="billing_gstin" style="font-size:12px;padding:5px 8px;text-transform:uppercase" value="<?= htmlspecialchars($po['billing_gstin'] ?? '') ?>" placeholder="22AAAAA0000A1Z5" maxlength="15">
+                    <input type="text" class="form-control" name="source_gstin" id="source_gstin" style="font-size:12px;padding:5px 8px;text-transform:uppercase" value="<?= htmlspecialchars($sourceGstinValue) ?>" placeholder="22AAAAA0000A1Z5" maxlength="15">
+                    <span id="source_gstin_hint" style="font-size:10px;margin-top:2px;display:none;font-weight:600"></span>
+                </div>
+                <div>
+                    <label>Phone</label>
+                    <input type="tel" class="form-control" name="source_phone" id="source_phone" style="font-size:12px;padding:5px 8px" value="<?= htmlspecialchars($sourcePhoneValue) ?>" placeholder="+91 00000 00000" maxlength="10">
+                    <span id="source_phone_hint" style="font-size:10px;margin-top:2px;display:none;font-weight:600"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- COL 2: Billing Address -->
+    <div class="form-card" style="margin-bottom:0">
+        <div class="form-card-header">
+            <div class="hdr-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><i class="fas fa-building"></i></div>
+            <h3>Billing Address</h3>
+        </div>
+        <div class="form-card-body">
+            <div style="margin-bottom:6px">
+                <label>Address</label>
+                <textarea class="form-control" name="billing_address" id="billing_address" style="height:52px;font-size:12px;padding:5px 8px" placeholder="Enter billing address"><?= htmlspecialchars($billingAddressValue) ?></textarea>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:6px">
+                <div>
+                    <label>City</label>
+                    <input type="text" class="form-control" name="billing_city" id="billing_city" style="font-size:12px;padding:5px 8px" value="<?= htmlspecialchars($billingCityValue) ?>" placeholder="City">
+                </div>
+                <div>
+                    <label>State</label>
+                    <input type="text" class="form-control" name="billing_state" id="billing_state" style="font-size:12px;padding:5px 8px" value="<?= htmlspecialchars($billingStateValue) ?>" placeholder="State">
+                </div>
+                <div>
+                    <label>Pincode</label>
+                    <input type="text" class="form-control" name="billing_pincode" id="billing_pincode" maxlength="6" style="font-size:12px;padding:5px 8px" value="<?= htmlspecialchars($billingPincodeValue) ?>" placeholder="500001">
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
+                <div>
+                    <label>GSTIN</label>
+                    <input type="text" class="form-control" name="billing_gstin" id="billing_gstin" style="font-size:12px;padding:5px 8px;text-transform:uppercase" value="<?= htmlspecialchars($billingGstinValue) ?>" placeholder="22AAAAA0000A1Z5" maxlength="15">
                     <span id="billing_gstin_hint" style="font-size:10px;margin-top:2px;display:none;font-weight:600"></span>
                 </div>
                 <div>
                     <label>Phone</label>
-                    <input type="tel" class="form-control" name="billing_phone" id="billing_phone" style="font-size:12px;padding:5px 8px" value="<?= htmlspecialchars($po['billing_phone'] ?? '') ?>" placeholder="+91 00000 00000" maxlength="10">
+                    <input type="tel" class="form-control" name="billing_phone" id="billing_phone" style="font-size:12px;padding:5px 8px" value="<?= htmlspecialchars($billingPhoneValue) ?>" placeholder="+91 00000 00000" maxlength="10">
                     <span id="billing_phone_hint" style="font-size:10px;margin-top:2px;display:none;font-weight:600"></span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- COL 2: Shipping Address -->
+    <!-- COL 3: Shipping Address -->
     <div class="form-card" style="margin-bottom:0">
         <div class="form-card-header">
             <div class="hdr-icon" style="background:linear-gradient(135deg,#059669,#047857)"><i class="fas fa-shipping-fast"></i></div>
@@ -743,7 +824,7 @@ textarea.form-control{height:48px;resize:vertical}
         </div>
     </div>
 
-    <!-- COL 3: Document Details -->
+    <!-- COL 4: Document Details -->
     <div class="form-card" style="margin-bottom:0">
         <div class="form-card-header">
             <div class="hdr-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)"><i class="fas fa-file-alt"></i></div>
@@ -1774,7 +1855,7 @@ function getShippingFields() {
 }
 function getBillingValues() {
     return {
-        address : document.getElementById('sourceAddrHidden').value,
+        address : document.getElementById('billing_address').value,
         gstin   : document.getElementById('billing_gstin').value,
         phone   : document.getElementById('billing_phone').value,
         city    : document.getElementById('billing_city') ? document.getElementById('billing_city').value : '',
@@ -1825,7 +1906,7 @@ function bsSyncAddr(cb) {
     });
 });
 // Billing address textarea live sync
-document.getElementById('sourceAddrHidden').addEventListener('input', function() {
+document.getElementById('billing_address').addEventListener('input', function() {
     if (document.getElementById('same_as_billing').checked) syncShippingFromBilling();
 });
 
@@ -1872,19 +1953,21 @@ function poValidatePhone(inputId, hintId) {
         inp.style.borderColor = '#dc2626';
     }
 }
-document.getElementById('billing_gstin')?.addEventListener('blur', function(){ poValidateGstin('billing_gstin','billing_gstin_hint'); });
+document.getElementById('source_gstin')?.addEventListener('blur', function(){ poValidateGstin('source_gstin','source_gstin_hint'); });
 document.getElementById('shipping_gstin')?.addEventListener('blur', function(){ poValidateGstin('shipping_gstin','shipping_gstin_hint'); });
-document.getElementById('billing_phone')?.addEventListener('blur', function(){ poValidatePhone('billing_phone','billing_phone_hint'); });
+document.getElementById('billing_gstin')?.addEventListener('blur', function(){ poValidateGstin('billing_gstin','billing_gstin_hint'); });
+document.getElementById('source_phone')?.addEventListener('blur', function(){ poValidatePhone('source_phone','source_phone_hint'); });
 document.getElementById('shipping_phone')?.addEventListener('blur', function(){ poValidatePhone('shipping_phone','shipping_phone_hint'); });
+document.getElementById('billing_phone')?.addEventListener('blur', function(){ poValidatePhone('billing_phone','billing_phone_hint'); });
 
 function saveAddress(){
     const l1=document.getElementById('addr_line1').value.trim(),l2=document.getElementById('addr_line2').value.trim(),city=document.getElementById('addr_city').value.trim(),state=document.getElementById('addr_state').value,pin=document.getElementById('addr_pin').value.trim();
     const full=[l1,l2,city,state,pin].filter(Boolean).join(', ');
     if(!full){alert('Please enter address details.');return;}
     document.getElementById('sourceAddrHidden').value=full;
-    if(document.getElementById('billing_city')) document.getElementById('billing_city').value=city;
-    if(document.getElementById('billing_state')) document.getElementById('billing_state').value=state;
-    if(document.getElementById('billing_pincode')) document.getElementById('billing_pincode').value=pin;
+    if(document.getElementById('source_city')) document.getElementById('source_city').value=city;
+    if(document.getElementById('source_state')) document.getElementById('source_state').value=state;
+    if(document.getElementById('source_pincode')) document.getElementById('source_pincode').value=pin;
     if(document.getElementById('same_as_billing').checked) syncShippingFromBilling();
     closeModal('addressModal');
 }
