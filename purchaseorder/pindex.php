@@ -56,7 +56,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
             if($sc2==='pending') echo '<button class="action-btn btn-approve" onclick="openAprModal('.$o['id'].',\''.htmlspecialchars($o['po_number']).'\')" title="Approve"><i class="fas fa-check"></i></button>';
             if($sc2==='approved') echo '<button class="action-btn btn-complete" onclick="openCmpModal('.$o['id'].',\''.htmlspecialchars($o['po_number']).'\')" title="Complete"><i class="fas fa-flag-checkered"></i></button>';
             echo '<button class="action-btn btn-bell" onclick="openReminderModal('.json_encode($o).')" title="Reminder"><i class="fas fa-bell"></i></button>';
-            echo '<a href="createpurchase.php?edit='.$o['id'].'" class="action-btn btn-edit" title="Edit"><i class="fas fa-pencil-alt"></i></a>';
+            echo '<a href="createpurchase.php?edit='.$o['id'].'" class="action-btn btn-edit" title="Edit" onclick="event.preventDefault();event.stopPropagation();window.location.href=\'createpurchase.php?edit='.$o['id'].'\'"><i class="fas fa-pencil-alt"></i></a>';
             echo '</div></td></tr>';
         }
     }
@@ -632,7 +632,8 @@ h2{font-weight:700;color:#1a1f2e;font-size:18px}
                                 <i class="fas fa-bell"></i>
                             </button>
                             <?php endif; ?>
-                            <a href="createpurchase.php?edit=<?= $o['id'] ?>" class="action-btn btn-edit" title="Edit">
+                            <a href="createpurchase.php?edit=<?= $o['id'] ?>" class="action-btn btn-edit" title="Edit"
+                               onclick="event.preventDefault();event.stopPropagation();window.location.href='createpurchase.php?edit=<?= $o['id'] ?>';">
                                 <i class="fas fa-pencil-alt"></i>
                             </a>
                         </div>

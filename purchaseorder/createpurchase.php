@@ -624,17 +624,20 @@ textarea.form-control{height:48px;resize:vertical}
                 </div>
                 <div class="col-md-3">
                     <span class="field-section-label">Contact Person</span>
-                    <input class="field-input-styled" type="text" name="contact_person" id="contactInput"
+                    <input class="field-input-styled" type="text" id="supplierContactDisplay"
+                           readonly
                            value="<?= htmlspecialchars($po['contact_person'] ?? '') ?>" placeholder="Contact name">
                 </div>
                 <div class="col-md-2">
                     <span class="field-section-label">Phone</span>
-                    <input class="field-input-styled" type="text" name="contact_phone"
+                    <input class="field-input-styled" type="text" id="supplierPhoneDisplay"
+                           readonly
                            value="<?= htmlspecialchars($po['contact_phone'] ?? '') ?>" placeholder="Phone number">
                 </div>
                 <div class="col-md-3">
                     <span class="field-section-label">GSTIN</span>
-                    <input class="field-input-styled" type="text" name="supplier_gstin" id="supplierGstinInput"
+                    <input class="field-input-styled" type="text" id="supplierGstinDisplay"
+                           readonly
                            value="<?= htmlspecialchars($po['supplier_gstin'] ?? '') ?>" placeholder="27AABCS1234A1Z5" style="text-transform:uppercase">
                 </div>
             </div>
@@ -649,7 +652,7 @@ textarea.form-control{height:48px;resize:vertical}
     <div class="form-card" style="margin-bottom:0">
         <div class="form-card-header">
             <div class="hdr-icon" style="background:linear-gradient(135deg,#2563eb,#1d4ed8)"><i class="fas fa-file-invoice"></i></div>
-            <h3>Billing Address</h3>
+            <h3>Source Address</h3>
         </div>
         <div class="form-card-body">
             <div style="margin-bottom:6px">
@@ -749,7 +752,7 @@ textarea.form-control{height:48px;resize:vertical}
                 </div>
                 <div>
                     <label>Supplier GSTIN</label>
-                    <input class="form-control" type="text" name="supplier_gstin" id="supplierGstinInput" style="font-size:13px;padding:5px 8px;text-transform:uppercase"
+                    <input class="form-control" type="text" name="supplier_gstin" id="poSupplierGstinInput" style="font-size:13px;padding:5px 8px;text-transform:uppercase"
                            value="<?= htmlspecialchars($po['supplier_gstin'] ?? '') ?>" placeholder="27AABCS1234A1Z5">
                 </div>
             </div>
@@ -768,12 +771,12 @@ textarea.form-control{height:48px;resize:vertical}
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
                 <div>
                     <label>Contact Person</label>
-                    <input class="form-control" type="text" name="contact_person" id="contactInput" style="font-size:13px;padding:5px 8px"
+                    <input class="form-control" type="text" name="contact_person" id="poContactInput" style="font-size:13px;padding:5px 8px"
                            value="<?= htmlspecialchars($po['contact_person'] ?? '') ?>" placeholder="Contact name">
                 </div>
                 <div>
                     <label>Phone</label>
-                    <input class="form-control" type="text" name="contact_phone" style="font-size:13px;padding:5px 8px"
+                    <input class="form-control" type="text" name="contact_phone" id="poContactPhoneInput" style="font-size:13px;padding:5px 8px"
                            value="<?= htmlspecialchars($po['contact_phone'] ?? '') ?>" placeholder="Phone number">
                 </div>
             </div>
@@ -820,22 +823,24 @@ textarea.form-control{height:48px;resize:vertical}
             <tr class="item-row" data-index="<?= $i ?>">
                 <td class="num"><?= $i + 1 ?></td>
                 <td>
+                    <input type="hidden" name="items[<?= $i ?>][item_id]"
+                           value="<?= (int)($it['item_id'] ?? 0) ?>">
                     <input type="text" class="item-name-input" name="items[<?= $i ?>][item_name]"
-                           value="<?= htmlspecialchars($it['item_name']) ?>" placeholder="Item name" required>
+                           value="<?= htmlspecialchars($it['item_name'] ?? '') ?>" placeholder="Item name" required>
                     <input type="text" class="item-desc-input" name="items[<?= $i ?>][description]"
                            value="<?= htmlspecialchars($it['description'] ?? '') ?>" placeholder="Description (optional)">
                 </td>
                 <td><input type="text"   name="items[<?= $i ?>][hsn_sac]"   value="<?= htmlspecialchars($it['hsn_sac'] ?? '') ?>"></td>
-                <td><input type="number" name="items[<?= $i ?>][qty]"        value="<?= $it['qty'] ?>" min="0" step="0.001" oninput="calcRow(this)"></td>
+                <td><input type="number" name="items[<?= $i ?>][qty]"        value="<?= htmlspecialchars($it['qty'] ?? 0) ?>" min="0" step="0.001" oninput="calcRow(this)"></td>
                 <td><input type="text"   name="items[<?= $i ?>][unit]"       value="<?= htmlspecialchars($it['unit'] ?? '') ?>" placeholder="pcs"></td>
-                <td><input type="number" name="items[<?= $i ?>][rate]"       value="<?= $it['rate'] ?>" min="0" step="0.01" oninput="calcRow(this)"></td>
-                <td><input type="number" name="items[<?= $i ?>][discount]"   value="<?= $it['discount'] ?? 0 ?>" min="0" step="0.01" oninput="calcRow(this)"></td>
+                <td><input type="number" name="items[<?= $i ?>][rate]"       value="<?= htmlspecialchars($it['rate'] ?? 0) ?>" min="0" step="0.01" oninput="calcRow(this)"></td>
+                <td><input type="number" name="items[<?= $i ?>][discount]"   value="<?= htmlspecialchars($it['discount'] ?? 0) ?>" min="0" step="0.01" oninput="calcRow(this)"></td>
                 <td class="num taxable-cell"><?= number_format($it['taxable'] ?? 0, 2) ?><input type="hidden" name="items[<?= $i ?>][taxable]"  value="<?= $it['taxable'] ?? 0 ?>"></td>
-                <td><input type="number" name="items[<?= $i ?>][cgst_pct]"   value="<?= $it['cgst_pct'] ?? 0 ?>" min="0" step="0.01" placeholder="0" oninput="calcRow(this)"></td>
+                <td><input type="number" name="items[<?= $i ?>][cgst_pct]"   value="<?= htmlspecialchars($it['cgst_pct'] ?? 0) ?>" min="0" step="0.01" placeholder="0" oninput="calcRow(this)"></td>
                 <td class="num cgst-cell"><?= number_format($it['cgst_amt'] ?? 0, 2) ?><input type="hidden" name="items[<?= $i ?>][cgst_amt]" value="<?= $it['cgst_amt'] ?? 0 ?>"></td>
-                <td><input type="number" name="items[<?= $i ?>][sgst_pct]"   value="<?= $it['sgst_pct'] ?? 0 ?>" min="0" step="0.01" placeholder="0" oninput="calcRow(this)"></td>
+                <td><input type="number" name="items[<?= $i ?>][sgst_pct]"   value="<?= htmlspecialchars($it['sgst_pct'] ?? 0) ?>" min="0" step="0.01" placeholder="0" oninput="calcRow(this)"></td>
                 <td class="num sgst-cell"><?= number_format($it['sgst_amt'] ?? 0, 2) ?><input type="hidden" name="items[<?= $i ?>][sgst_amt]" value="<?= $it['sgst_amt'] ?? 0 ?>"></td>
-                <td><input type="number" name="items[<?= $i ?>][igst_pct]"   value="<?= $it['igst_pct'] ?? 0 ?>" min="0" step="0.01" placeholder="0" oninput="calcRow(this)"></td>
+                <td><input type="number" name="items[<?= $i ?>][igst_pct]"   value="<?= htmlspecialchars($it['igst_pct'] ?? 0) ?>" min="0" step="0.01" placeholder="0" oninput="calcRow(this)"></td>
                 <td class="num igst-cell"><?= number_format($it['igst_amt'] ?? 0, 2) ?><input type="hidden" name="items[<?= $i ?>][igst_amt]" value="<?= $it['igst_amt'] ?? 0 ?>"></td>
                 <td class="num amt-cell"><?= number_format($it['amount'] ?? 0, 2) ?><input type="hidden" name="items[<?= $i ?>][amount]" value="<?= $it['amount'] ?? 0 ?>"></td>
                 <td><button type="button" class="btn-remove-item" onclick="removeRow(this)"><i class="fas fa-times"></i></button></td>
@@ -1492,11 +1497,18 @@ function filterSuppliers(q){
                (s.phone||'').toLowerCase().includes(q);
     }));
 }
-function selectSupplierById(id){const s=allSuppliers.find(x=>x.id==id);if(!s)return;selectSupplier(s.supplier_name,s.contact_person||'',s.address||'');}
-function selectSupplierIdx(idx){const s=allSuppliers[idx];if(!s)return;selectSupplier(s.supplier_name,s.contact_person||'',s.address||'');}
-function selectSupplier(name,contact,address){
+function selectSupplierById(id){const s=allSuppliers.find(x=>x.id==id);if(!s)return;selectSupplier(s);}
+function selectSupplierIdx(idx){const s=allSuppliers[idx];if(!s)return;selectSupplier(s);}
+function selectSupplier(s){
+    const name = s.supplier_name || '';
+    const contact = s.contact_person || '';
+    const address = s.address || '';
+    const phone = s.phone || '';
+    const gstin = s.gstin || '';
     document.getElementById('supplierInput').value=name;
-    const contactEl=document.querySelector('[name="contact_person"]');if(contactEl)contactEl.value=contact||'';
+    const supplierContactEl=document.getElementById('supplierContactDisplay');if(supplierContactEl)supplierContactEl.value=contact;
+    const supplierPhoneEl=document.getElementById('supplierPhoneDisplay');if(supplierPhoneEl)supplierPhoneEl.value=phone;
+    const supplierGstinEl=document.getElementById('supplierGstinDisplay');if(supplierGstinEl)supplierGstinEl.value=gstin;
     if(address){document.getElementById('sourceAddrHidden').value=address;if(document.getElementById('same_as_billing').checked)document.getElementById('shippingDetails').value=address;}
     closeSupplierPopup();
 }
@@ -1518,7 +1530,15 @@ function saveNewSupplier(){
     const fd=new FormData();
     fd.append('save_supplier_ajax','1');fd.append('supplier_name',business);fd.append('contact_person',document.getElementById('ns_contact').value.trim());fd.append('phone',document.getElementById('ns_mobile').value.trim());fd.append('email',document.getElementById('ns_email').value.trim());fd.append('address',document.getElementById('ns_address').value.trim());fd.append('gstin',(document.getElementById('ns_gstin')||{value:''}).value.trim());fd.append('pan',(document.getElementById('ns_pan')||{value:''}).value.trim());fd.append('website',(document.getElementById('ns_website')||{value:''}).value.trim());
     fetch('createpurchase.php',{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
-        if(d.success){document.getElementById('supplierInput').value=business;const c=document.querySelector('[name="contact_person"]');if(c)c.value=document.getElementById('ns_contact').value.trim();['ns_business','ns_contact','ns_mobile','ns_email','ns_address','ns_gstin','ns_pan','ns_website'].forEach(id=>{const el=document.getElementById(id);if(el){el.value='';el.classList.remove('error','valid');}});['ns_gstin_hint','ns_pan_hint'].forEach(id=>{const el=document.getElementById(id);if(el){el.className='field-hint';el.textContent='';}});closeModal('supplierModal');showMiniToast('✓ Supplier saved');}else{alert('Failed to save: '+(d.message||'Unknown error'));}
+        if(d.success){
+            document.getElementById('supplierInput').value=business;
+            const supplierContactEl=document.getElementById('supplierContactDisplay');if(supplierContactEl)supplierContactEl.value=document.getElementById('ns_contact').value.trim();
+            const supplierPhoneEl=document.getElementById('supplierPhoneDisplay');if(supplierPhoneEl)supplierPhoneEl.value=document.getElementById('ns_mobile').value.trim();
+            const supplierGstinEl=document.getElementById('supplierGstinDisplay');if(supplierGstinEl)supplierGstinEl.value=(document.getElementById('ns_gstin')||{value:''}).value.trim();
+            ['ns_business','ns_contact','ns_mobile','ns_email','ns_address','ns_gstin','ns_pan','ns_website'].forEach(id=>{const el=document.getElementById(id);if(el){el.value='';el.classList.remove('error','valid');}});
+            ['ns_gstin_hint','ns_pan_hint'].forEach(id=>{const el=document.getElementById(id);if(el){el.className='field-hint';el.textContent='';}});
+            closeModal('supplierModal');showMiniToast('✓ Supplier saved');
+        }else{alert('Failed to save: '+(d.message||'Unknown error'));}
     }).catch(()=>alert('Network error'));
 }
 
