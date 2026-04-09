@@ -255,7 +255,7 @@ td, th { vertical-align: middle; }
 }
 .summary-right table td {
     border: none;
-    border-bottom: 0.5px solid #444;
+    border-bottom: 0.5px solid #b8b8b8;
     padding: 4px 10px;
     font-size: 9px;
 }
