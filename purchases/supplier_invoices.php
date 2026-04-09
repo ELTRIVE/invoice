@@ -31,7 +31,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
             echo '<td>'.date('d-M-y',strtotime($inv['invoice_date'])).'</td>';
             echo '<td class="col-amount" style="font-weight:600;">&#8377; '._si_indFmt($inv['total_taxable']).'</td>';
             echo '<td class="col-amount" style="font-weight:700;">&#8377; '._si_indFmt($inv['grand_total']).'</td>';
-            echo '<td style="font-size:12px;color:#6b7280">'.htmlspecialchars(substr($inv['supplier_gstin'],0,15)).'</td>';
+            
             echo '<td onclick="event.stopPropagation()"><div class="action-btns">';
             echo '<a href="supplier_invoice_create.php?edit='.$inv['id'].'" class="action-btn btn-edit" title="Edit"><i class="fas fa-pencil-alt"></i></a>';
             echo '<a href="supplier_invoice_download.php?id='.$inv['id'].'" class="action-btn btn-pdf" title="Download PDF" target="_blank"><i class="fas fa-file-pdf"></i></a>';
@@ -179,7 +179,7 @@ h2{font-weight:700;color:#1a1f2e;font-size:18px}
 table{width:100%;border-collapse:collapse}
 th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;padding:0 8px 5px 8px;font-weight:700}
 td{padding:5px 6px 5px 6px;border-top:1px solid #f1f5f9;font-size:12px;color:#1a1f2e}
-.col-amount{text-align:right;width:130px}
+.col-amount{text-align:left;width:130px}
 .col-actions{text-align:left;width:90px}
 .si-row{cursor:pointer;transition:background .15s}
 .si-row:hover{background:#fff7f0}
@@ -275,19 +275,18 @@ td{padding:5px 6px 5px 6px;border-top:1px solid #f1f5f9;font-size:12px;color:#1a
                 <option value="fy_2025_26" <?= $fin_year==='fy_2025_26'?'selected':'' ?>>FY 2025-26</option>
                 <option value="fy_2026_27" <?= $fin_year==='fy_2026_27'?'selected':'' ?>>FY 2026-27</option>
             </select>
+            <span style="width:1px;height:22px;background:#e2e8f0;display:inline-block;margin:0 2px;"></span>
+            <div class="stat-badge" style="cursor:pointer;" title="Show all" onclick="filterByStatus()">
+                <span class="label">Count</span><span class="value"><?= $count ?></span>
+            </div>
+            <div class="stat-badge blue" style="cursor:pointer;" title="Show all" onclick="filterByStatus()">
+                <span class="label">Pre-Tax</span><span class="value">&#8377; <?= indFmt($total_taxable) ?></span>
+            </div>
+            <div class="stat-badge green" style="cursor:pointer;" title="Show all" onclick="filterByStatus()">
+                <span class="label">Total</span><span class="value">&#8377; <?= indFmt($total_amount) ?></span>
+            </div>
         </div>
     </form>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:nowrap;">
-        <div class="stat-badge" style="cursor:pointer;" title="Show all" onclick="filterByStatus()">
-            <span class="label">Count</span><span class="value"><?= $count ?></span>
-        </div>
-        <div class="stat-badge blue" style="cursor:pointer;" title="Show all" onclick="filterByStatus()">
-            <span class="label">Pre-Tax</span><span class="value">&#8377; <?= indFmt($total_taxable) ?></span>
-        </div>
-        <div class="stat-badge green" style="cursor:pointer;" title="Show all" onclick="filterByStatus()">
-            <span class="label">Total</span><span class="value">&#8377; <?= indFmt($total_amount) ?></span>
-        </div>
-    </div>
     <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;margin-bottom:4px;">Show
         <select name="per_page" form="filterForm" onchange="document.getElementById('filterForm').submit();" style="padding:3px 6px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12px;font-family:'Times New Roman',Times,serif;color:#374151;background:#fff;outline:none;">
             <?php foreach([10,25,50,100] as $n): ?>
@@ -324,7 +323,7 @@ td{padding:5px 6px 5px 6px;border-top:1px solid #f1f5f9;font-size:12px;color:#1a
                 <?=siThSort('invoice_date',  'Invoice Date', $sort_col,$sort_dir,$_GET)?>
                 <?=siThSort('total_taxable','Taxable (&#8377;)',$sort_col,$sort_dir,$_GET,'col-amount')?>
                 <?=siThSort('grand_total','Amount (&#8377;)',$sort_col,$sort_dir,$_GET,'col-amount')?>
-                <th>GSTIN</th>
+                
                 <th class="col-actions">Actions</th>
             </tr></thead>
             <tbody>
@@ -336,7 +335,7 @@ td{padding:5px 6px 5px 6px;border-top:1px solid #f1f5f9;font-size:12px;color:#1a
                 <td><?= date('d-M-y',strtotime($inv['invoice_date'])) ?></td>
                 <td class="col-amount" style="font-weight:600;">&#8377; <?= indFmt($inv['total_taxable']) ?></td>
                 <td class="col-amount" style="font-weight:700;">&#8377; <?= indFmt($inv['grand_total']) ?></td>
-                <td style="font-size:12px;color:#6b7280"><?= htmlspecialchars(substr($inv['supplier_gstin'],0,15)) ?></td>
+                
                 <td onclick="event.stopPropagation()">
                     <div class="action-btns">
                         <a href="supplier_invoice_create.php?edit=<?= $inv['id'] ?>" class="action-btn btn-edit" title="Edit"><i class="fas fa-pencil-alt"></i></a>

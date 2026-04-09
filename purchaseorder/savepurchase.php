@@ -1,6 +1,34 @@
 <?php
 require_once dirname(__DIR__) . '/db.php';
 
+function get_next_prefixed_number(PDO $pdo, string $table, string $column, string $prefix, int $padLength, int $startNumber): array {
+    $stmt = $pdo->query("SELECT `$column` AS doc_no FROM `$table`");
+    $rows = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+    $maxNum = $startNumber - 1;
+    $pattern = '/^' . preg_quote($prefix, '/') . '(\d{' . $padLength . '})$/';
+    foreach ($rows as $row) {
+        $value = trim((string)($row['doc_no'] ?? ''));
+        if ($value === '' || !preg_match($pattern, $value, $m)) continue;
+        $num = (int)$m[1];
+        if ($num > $maxNum) $maxNum = $num;
+    }
+    $nextNum = max($startNumber, $maxNum + 1);
+    return [$prefix . str_pad((string)$nextNum, $padLength, '0', STR_PAD_LEFT)];
+}
+
+function document_number_exists(PDO $pdo, string $table, string $column, string $value, ?int $excludeId = null): bool {
+    $sql = "SELECT id FROM `$table` WHERE `$column` = ?";
+    $params = [$value];
+    if ($excludeId) {
+        $sql .= " AND id <> ?";
+        $params[] = $excludeId;
+    }
+    $sql .= " LIMIT 1";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    return (bool)$stmt->fetchColumn();
+}
+
 $action  = $_POST['action']  ?? 'save';
 $edit_id = (int)($_POST['edit_id'] ?? 0);
 
@@ -27,6 +55,24 @@ $due_date         = $_POST['due_date'] ?? date('Y-m-d');
 $notes            = trim($_POST['notes'] ?? '');
 $signature_id     = !empty($_POST['signature_id']) ? (int)$_POST['signature_id'] : null;
 $created_by       = 'Gayatri Geeta Gopisetty';
+
+if ($edit_id) {
+    if (document_number_exists($pdo, 'purchase_orders', 'po_number', $po_number, $edit_id)) {
+        $msg = "Purchase order number '{$po_number}' already exists. Please use a different PO number.";
+        header('Location: createpurchase.php?edit=' . $edit_id . '&error=' . urlencode($msg));
+        exit;
+    }
+} else {
+    if (document_number_exists($pdo, 'purchase_orders', 'po_number', $po_number)) {
+        if (preg_match('/^ELT\-PO\-\d{7}$/', $po_number)) {
+            [$po_number] = get_next_prefixed_number($pdo, 'purchase_orders', 'po_number', 'ELT-PO-', 7, 2526001);
+        } else {
+            $msg = "Purchase order number '{$po_number}' already exists. Please use a different PO number.";
+            header('Location: createpurchase.php?error=' . urlencode($msg));
+            exit;
+        }
+    }
+}
 
 // Company override (invoice_company fields) for PO
 try { $pdo->exec("ALTER TABLE purchase_orders ADD COLUMN company_override TEXT DEFAULT NULL"); } catch(Exception $e) {}
@@ -229,5 +275,14 @@ try {
 
 } catch (Exception $e) {
     if ($pdo->inTransaction()) $pdo->rollBack();
-    die('Error: ' . htmlspecialchars($e->getMessage()));
+    $msg = $e->getMessage();
+    if (strpos($msg, 'SQLSTATE[23000]') !== false || stripos($msg, 'Duplicate entry') !== false) {
+        $msg = "Purchase order number '{$po_number}' already exists. Please use a different PO number.";
+    }
+    $redirect = 'createpurchase.php';
+    $query = [];
+    if ($edit_id) $query[] = 'edit=' . $edit_id;
+    $query[] = 'error=' . urlencode($msg);
+    header('Location: ' . $redirect . '?' . implode('&', $query));
+    exit;
 }

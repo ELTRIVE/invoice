@@ -175,6 +175,10 @@ $co_phone   = $company['phone']         ?? '';
 $co_email   = $company['email']         ?? '';
 $co_website = $company['website']       ?? '';
 $co_logo    = $company['company_logo']  ?? '';
+$poDate = !empty($po['po_date']) ? date('d-M-Y', strtotime($po['po_date'])) : date('d-M-Y');
+$downloadNow = new DateTime('now', new DateTimeZone('Asia/Kolkata'));
+$poTopStamp = $downloadNow->format('d/m/Y, h:i A');
+$poTopFileName = 'PO_' . preg_replace('/[^a-zA-Z0-9]+/', '_', trim($po['supplier_name'] ?? 'Supplier')) . '_' . preg_replace('/[^a-zA-Z0-9]+/', '_', trim($po['po_number'] ?? '')) . '_' . date("d-m-Y") . '_ELTRIVE';
 
 // ── Build logo HTML ──────────────────────────────────────────────────────────
 $logo_html = '';
@@ -339,39 +343,51 @@ $html = '<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <style>
-@page { margin: 12mm 12mm; }
-body { font-family: DejaVu Sans, sans-serif; font-size: 9px; line-height: 1.4; color: #111; }
+@page {margin: 20px 15px;}
+body { font-family: DejaVu Sans, sans-serif; font-size: 10px; color: #111; }
+.header-table { width:100%; border-collapse:collapse; margin-bottom:8px; }
 .hdr-table { width:100%; border-collapse:collapse; margin-bottom:6px; }
 .hdr-logo  { width:38%; vertical-align:top; border:none; }
-.hdr-info  { width:62%; text-align:right; vertical-align:top; border:none; font-size:8.5px; line-height:1.5; }
+.hdr-info  { width:62%; text-align:right; vertical-align:top; border:none; font-size:9px; line-height:1.4; }
 .hdr-info .co-name { font-size:16px; font-weight:bold; }
-.po-title { text-align:center; font-size:15px; font-weight:bold; letter-spacing:1px; margin:6px 0 5px; padding:4px 0; }
-.to-meta { width:100%; border-collapse:collapse; margin-bottom:5px; }
+.po-title { text-align:center; font-size:15px; font-weight:bold; letter-spacing:1px; margin:4px 0; padding:0; }
+.to-meta { width:100%; border-collapse:collapse; margin-bottom:4px; }
 .to-cell  { vertical-align:top; border:none; width:55%; font-size:9px; line-height:1.6; }
 .meta-cell{ vertical-align:top; border:none; width:45%; text-align:right; font-size:9px; line-height:1.7; }
 .meta-cell .po-num { font-size:13px; font-weight:bold; }
-.item-table { width:100%; border-collapse:collapse; font-size:8.5px; margin-top:4px; table-layout:fixed; }
+.item-table { width:100%; border-collapse:collapse; font-size:8.5px; margin-top:2px; table-layout:fixed; }
 .item-table th { border:0.5px solid #000; padding:4px 3px; background:#f0f0f0; text-align:center; font-weight:bold; overflow:hidden; }
-.item-table td { border:0.5px solid #000; padding:4px 3px; vertical-align:top; word-wrap:break-word; overflow-wrap:break-word; }
+.item-table td { border:0.5px solid #000; padding:3px 3px; vertical-align:top; word-wrap:break-word; overflow-wrap:break-word; }
 .item-table .desc { text-align:left; width:24%; word-break:break-word; overflow-wrap:anywhere; }
 .item-table .right { text-align:right; }
-.summary-table { width:100%; border-collapse:collapse; font-size:9px; margin-top:0; }
+.summary-table { width:100%; border-collapse:collapse; font-size:9px; margin-top:4px; }
 .summary-table td { border:0.5px solid #000; padding:4px 8px; vertical-align:top; }
 .totals-inner { width:100%; border-collapse:collapse; }
-.totals-inner tr td { border:none; border-bottom:0.5px solid #000; padding:3px 6px; }
-.totals-inner .grand-row td { border-top:0.5px solid #000; font-weight:bold; background:#f5f5f5; }
-.terms-box { margin-top:4px; border:0.5px solid #000; padding:5px 8px; font-size:8.5px; line-height:1.6; }
-.sig-table { width:100%; border-collapse:collapse; border:0.5px solid #000; font-size:9px; margin-top:4px; }
+.totals-inner td { border:none; border-bottom:0.5px solid #000; padding:4px 6px; }
+.totals-inner td + td { border-left:0.5px solid #000; }
+.totals-inner tr td:first-child { border-left:0.5px solid #666; }
+.totals-inner tr td:last-child { border-right:0.5px solid #000; }
+.totals-inner tr:last-child td { border-bottom:none; }
+.totals-inner .grand-row td { font-weight:bold; background:#f5f5f5; }
+.terms-box { margin-top:2px; border:0.5px solid #000; padding:4px 6px; font-size:8.5px; line-height:1.5; }
+.sig-table { width:100%; border-collapse:collapse; border:0.5px solid #000; font-size:9px; margin-top:2px; }
 .sig-table td { border:0.5px solid #000; padding:8px; }
 </style>
 </head>
 <body>
 
-<!-- COMPANY HEADER -->
-<table class="hdr-table">
+<table style="width:100%;font-size:9px;font-family:DejaVu Sans,sans-serif;margin-bottom:8px;border-collapse:collapse;">
 <tr>
-  <td class="hdr-logo">' . $logo_html . '</td>
-  <td class="hdr-info">
+  <td style="text-align:left;color:#666;">' . $poTopStamp . '</td>
+  <td style="text-align:right;color:#666;">' . h($poTopFileName) . '</td>
+</tr>
+</table>
+
+<!-- COMPANY HEADER -->
+<table class="header-table" style="width:100%; border:none; border-collapse:collapse;">
+<tr>
+  <td class="hdr-logo" style="border:none; vertical-align:top; width:40%;">' . $logo_html . '</td>
+  <td class="hdr-info" style="border:none; vertical-align:top; width:60%;">
     <span class="co-name">' . h($co_name) . '</span><br>
     ' . $co_addr_html . '
   </td>
@@ -390,7 +406,7 @@ body { font-family: DejaVu Sans, sans-serif; font-size: 9px; line-height: 1.4; c
   </td>
   <td class="meta-cell">
     <span class="po-num">PO No. :&nbsp;' . h($po['po_number']) . '</span><br>
-    <strong>Date :</strong>&nbsp;' . date('d-M-Y', strtotime($po['po_date'])) . '<br>
+    <strong>Date :</strong>&nbsp;' . $poDate . '<br>
     <strong>Valid till :</strong>&nbsp;' . date('d-M-Y', strtotime($po['due_date'])) . '
     ' . (!empty($po['reference']) ? '<br><strong>Ref. :</strong>&nbsp;' . h($po['reference']) : '') . '
   </td>
@@ -422,7 +438,7 @@ body { font-family: DejaVu Sans, sans-serif; font-size: 9px; line-height: 1.4; c
     <strong>Total Purchase Order Amount in Words :</strong><br>
     <em>' . h($amount_words) . '</em>
   </td>
-  <td style="padding:0; width:48%;">
+  <td style="width:48%; padding:0;">
     <table class="totals-inner">
       <tr><td>Total Amount before Tax (&#8377;)</td><td style="text-align:right;">' . number_format($subtotal,2) . '</td></tr>
       ' . ($tot_cgst>0?'<tr><td>CGST (&#8377;)</td><td style="text-align:right;">' . number_format($tot_cgst,2) . '</td></tr>':'') . '
@@ -454,7 +470,7 @@ $html .= '
   <td style="width:50%; vertical-align:bottom; padding:12px 8px 6px; font-size:9px;">
     This is a computer-generated purchase order. E. &amp; O. E.
   </td>
-  <td style="width:50%; text-align:right; vertical-align:top; padding:8px; font-size:9px;">
+  <td style="width:50%; text-align:center; vertical-align:middle; padding:8px; font-size:9px;">
     For, ' . h($co_name) . '<br><br>
     ' . ($signatureBase64 ? '<img src="' . $signatureBase64 . '" style="max-height:75px; max-width:175px; object-fit:contain; display:inline-block;" /><br>' : '<br><br><br>') . '
     <strong>Authorised Signatory</strong>

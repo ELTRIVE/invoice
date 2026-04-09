@@ -7,6 +7,25 @@
 
 require_once dirname(__DIR__) . '/db.php';
 
+function get_next_prefixed_number(PDO $pdo, string $table, string $column, string $prefix, int $padLength, int $startNumber): array {
+    $stmt = $pdo->query("SELECT `$column` AS doc_no FROM `$table`");
+    $rows = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+    $maxNum = $startNumber - 1;
+    $lastDoc = '';
+    $pattern = '/^' . preg_quote($prefix, '/') . '(\d{' . $padLength . '})$/';
+    foreach ($rows as $row) {
+        $value = trim((string)($row['doc_no'] ?? ''));
+        if ($value === '' || !preg_match($pattern, $value, $m)) continue;
+        $num = (int)$m[1];
+        if ($num > $maxNum) {
+            $maxNum = $num;
+            $lastDoc = $value;
+        }
+    }
+    $nextNum = max($startNumber, $maxNum + 1);
+    return [$prefix . str_pad((string)$nextNum, $padLength, '0', STR_PAD_LEFT), $lastDoc];
+}
+
 // ── Handle Add Company AJAX ──────────────────────────────────────
 {
     $rawInput = file_get_contents('php://input');
@@ -223,13 +242,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 /* ── Generate next PO number ─────────────────────────────────── */
 
-$last = $pdo->query("SELECT po_number FROM purchase_orders ORDER BY id DESC LIMIT 1")->fetchColumn();
-if ($last) {
-    preg_match('/(\d+)$/', $last, $m);
-    $next_num = 'ELT-PO-' . str_pad((int)($m[1] ?? 0) + 1, 7, '0', STR_PAD_LEFT);
-} else {
-    $next_num = 'ELT-PO-2526001';
-}
+[$next_num, $last] = get_next_prefixed_number($pdo, 'purchase_orders', 'po_number', 'ELT-PO-', 7, 2526001);
 
 /* ── Edit mode ───────────────────────────────────────────────── */
 
@@ -237,6 +250,7 @@ $edit_id = isset($_GET['edit']) ? (int)$_GET['edit'] : 0;
 $po      = null;
 $items   = [];
 $terms   = [];
+$pageError = trim((string)($_GET['error'] ?? ''));
 
 /* ── Load existing PO for editing ───────────────────────────── */
 if ($edit_id) {
@@ -520,6 +534,11 @@ textarea.form-control{height:48px;resize:vertical}
 <?php include dirname(__DIR__) . '/header.php'; ?>
 
 <div class="content">
+<?php if ($pageError !== ''): ?>
+    <div style="background:#fef2f2;border:1px solid #fca5a5;color:#dc2626;padding:8px 12px;border-radius:8px;margin-bottom:8px;font-size:12px;">
+        <i class="fas fa-exclamation-circle" style="margin-right:6px"></i><?= htmlspecialchars($pageError) ?>
+    </div>
+<?php endif; ?>
 <form id="poForm" method="POST" action="savepurchase.php">
 
     <input type="hidden" name="action" id="formAction" value="save">

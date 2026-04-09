@@ -338,7 +338,7 @@ function pageUrl($pg, $sr, $pp=10, $sc='', $sd='asc') { return '?' . http_build_
 <style>
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Times New Roman', Times, serif; background: #f4f6fb; color: #1a1f2e; }
-.content { margin-left: 220px; padding: 58px 18px 6px; height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+.content { margin-left: 220px; padding: 58px 18px 6px; min-height:100vh;display:flex;flex-direction:column;}
 
 /* ── Header ── */
 .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
@@ -380,7 +380,7 @@ h2 { font-size: 18px; font-weight: 700; color: #1a1f2e; }
 .sum-pill.red    { border-color: #dc2626; } .sum-pill.red    .val { color: #dc2626; }
 
 /* ── Card / table ── */
-.stock-card { background: #fff; border-radius: 12px; padding: 8px 12px; border: 1px solid #e4e8f0; flex:1;overflow-y:auto;min-height:0;display:flex;flex-direction:column;}
+.stock-card { background: #fff; border-radius: 12px; padding: 8px 12px; border: 1px solid #e4e8f0; flex:1;overflow:visible;display:flex;flex-direction:column;}
 .stock-table { width: 100%; border-collapse: collapse; flex:1; }
 .stock-table thead tr { background: #fff; }
 .stock-table th {
@@ -555,8 +555,8 @@ h2 { font-size: 18px; font-weight: 700; color: #1a1f2e; }
             box-shadow:0 1px 3px rgba(0,0,0,.06); min-width:150px;">
             <option value="">All HSN Codes</option>
         </select>
-    </div>
-    <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;margin-bottom:4px;">Show
+        <span style="width:1px;height:22px;background:#e2e8f0;display:inline-block;margin:0 2px;"></span>
+        <span style="font-size:12px;color:#374151;">Show</span>
         <form method="GET" id="ppForm" style="display:inline">
             <input type="hidden" name="search" value="<?= htmlspecialchars($search) ?>">
             <input type="hidden" name="sort_col" value="<?= htmlspecialchars($sort_col_st) ?>">
@@ -567,7 +567,7 @@ h2 { font-size: 18px; font-weight: 700; color: #1a1f2e; }
                 <?php endforeach; ?>
             </select>
         </form>
-        entries
+        <span style="font-size:12px;color:#374151;">entries</span>
     </div>
 
     <!-- TABLE -->

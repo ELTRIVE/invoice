@@ -489,9 +489,9 @@ $html .= '
         <td style="border:0.5px solid #000; padding:20px 8px 6px 8px; width:50%; vertical-align:bottom; font-size:9px;">
             This is a computer-generated invoice. E. &amp; O. E.
         </td>
-        <td style="border:0.5px solid #000; padding:8px; width:50%; text-align:right; vertical-align:top; font-size:9px;">
-            <div>For, ' . htmlspecialchars($company['company_name'] ?? 'ELTRIVE AUTOMATIONS PVT LTD') . '</div>
-            <br><br><br><br>
+        <td style="border:0.5px solid #000; padding:8px; width:50%; text-align:center; vertical-align:middle; font-size:9px;">
+            For, ' . htmlspecialchars($company['company_name'] ?? 'ELTRIVE AUTOMATIONS PVT LTD') . '<br><br>
+            ' . ($signatureBase64 ? '<img src="' . $signatureBase64 . '" style="max-height:75px; max-width:175px; object-fit:contain; display:inline-block;" /><br>' : '<br><br><br>') . '
             <strong>Authorised Signatory</strong>
         </td>
     </tr>
@@ -529,10 +529,6 @@ $html .= '
     $ts = "width:100%;border-collapse:collapse;border:1px solid #555;font-size:11px;font-family:Arial,sans-serif;margin-top:8px;";
     $out = "<style>.hsn-table thead { display: table-row-group !important; }</style>";
 
-    // Outer wrapper for HSN and Signature
-    $out .= "<table style=\"width:100%; border-collapse:collapse; border:none; margin-top:8px;\">";
-    $out .= "<tr><td style=\"width:65%; padding:0; vertical-align:top; border:none;\">";
-
     $out .= "<table class=\"hsn-table\" style=\"$ts; margin-top:0;\">";
     $out .= "<thead><tr style=\"background:#f2f2f2;font-weight:bold;font-size:10px;\">";
     $out .= "<th style=\"{$b}text-align:center;\">HSN/SAC</th>";
@@ -563,11 +559,6 @@ $html .= '
         $out .= "</tr>";
     }
     $out .= "</tbody></table>";
-
-    // Close left column, open right column for signature
-    $out .= "</td><td style=\"width:35%; padding:8px 8px 8px 15px; border:none; text-align:center; vertical-align:middle; font-size:9px; font-family:Arial,sans-serif;\">";
-    $out .= $signatureBase64 ? '<img src="' . $signatureBase64 . '" style="max-height:110px; max-width: 120%; display:inline-block;" />' : '';
-    $out .= "</td></tr></table>";
 
     return $out;
 })() . '

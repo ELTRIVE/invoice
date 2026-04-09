@@ -2,6 +2,38 @@
 ob_start();
 require_once dirname(__DIR__) . '/db.php';
 
+function get_next_prefixed_number(PDO $pdo, string $table, string $column, string $prefix, int $padLength, int $startNumber): array {
+    $stmt = $pdo->query("SELECT `$column` AS doc_no FROM `$table`");
+    $rows = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+    $maxNum = $startNumber - 1;
+    $lastDoc = '';
+    $pattern = '/^' . preg_quote($prefix, '/') . '(\d{' . $padLength . '})$/';
+    foreach ($rows as $row) {
+        $value = trim((string)($row['doc_no'] ?? ''));
+        if ($value === '' || !preg_match($pattern, $value, $m)) continue;
+        $num = (int)$m[1];
+        if ($num > $maxNum) {
+            $maxNum = $num;
+            $lastDoc = $value;
+        }
+    }
+    $nextNum = max($startNumber, $maxNum + 1);
+    return [$prefix . str_pad((string)$nextNum, $padLength, '0', STR_PAD_LEFT), $lastDoc];
+}
+
+function document_number_exists(PDO $pdo, string $table, string $column, string $value, ?int $excludeId = null): bool {
+    $sql = "SELECT id FROM `$table` WHERE `$column` = ?";
+    $params = [$value];
+    if ($excludeId) {
+        $sql .= " AND id <> ?";
+        $params[] = $excludeId;
+    }
+    $sql .= " LIMIT 1";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    return (bool)$stmt->fetchColumn();
+}
+
 // ── Handle Add Company AJAX ──────────────────────────────────────
 {
     $rawInput = file_get_contents('php://input');
@@ -54,6 +86,7 @@ require_once dirname(__DIR__) . '/db.php';
 
 
 // ── HANDLE POST (save) ───────────────────────────────────────────────────────
+if (!isset($error)) $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['save_master_item'])) {
     $action       = $_POST['action']         ?? 'save';
     $post_edit_id = (int)($_POST['edit_id']  ?? 0);
@@ -137,6 +170,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['save_master_item']))
     $item_list_json = json_encode(array_values($item_list_ids));
 
     try {
+        if ($post_edit_id) {
+            if (document_number_exists($pdo, 'quotations', 'quot_number', $quot_number, $post_edit_id)) {
+                throw new Exception("Quotation number '{$quot_number}' already exists. Please use a different quotation number.");
+            }
+        } else {
+            if (document_number_exists($pdo, 'quotations', 'quot_number', $quot_number)) {
+                if (preg_match('/^ELT\-QT\-\d{7}$/', $quot_number)) {
+                    [$quot_number] = get_next_prefixed_number($pdo, 'quotations', 'quot_number', 'ELT-QT-', 7, 2526001);
+                } else {
+                    throw new Exception("Quotation number '{$quot_number}' already exists. Please use a different quotation number.");
+                }
+            }
+        }
         $pdo->beginTransaction();
         if ($post_edit_id) {
             $pdo->prepare("UPDATE quotations SET quot_number=:qn,customer_name=:cn,contact_person=:cp,billing_details=:ca,customer_gstin=:cg,customer_phone=:cph,shipping_details=:sd,billing_gstin=:bg,billing_phone=:bp,shipping_gstin=:sg,shipping_phone=:sph,reference=:ref,quot_date=:qd,valid_till=:vt,notes=:notes,bank_id=:bid,signature_id=:sid,status=:st,total_taxable=:tt,total_cgst=:tc,total_sgst=:ts,total_igst=:ti,grand_total=:gt,items_json=:ij,item_list=:il,terms_list=:tl, company_override=:co WHERE id=:id")
@@ -152,7 +198,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['save_master_item']))
         exit;
     } catch (Exception $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
-        die('Error: ' . htmlspecialchars($e->getMessage()));
+        $msg = $e->getMessage();
+        if (strpos($msg, 'SQLSTATE[23000]') !== false || stripos($msg, 'Duplicate entry') !== false) {
+            $msg = "Quotation number '{$quot_number}' already exists. Please use a different quotation number.";
+        }
+        $error = $msg;
     }
 }
 
@@ -365,9 +415,7 @@ try { $banks = $pdo->query("SELECT * FROM bank_details ORDER BY bank_name ASC")-
 $signatures = [];
 try { $signatures = $pdo->query("SELECT * FROM signatures ORDER BY signature_name ASC")->fetchAll(PDO::FETCH_ASSOC); } catch(Exception $e){ $signatures=[]; }
 
-$last=$pdo->query("SELECT quot_number FROM quotations ORDER BY id DESC LIMIT 1")->fetchColumn();
-if($last){preg_match('/(\d+)$/',$last,$m);$next_num='ELT-QT-'.str_pad((int)($m[1]??0)+1,7,'0',STR_PAD_LEFT);}
-else{$next_num='ELT-QT-2526001';}
+[$next_num, $last] = get_next_prefixed_number($pdo, 'quotations', 'quot_number', 'ELT-QT-', 7, 2526001);
 $rows=$items?:[];
 
 /* ── Company override (invoice_company) for Quotation ─────────── */
@@ -481,8 +529,8 @@ textarea.form-control{height:52px;resize:vertical;line-height:1.5}
 #itemTable td.num{text-align:right;font-weight:600;white-space:nowrap;padding:3px 6px}
 
 /* TOTALS BOX */
-.total-box{display:flex;gap:20px;justify-content:flex-end;flex-wrap:wrap;margin-top:8px;padding:8px 14px;background:#fff7f0;border-radius:8px;border:1px solid #fed7aa;font-size:12px;color:#374151}
-.total-box .grand{font-size:13px;font-weight:800;color:#1a1f2e;padding-left:16px;border-left:2px solid #f97316}
+.total-box{text-align:right;margin-top:8px;font-size:12px;padding:8px 12px;background:#f8fafc;border-radius:8px;border:1px solid #e4e8f0;min-width:220px}
+.total-box .grand{font-size:14px;font-weight:800;color:#15803d;margin-top:4px;background:#f0fdf4;padding:4px 8px;border-radius:7px;display:inline-block}
 
 /* TERMS */
 .term-row{display:flex;align-items:center;gap:6px;background:#fafafa;border:1px solid #f0f2f7;border-radius:7px;padding:6px 10px;margin-bottom:4px;font-size:12px}
@@ -546,6 +594,11 @@ textarea.form-control{height:52px;resize:vertical;line-height:1.5}
 <?php include dirname(__DIR__) . '/header.php'; ?>
 
 <div class="content">
+<?php if (!empty($error)): ?>
+<div style="background:#fef2f2;border:1px solid #fca5a5;color:#dc2626;padding:8px 12px;border-radius:8px;margin-bottom:8px;font-size:12px;">
+    <i class="fas fa-exclamation-circle" style="margin-right:6px"></i><?= htmlspecialchars($error) ?>
+</div>
+<?php endif; ?>
 <form id="qtForm" method="POST" action="quote_create.php">
     <input type="hidden" name="action" id="formAction" value="save">
     <?php if($edit_id): ?><input type="hidden" name="edit_id" value="<?= $edit_id ?>"><?php endif; ?>
@@ -834,16 +887,16 @@ textarea.form-control{height:52px;resize:vertical;line-height:1.5}
             </div>
             <button type="button" class="btn-add-item" onclick="openSelectItemModal()"><i class="fas fa-plus"></i> Add Item</button>
             <div class="total-box">
-                <div>Taxable: ₹ <span id="totalTaxable">0.00</span></div>
-                <div>CGST: ₹ <span id="totalCgst">0.00</span></div>
-                <div>SGST: ₹ <span id="totalSgst">0.00</span></div>
-                <div>IGST: ₹ <span id="totalIgst">0.00</span></div>
-                <div id="roundOffRow" style="display:none;color:#6b7280;">
+                <div style="color:#6b7280">Taxable : ₹ <span id="totalTaxable">0.00</span></div>
+                <div style="color:#6b7280">CGST : ₹ <span id="totalCgst">0.00</span></div>
+                <div style="color:#6b7280">SGST : ₹ <span id="totalSgst">0.00</span></div>
+                <div style="color:#6b7280">IGST : ₹ <span id="totalIgst">0.00</span></div>
+                <div id="roundOffRow" style="display:none;color:#6b7280">
                     <span style="margin-right:2px;">🗑</span> Round off : ₹ <span id="roundOffAmt">0.00</span>
                     <button type="button" onclick="toggleRoundOff()" title="Remove Round Off"
                         style="margin-left:6px;background:none;border:none;color:#dc2626;cursor:pointer;font-size:11px;padding:0;">✕</button>
                 </div>
-                <div class="grand">Grand Total: ₹ <span id="grandTotal">0.00</span></div>
+                <div class="grand">Grand Total : ₹ <span id="grandTotal">0.00</span></div>
                 <div style="margin-top:8px;">
                     <button type="button" id="addRoundOffBtn" onclick="toggleRoundOff()"
                         style="padding:6px 14px;border-radius:7px;border:1.5px solid #16a34a;background:#f0fdf4;color:#16a34a;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">

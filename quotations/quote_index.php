@@ -275,31 +275,27 @@ td{padding:5px 6px 5px 6px;border-top:1px solid #f1f5f9;font-size:12px;color:#1a
                 <option value="fy_2026_27" <?= $fin_year==='fy_2026_27'?'selected':'' ?>>FY 2026-27</option>
             </select>
             <button type="submit" style="display:none"></button>
+            <span style="width:1px;height:22px;background:#e2e8f0;display:inline-block;margin:0 2px;"></span>
+            <?php
+            $pretax_stmt = $pdo->prepare("SELECT COALESCE(SUM(total_taxable),0) FROM quotations WHERE $wsql");
+            $pretax_stmt->execute($params);
+            $total_pretax = (float)$pretax_stmt->fetchColumn();
+            $pend_params = array_merge($params, [':_pst1'=>'Draft',':_pst2'=>'Sent']);
+            $pend_stmt = $pdo->prepare("SELECT COALESCE(SUM(grand_total),0) FROM quotations WHERE $wsql AND status IN (:_pst1,:_pst2)");
+            $pend_stmt->execute($pend_params);
+            $pending_amount = (float)$pend_stmt->fetchColumn();
+            ?>
+            <div class="stat-badge" style="cursor:pointer;" title="Show all" onclick="filterByStatus('')">
+                <span class="label">Count</span><span class="value"><?= $count ?></span>
+            </div>
+            <div class="stat-badge" style="cursor:pointer;" title="Show all" onclick="filterByStatus('')">
+                <span class="label">Pre-Tax</span><span class="value">&#8377; <?= indFmt($total_pretax) ?></span>
+            </div>
+            <div class="stat-badge blue" style="cursor:pointer;" title="Show all" onclick="filterByStatus('')">
+                <span class="label">Total</span><span class="value">&#8377; <?= indFmt($total_amount) ?></span>
+            </div>
         </div>
     </form>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:nowrap;">
-        <div class="stat-badge" style="cursor:pointer;" title="Show all" onclick="filterByStatus('')">
-            <span class="label">Count</span><span class="value"><?= $count ?></span>
-        </div>
-        <?php
-        $pretax_stmt = $pdo->prepare("SELECT COALESCE(SUM(total_taxable),0) FROM quotations WHERE $wsql");
-        $pretax_stmt->execute($params);
-        $total_pretax = (float)$pretax_stmt->fetchColumn();
-        ?>
-        <div class="stat-badge" style="cursor:pointer;" title="Show all" onclick="filterByStatus('')">
-            <span class="label">Pre-Tax</span><span class="value">&#8377; <?= indFmt($total_pretax) ?></span>
-        </div>
-        <div class="stat-badge blue" style="cursor:pointer;" title="Show all" onclick="filterByStatus('')">
-            <span class="label">Total</span><span class="value">&#8377; <?= indFmt($total_amount) ?></span>
-        </div>
-        <?php
-        $pend_params = array_merge($params, [':_pst1'=>'Draft',':_pst2'=>'Sent']);
-        $pend_stmt = $pdo->prepare("SELECT COALESCE(SUM(grand_total),0) FROM quotations WHERE $wsql AND status IN (:_pst1,:_pst2)");
-        $pend_stmt->execute($pend_params);
-        $pending_amount = (float)$pend_stmt->fetchColumn();
-        ?>
-       
-    </div>
     <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;margin-bottom:4px;">Show
         <select name="per_page" form="filterForm" onchange="document.getElementById('filterForm').submit();" style="padding:3px 6px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12px;font-family:'Times New Roman',Times,serif;color:#374151;background:#fff;outline:none;">
             <?php foreach([10,25,50,100] as $n): ?>

@@ -36,8 +36,8 @@ $allItems = $pdo->query("SELECT total, qty FROM items")->fetchAll(PDO::FETCH_ASS
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f8;color:#1a1f2e;font-size:13px;height:100vh;overflow:hidden}
-.content{margin-left:220px;padding:58px 18px 6px 18px;height:100vh;display:flex;flex-direction:column;overflow:hidden;background:#f0f2f8}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f8;color:#1a1f2e;font-size:13px;}
+.content{margin-left:220px;padding:58px 18px 6px 18px;min-height:100vh;display:flex;flex-direction:column;background:#f0f2f8}
 
 /* PAGE HEADER */
 .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
@@ -74,7 +74,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f8;color:#1a1f2
 .show-entries select:focus{border-color:#f97316}
 
 /* TABLE */
-.table-wrap{overflow-x:auto;overflow-y:auto;flex:1}
+.table-wrap{overflow-x:auto;flex:1}
 table{width:100%;border-collapse:collapse;font-size:12px}
 thead tr{background:#fff7f0}
 th{padding:4px 8px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#f97316;border-bottom:2px solid #fed7aa;white-space:nowrap;cursor:pointer;user-select:none}
@@ -206,26 +206,24 @@ tbody tr:hover td{background:#fff7f0}
             <table id="itemsTable">
                 <thead>
                     <tr>
-                        <th onclick="sortTable(0)" style="cursor:pointer;user-select:none"># <span class="sort-icon" data-col="0">⇅</span></th>
-                        <th onclick="sortTable(1)" style="cursor:pointer;user-select:none">Service Code <span class="sort-icon" data-col="1">⇅</span></th>
-                        <th onclick="sortTable(2)" style="cursor:pointer;user-select:none">HSN/SAC <span class="sort-icon" data-col="2">⇅</span></th>
-                        <th onclick="sortTable(3)" style="cursor:pointer;user-select:none">Item name <span class="sort-icon" data-col="3">⇅</span></th>
-                        <th onclick="sortTable(4)" style="cursor:pointer;user-select:none">Description <span class="sort-icon" data-col="4">⇅</span></th>
-                        <th onclick="sortTable(5)" style="cursor:pointer;user-select:none">UOM <span class="sort-icon" data-col="5">⇅</span></th>
-                        <th onclick="sortTable(6)" style="cursor:pointer;user-select:none">Qty <span class="sort-icon" data-col="6">⇅</span></th>
-                        <th onclick="sortTable(7)" style="cursor:pointer;user-select:none">Unit Price <span class="sort-icon" data-col="7">⇅</span></th>
-                        <th onclick="sortTable(8)" style="cursor:pointer;user-select:none">Discount% <span class="sort-icon" data-col="8">⇅</span></th>
-                        <th onclick="sortTable(9)" style="cursor:pointer;user-select:none">SGST% <span class="sort-icon" data-col="9">⇅</span></th>
-                        <th onclick="sortTable(10)" style="cursor:pointer;user-select:none">CGST% <span class="sort-icon" data-col="10">⇅</span></th>
-                        <th onclick="sortTable(11)" style="cursor:pointer;user-select:none">IGST% <span class="sort-icon" data-col="11">⇅</span></th>
-                        <th onclick="sortTable(12)" style="cursor:pointer;user-select:none">Total <span class="sort-icon" data-col="12">⇅</span></th>
+                        <th onclick="sortTable(0)" style="cursor:pointer;user-select:none">Service Code <span class="sort-icon" data-col="0">⇅</span></th>
+                        <th onclick="sortTable(1)" style="cursor:pointer;user-select:none">HSN/SAC <span class="sort-icon" data-col="1">⇅</span></th>
+                        <th onclick="sortTable(2)" style="cursor:pointer;user-select:none">Item name <span class="sort-icon" data-col="2">⇅</span></th>
+                        <th onclick="sortTable(3)" style="cursor:pointer;user-select:none">Description <span class="sort-icon" data-col="3">⇅</span></th>
+                        <th onclick="sortTable(4)" style="cursor:pointer;user-select:none">UOM <span class="sort-icon" data-col="4">⇅</span></th>
+                        <th onclick="sortTable(5)" style="cursor:pointer;user-select:none">Qty <span class="sort-icon" data-col="5">⇅</span></th>
+                        <th onclick="sortTable(6)" style="cursor:pointer;user-select:none">Unit Price <span class="sort-icon" data-col="6">⇅</span></th>
+                        <th onclick="sortTable(7)" style="cursor:pointer;user-select:none">Discount% <span class="sort-icon" data-col="7">⇅</span></th>
+                        <th onclick="sortTable(8)" style="cursor:pointer;user-select:none">SGST% <span class="sort-icon" data-col="8">⇅</span></th>
+                        <th onclick="sortTable(9)" style="cursor:pointer;user-select:none">CGST% <span class="sort-icon" data-col="9">⇅</span></th>
+                        <th onclick="sortTable(10)" style="cursor:pointer;user-select:none">IGST% <span class="sort-icon" data-col="10">⇅</span></th>
+                        <th onclick="sortTable(11)" style="cursor:pointer;user-select:none">Total <span class="sort-icon" data-col="11">⇅</span></th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
                 <?php foreach ($items as $i => $item): ?>
                 <tr>
-                    <td><?= $i + 1 ?></td>
                     <td><span class="badge badge-code"><?= htmlspecialchars($item['service_code'] ?? '-') ?></span></td>
                     <td><span class="badge badge-hsn"><?= htmlspecialchars($item['hsn_sac'] ?? '-') ?></span></td>
                     <td style="max-width:220px;white-space:normal"><?= htmlspecialchars($item['item_name'] ?? '-') ?></td>
@@ -256,8 +254,12 @@ tbody tr:hover td{background:#fff7f0}
             <?php endif; ?>
         </div>
 
-        <!-- PAGINATION -->
-        <div class="pagination">
+        </div>
+
+    </div>
+
+    <!-- PAGINATION -->
+    <div class="pagination">
         <?php
         $qs = $_GET;
         $pages = [];
@@ -278,8 +280,6 @@ tbody tr:hover td{background:#fff7f0}
         $qs['page'] = $page + 1;
         echo $page >= $totalPages ? '<span class="disabled">&raquo;</span>' : "<a href='".htmlspecialchars('?'.http_build_query($qs))."'>&raquo;</a>";
         ?>
-        </div>
-
     </div>
 
 </div>

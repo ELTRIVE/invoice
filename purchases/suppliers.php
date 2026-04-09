@@ -134,7 +134,7 @@ if (!$isEdit) {
 <style>
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Times New Roman', Times, serif; background: #f4f6fb; color: #222; }
-.content { margin-left: 220px; padding: 58px 18px 6px; height:100vh;display:flex;flex-direction:column;overflow:hidden;background:#f4f6fb;}
+.content { margin-left: 220px; padding: 58px 18px 6px; min-height:100vh;display:flex;flex-direction:column;background:#f4f6fb;}
 
 /* ════ LIST STYLES ════ */
 .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
@@ -155,7 +155,7 @@ h2 { font-weight: 700; color: #1a1f2e; font-size: 18px; }
 .sum-pill .val { font-weight: 700; }
 .sum-pill.orange { border-color: #f97316; }
 .sum-pill.orange .val { color: #f97316; }
-.po-card { background: #fff; border-radius: 12px; padding: 8px 12px; border: 1px solid #e4e8f0; flex:1;overflow-y:auto;}
+.po-card { background: #fff; border-radius: 12px; padding: 8px 12px; border: 1px solid #e4e8f0; flex:1;overflow:visible;}
 .po-table { width: 100%; border-collapse: collapse; }
 .po-table th { text-align: left; font-size: 12px; text-transform: uppercase;
 letter-spacing: .05em; color: #6b7280; padding: 0 0 4px 0; font-weight: 700; }
@@ -439,10 +439,10 @@ input.invalid { border-color: #dc2626 !important; box-shadow: 0 0 0 3px rgba(220
         </div>
     </div>
 
-    <div class="filter-bar" style="display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:nowrap;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:nowrap;">
         <div class="sum-pill orange"><span class="label">Total Suppliers</span><span class="val"><?= $count ?></span></div>
-    </div>
-    <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;margin-bottom:4px;">Show
+        <span style="width:1px;height:22px;background:#e2e8f0;display:inline-block;margin:0 2px;"></span>
+        <span style="font-size:12px;color:#374151;">Show</span>
         <form method="GET" id="ppForm" style="display:inline">
             <input type="hidden" name="search" value="<?= htmlspecialchars($search) ?>">
             <input type="hidden" name="sort_col" value="<?= htmlspecialchars($sort_col) ?>">
@@ -453,7 +453,7 @@ input.invalid { border-color: #dc2626 !important; box-shadow: 0 0 0 3px rgba(220
                 <?php endforeach; ?>
             </select>
         </form>
-        entries
+        <span style="font-size:12px;color:#374151;">entries</span>
     </div>
 
     <div class="po-card">

@@ -317,7 +317,7 @@ h2{font-weight:700;color:#1a1f2e;font-size:18px}
 .filter-select:focus{border-color:#f97316}
 
 /* ── Stat badges ── */
-.summary-row{display:flex;gap:8px;margin-bottom:3px;flex-wrap:wrap}
+.summary-row{display:none}
 .sum-pill{
     display:inline-flex;align-items:center;gap:5px;
     padding:4px 12px;border-radius:8px;border:1.5px solid;
@@ -519,11 +519,7 @@ h2{font-weight:700;color:#1a1f2e;font-size:18px}
             <option value="Approved"  <?= $status_filter==='Approved' ?'selected':'' ?>>Approved</option>
             <option value="Completed" <?= $status_filter==='Completed'?'selected':'' ?>>Completed</option>
         </select>
-    </div>
-    </form>
-
-    <!-- SUMMARY PILLS -->
-    <div class="summary-row">
+        <span style="width:1px;height:22px;background:#e2e8f0;display:inline-block;margin:0 2px;"></span>
         <div class="sum-pill orange" style="cursor:pointer;" title="Show all" onclick="filterByStatus('All')">
             <span class="label">Count</span><span class="val"><?= $count ?></span>
         </div>
@@ -537,6 +533,10 @@ h2{font-weight:700;color:#1a1f2e;font-size:18px}
             <span class="label">Pending</span><span class="val">&#8377; <?= indFmt($pending_amount) ?></span>
         </div>
     </div>
+    </form>
+
+    <!-- SUMMARY PILLS now merged into filter-bar above -->
+    <div class="summary-row"></div>
 
     <!-- Show entries + sort helper -->
     <?php

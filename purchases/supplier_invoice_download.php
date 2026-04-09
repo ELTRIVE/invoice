@@ -52,17 +52,17 @@ function numberToWords($number) {
     return ($Rupees ? trim($Rupees) . ' Rupees ' : '') . $paise . ' Only';
 }
 
-// ── Validate ID ──────────────────────────────────────────────────────────────
+// -- Validate ID --------------------------------------------------------------
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($id <= 0) die("Invalid ID");
 
-// ── Fetch purchase record ────────────────────────────────────────────────────
+// -- Fetch purchase record ----------------------------------------------------
 $stmt = $pdo->prepare("SELECT * FROM purchases WHERE id = ?");
 $stmt->execute([$id]);
 $inv = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$inv) die("Invoice not found");
 
-// ── Fetch company info ───────────────────────────────────────────────────────
+// -- Fetch company info -------------------------------------------------------
 $company = $pdo->query("SELECT * FROM invoice_company LIMIT 1")->fetch(PDO::FETCH_ASSOC);
 
 // Apply per-invoice company override snapshot (if present)
@@ -77,7 +77,7 @@ if (!empty($inv['company_override'])) {
     }
 }
 
-// ── Logo → base64 ────────────────────────────────────────────────────────────
+// -- Logo ? base64 ------------------------------------------------------------
 $logoBase64 = '';
 if (!empty($company['company_logo'])) {
     $logoFile = dirname(__DIR__) . '/' . ltrim($company['company_logo'], '/');
@@ -103,16 +103,16 @@ if (!empty($inv['signature_id'])) {
     }
 }
 
-// ── Parse items / terms ──────────────────────────────────────────────────────
+// -- Parse items / terms ------------------------------------------------------
 $items = json_decode($inv['items_json'] ?? '[]', true) ?: [];
 $terms = json_decode($inv['terms_json'] ?? '[]', true) ?: [];
 
-// ── Invoice date ─────────────────────────────────────────────────────────────
+// -- Invoice date -------------------------------------------------------------
 $invoiceDate = !empty($inv['invoice_date'])
     ? date('d-M-Y', strtotime($inv['invoice_date']))
     : date('d-M-Y');
 
-// ── Totals ───────────────────────────────────────────────────────────────────
+// -- Totals -------------------------------------------------------------------
 $subtotalBasic = $subtotalCGST = $subtotalSGST = $subtotalIGST = $grandTotal = 0;
 foreach ($items as $item) {
     $subtotalBasic += floatval($item['basic_amount'] ?? 0);
@@ -122,7 +122,7 @@ foreach ($items as $item) {
     $grandTotal    += floatval($item['total']         ?? 0);
 }
 
-// ── Tax flags ────────────────────────────────────────────────────────────────
+// -- Tax flags ----------------------------------------------------------------
 $hasIGST = $subtotalIGST > 0;
 $hasCGST = $subtotalCGST > 0;
 $hasSGST = $subtotalSGST > 0;
@@ -135,12 +135,12 @@ $taxCols = ($hasCGST ? 1 : 0) + ($hasSGST ? 1 : 0) + ($hasIGST ? 1 : 0);
 
 $amountInWords = numberToWords(round($grandTotal, 2));
 
-// ── Supplier address lines ────────────────────────────────────────────────────
+// -- Supplier address lines ----------------------------------------------------
 $supplierAddrLines = array_filter(
     array_map('trim', explode("\n", str_replace(["\r\n", "\r"], "\n", $inv['supplier_address'] ?? '')))
 );
 
-// ── HSN/SAC summary groups ────────────────────────────────────────────────────
+// -- HSN/SAC summary groups ----------------------------------------------------
 $hsnGroups = [];
 foreach ($items as $item) {
     $hsn = $item['hsn_sac'] ?? '';
@@ -158,13 +158,13 @@ foreach ($items as $item) {
     }
 }
 
-// ── Document/filename slugs ───────────────────────────────────────────────────
+// -- Document/filename slugs ---------------------------------------------------
 $coSlug  = preg_replace('/[^a-zA-Z0-9]+/', '', strtoupper($company['company_name'] ?? ''));
 $invNum  = preg_replace('/[^a-zA-Z0-9\/]+/', '_', trim($inv['invoice_number'] ?? (string)$id));
 $supSlug = preg_replace('/[^a-zA-Z0-9]+/', '_', trim($inv['supplier_name'] ?? 'Supplier'));
 $invSlug = preg_replace('/[^a-zA-Z0-9]+/', '_', trim($inv['invoice_number'] ?? (string)$id));
 
-// ─── Build HTML ───────────────────────────────────────────────────────────────
+// --- Build HTML ---------------------------------------------------------------
 ob_start();
 ?>
 <!DOCTYPE html>
@@ -172,7 +172,7 @@ ob_start();
 <head>
 <meta charset="UTF-8">
 <style>
-/* ── Reset & base ─────────────────────────────── */
+/* -- Reset & base ------------------------------- */
 @page { margin: 18px 16px; }
 * { box-sizing: border-box; }
 body {
@@ -184,7 +184,7 @@ body {
 table { border-collapse: collapse; width: 100%; }
 td, th { vertical-align: middle; }
 
-/* ── Print meta row ───────────────────────────── */
+/* -- Print meta row ----------------------------- */
 .meta-row td {
     border: none;
     font-size: 8px;
@@ -192,11 +192,11 @@ td, th { vertical-align: middle; }
     padding-bottom: 5px;
 }
 
-/* ── Company header ───────────────────────────── */
+/* -- Company header ----------------------------- */
 .co-name { font-size: 16px; font-weight: bold; margin-bottom: 3px; }
 .co-detail { font-size: 8.5px; line-height: 1.6; }
 
-/* ── Invoice title bar ────────────────────────── */
+/* -- Invoice title bar -------------------------- */
 .inv-title {
     text-align: center;
     font-size: 15px;
@@ -206,14 +206,14 @@ td, th { vertical-align: middle; }
     letter-spacing: 1px;
 }
 
-/* ── From / meta block ────────────────────────── */
+/* -- From / meta block -------------------------- */
 .from-label { font-size: 8.5px; color: #555; margin-bottom: 2px; }
 .from-name  { font-weight: bold; font-size: 10.5px; margin-bottom: 1px; }
 .from-addr  { font-size: 8.5px; line-height: 1.65; }
 .inv-meta   { text-align: right; font-size: 9px; line-height: 1.9; }
 .inv-meta .inv-no { font-size: 12px; font-weight: bold; }
 
-/* ── Items table ──────────────────────────────── */
+/* -- Items table -------------------------------- */
 .itm { font-size: 8.5px; margin-top: 6px; }
 .itm th {
     background: #f2f2f2;
@@ -235,7 +235,7 @@ td, th { vertical-align: middle; }
     padding: 4px 6px;
 }
 
-/* ── Words / summary section ──────────────────── */
+/* -- Words / summary section -------------------- */
 .words-cell {
     border: 0.5px solid #444;
     padding: 5px 8px;
@@ -266,7 +266,7 @@ td, th { vertical-align: middle; }
     padding: 5px 10px;
 }
 
-/* ── Signature row ────────────────────────────── */
+/* -- Signature row ------------------------------ */
 .sig-left {
     border: 0.5px solid #444;
     padding: 28px 9px 7px;
@@ -283,7 +283,7 @@ td, th { vertical-align: middle; }
     width: 45%;
 }
 
-/* ── HSN/SAC summary table ────────────────────── */
+/* -- HSN/SAC summary table ---------------------- */
 .hsn-tbl { width: auto; font-size: 9px; margin-top: 9px; border-collapse: collapse; }
 .hsn-tbl th {
     background: #f2f2f2;
@@ -300,44 +300,10 @@ td, th { vertical-align: middle; }
 </head>
 <body>
 
-<!-- ── Print meta header ────────────────────────────────────────────────── -->
-<table class="meta-row" style="margin-bottom:4px;">
-<tr>
-  <td style="text-align:left;"><?= date("d/m/Y, h:i A") ?></td>
-  <td style="text-align:right;">
-    Document_<?= $coSlug ?>_<?= $invNum ?>_<?= date("Y-m-d") ?> - Biziverse
-  </td>
-</tr>
-</table>
-
-<!-- ── Company header ───────────────────────────────────────────────────── -->
-<table style="border:none;margin-bottom:7px;">
-<tr>
-<?php if ($logoBase64): ?>
-  <td style="border:none;width:35%;vertical-align:middle;">
-    <img src="<?= $logoBase64 ?>" style="max-height:80px;max-width:155px;">
-  </td>
-  <td style="border:none;width:65%;vertical-align:top;text-align:right;">
-<?php else: ?>
-  <td style="border:none;width:100%;vertical-align:top;text-align:right;" colspan="2">
-<?php endif; ?>
-    <div class="co-name"><?= htmlspecialchars($company['company_name'] ?? '') ?></div>
-    <div class="co-detail">
-      <?= htmlspecialchars($company['address_line1'] ?? '') ?>
-      <?php if (!empty($company['address_line2'])): ?>, <?= htmlspecialchars($company['address_line2']) ?><?php endif; ?><br>
-      <?= htmlspecialchars($company['city'] ?? '') ?>, <?= htmlspecialchars($company['state'] ?? '') ?> - <?= htmlspecialchars($company['pincode'] ?? '') ?><br>
-      <strong>GSTIN :</strong> <?= htmlspecialchars($company['gst_number'] ?? '') ?>
-      <?php if (!empty($company['pan'])): ?>&nbsp;&nbsp;<strong>PAN :</strong> <?= htmlspecialchars($company['pan']) ?><?php endif; ?>
-      <?php if (!empty($company['phone'])): ?><br><strong>Phone :</strong> <?= htmlspecialchars($company['phone']) ?><?php endif; ?>
-    </div>
-  </td>
-</tr>
-</table>
-
-<!-- ── Title ────────────────────────────────────────────────────────────── -->
+<!-- -- Title -------------------------------------------------------------- -->
 <div class="inv-title">PURCHASE INVOICE</div>
 
-<!-- ── From + Invoice meta ──────────────────────────────────────────────── -->
+<!-- -- From + Invoice meta ------------------------------------------------ -->
 <table style="border:none;margin-bottom:5px;">
 <tr>
   <!-- Supplier info -->
@@ -373,7 +339,7 @@ td, th { vertical-align: middle; }
 </tr>
 </table>
 
-<!-- ── Items table ──────────────────────────────────────────────────────── -->
+<!-- -- Items table -------------------------------------------------------- -->
 <?php
 // Compute column widths dynamically based on tax columns
 $descW = $hasIGST ? '30%' : ($hasCGST && $hasSGST ? '28%' : '32%');
@@ -405,7 +371,7 @@ $descW = $hasIGST ? '30%' : ($hasCGST && $hasSGST ? '28%' : '32%');
     $igst_pct = floatval($item['igst_percent'] ?? 0);
     $total    = floatval($item['total']        ?? 0);
     $qty      = floatval($item['qty']          ?? 1);
-    // Strip trailing zeros from qty (e.g. 2.000 → 2)
+    // Strip trailing zeros from qty (e.g. 2.000 ? 2)
     $qtyFmt   = rtrim(rtrim(number_format($qty, 3, '.', ''), '0'), '.');
 ?>
 <tr>
@@ -441,7 +407,7 @@ $descW = $hasIGST ? '30%' : ($hasCGST && $hasSGST ? '28%' : '32%');
 </tfoot>
 </table>
 
-<!-- ── ROW 1: Amount in Words (left) | Tax Summary (right) ──────────────── -->
+<!-- -- ROW 1: Amount in Words (left) | Tax Summary (right) ---------------- -->
 <table style="margin-top:0;width:100%;border-collapse:collapse;">
 <tr>
   <td style="width:55%;border:0.5px solid #444;padding:6px 8px;vertical-align:top;font-size:8.5px;">
@@ -481,7 +447,7 @@ $descW = $hasIGST ? '30%' : ($hasCGST && $hasSGST ? '28%' : '32%');
 </tr>
 </table>
 
-<!-- ── ROW 2: Terms & Conditions full width ──────────────────────────────── -->
+<!-- -- ROW 2: Terms & Conditions full width -------------------------------- -->
 <?php if (!empty($terms) || !empty($inv['notes'])): ?>
 <table style="margin-top:0;width:100%;border-collapse:collapse;">
 <tr>
@@ -504,7 +470,7 @@ $descW = $hasIGST ? '30%' : ($hasCGST && $hasSGST ? '28%' : '32%');
 </table>
 <?php endif; ?>
 
-<!-- ── Signature row ────────────────────────────────────────────────────── -->
+<!-- -- Signature row ------------------------------------------------------ -->
 <table style="width:100%;margin-top:0;border-collapse:collapse;">
 <tr>
   <td class="sig-left">
@@ -519,7 +485,7 @@ $descW = $hasIGST ? '30%' : ($hasCGST && $hasSGST ? '28%' : '32%');
 </tr>
 </table>
 
-<!-- ── HSN/SAC summary table ────────────────────────────────────────────── -->
+<!-- -- HSN/SAC summary table ---------------------------------------------- -->
 <table class="hsn-tbl">
 <thead>
 <tr>
@@ -557,7 +523,7 @@ $descW = $hasIGST ? '30%' : ($hasCGST && $hasSGST ? '28%' : '32%');
 <?php
 $html = ob_get_clean();
 
-// ─── Render PDF via Dompdf ────────────────────────────────────────────────────
+// --- Render PDF via Dompdf ----------------------------------------------------
 $options = new Options();
 $options->set('isRemoteEnabled', true);
 $options->set('isHtml5ParserEnabled', true);
@@ -568,20 +534,7 @@ $dompdf->loadHtml($html);
 $dompdf->setPaper('A4', 'portrait');
 $dompdf->render();
 
-// ── Optional watermark ────────────────────────────────────────────────────────
-if (file_exists($watermarkPath)) {
-    $canvas = $dompdf->getCanvas();
-    $cw = $canvas->get_width();
-    $ch = $canvas->get_height();
-    $wmW = 300; $wmH = 300;
-    $canvas->page_script(function ($pn, $pc, $canvas, $fm) use ($watermarkPath, $cw, $ch, $wmW, $wmH) {
-        $canvas->set_opacity(0.08);
-        $canvas->image($watermarkPath, ($cw - $wmW) / 2, ($ch - $wmH) / 2, $wmW, $wmH);
-        $canvas->set_opacity(1);
-    });
-}
-
-// ── Stream PDF to browser ─────────────────────────────────────────────────────
+// -- Stream PDF to browser -----------------------------------------------------
 $filename = "PurchaseInvoice_{$supSlug}_{$invSlug}_" . date('d-m-Y') . ".pdf";
 ob_end_clean();
 $dompdf->stream($filename, ["Attachment" => true]);

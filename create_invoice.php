@@ -29,6 +29,42 @@ try {
 }
 date_default_timezone_set('Asia/Kolkata');
 
+function get_next_prefixed_number(PDO $pdo, string $table, string $column, string $prefix, int $padLength, int $startNumber): array
+{
+    $stmt = $pdo->query("SELECT `$column` AS doc_no FROM `$table`");
+    $rows = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+    $maxNum = $startNumber - 1;
+    $lastDoc = '';
+    $pattern = '/^' . preg_quote($prefix, '/') . '(\d{' . $padLength . '})$/';
+    foreach ($rows as $row) {
+        $value = trim((string)($row['doc_no'] ?? ''));
+        if ($value === '' || !preg_match($pattern, $value, $m)) {
+            continue;
+        }
+        $num = (int)$m[1];
+        if ($num > $maxNum) {
+            $maxNum = $num;
+            $lastDoc = $value;
+        }
+    }
+    $nextNum = max($startNumber, $maxNum + 1);
+    return [$prefix . str_pad((string)$nextNum, $padLength, '0', STR_PAD_LEFT), $lastDoc];
+}
+
+function document_number_exists(PDO $pdo, string $table, string $column, string $value, ?int $excludeId = null): bool
+{
+    $sql = "SELECT id FROM `$table` WHERE `$column` = ?";
+    $params = [$value];
+    if ($excludeId) {
+        $sql .= " AND id <> ?";
+        $params[] = $excludeId;
+    }
+    $sql .= " LIMIT 1";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    return (bool)$stmt->fetchColumn();
+}
+
 // Handle Add Company AJAX (supports JSON or multipart/form-data)
 $rawInput = file_get_contents('php://input');
 $jsonBody = $rawInput ? json_decode($rawInput, true) : null;
@@ -164,22 +200,7 @@ $prevInvoiceNo = '';
 $prefix = 'ELT2526';
 $startNum = 1;
 
-$prevStmt = $pdo->query("SELECT invoice_number FROM invoices ORDER BY id DESC LIMIT 1");
-$prevInvoice = $prevStmt->fetch(PDO::FETCH_ASSOC);
-if ($prevInvoice && !empty($prevInvoice['invoice_number'])) {
-    $prevInvoiceNo = $prevInvoice['invoice_number'];
-    // Extract 4-digit numeric suffix AFTER ELT2526 prefix
-    if (preg_match('/^ELT2526(\d{4})$/', trim($prevInvoiceNo), $m)) {
-        $lastNum = (int) $m[1];
-    } else {
-        $lastNum = $startNum - 1;
-    }
-    $nextNum = $lastNum + 1;
-} else {
-    $nextNum = $startNum;
-}
-// Zero-pad to 4 digits: ELT25260001, ELT25260002, ...
-$nextInvoiceNo = $prefix . str_pad($nextNum, 4, '0', STR_PAD_LEFT);
+[$nextInvoiceNo, $prevInvoiceNo] = get_next_prefixed_number($pdo, 'invoices', 'invoice_number', $prefix, 4, $startNum);
 
 $prevVoucherStmt = $pdo->query("SELECT voucher_number FROM invoices ORDER BY id DESC LIMIT 1");
 $prevVoucher = $prevVoucherStmt->fetch(PDO::FETCH_ASSOC);
@@ -238,6 +259,20 @@ if (isset($_POST['save_invoice'])) {
 
         $bank_id = $_POST['bank_id'] ?? null;
         $signature_id = !empty($_POST['signature_id']) ? (int) $_POST['signature_id'] : null;
+
+        if ($isEdit) {
+            if (document_number_exists($pdo, 'invoices', 'invoice_number', $invoice_number, $editId)) {
+                throw new Exception("Invoice number '{$invoice_number}' already exists. Please use a different invoice number.");
+            }
+        } else {
+            if (document_number_exists($pdo, 'invoices', 'invoice_number', $invoice_number)) {
+                if (preg_match('/^' . preg_quote($prefix, '/') . '\d{4}$/', $invoice_number)) {
+                    [$invoice_number] = get_next_prefixed_number($pdo, 'invoices', 'invoice_number', $prefix, 4, $startNum);
+                } else {
+                    throw new Exception("Invoice number '{$invoice_number}' already exists. Please use a different invoice number.");
+                }
+            }
+        }
 
         // Collect company override from hidden form fields
         $co_data = [
@@ -385,8 +420,8 @@ if (isset($_POST['save_invoice'])) {
                     : $basic + $cgst_amt + $sgst_amt + $igst_amt;
                 $insAmt->execute([
                     $invoiceId,
-                    $_POST['invoice_number'] ?? '',
-                    $_POST['invoice_date'] ?? date('Y-m-d'),
+                    $invoice_number,
+                    $invoice_date,
                     intval($item['id']),
                     $item['service_code'] ?? '',
                     $item['hsn_sac'] ?? '',
@@ -441,7 +476,11 @@ if (isset($_POST['save_invoice'])) {
 
     } catch (Exception $e) {
         $pdo->rollBack();
-        $error = "Error saving invoice: " . $e->getMessage();
+        $msg = $e->getMessage();
+        if (strpos($msg, 'SQLSTATE[23000]') !== false || stripos($msg, 'Duplicate entry') !== false) {
+            $msg = "Invoice number '{$invoice_number}' already exists. Please use a different invoice number.";
+        }
+        $error = "Error saving invoice: " . $msg;
     }
 }
 
@@ -852,6 +891,28 @@ $popupCompany = !empty($existingOverride) ? array_merge($companyData, $existingO
             padding: 14px 18px;
             border-top: 1px solid #f0f2f7;
             background: #fafbfd
+        }
+
+        .total-box {
+            text-align: right;
+            margin-top: 8px;
+            font-size: 12px;
+            padding: 8px 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e4e8f0;
+            min-width: 240px;
+        }
+
+        .total-box .grand {
+            font-size: 14px;
+            font-weight: 800;
+            color: #15803d;
+            margin-top: 4px;
+            background: #f0fdf4;
+            padding: 4px 8px;
+            border-radius: 7px;
+            display: inline-block;
         }
 
         /* ITEM TABLE */
@@ -1466,45 +1527,27 @@ $popupCompany = !empty($existingOverride) ? array_merge($companyData, $existingO
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="7" style="text-align:right;color:#6b7280;font-size:12px">Taxable Amount :
-                                </td>
-                                <td id="totalTaxable" style="text-align:right;color:#374151">₹ 0.00</td>
-                                <td colspan="5"></td>
-                            </tr>
-                            <tr>
-                                <td colspan="7" style="text-align:right;color:#6b7280;font-size:12px">Tax Amount :</td>
-                                <td id="totalTax" style="text-align:right;color:#374151">₹ 0.00</td>
-                                <td colspan="5"></td>
-                            </tr>
-                            <tr id="roundOffRow" style="display:none">
-                                <td colspan="7" style="text-align:right;color:#6b7280;font-size:12px">
-                                    <span style="margin-right:4px;">🗑</span> Round off :
-                                </td>
-                                <td id="roundOffAmt"
-                                    style="text-align:right;color:#374151">₹ 0.00</td>
-                                <td colspan="5"></td>
-                            </tr>
-                            <tr>
-                                <td colspan="7" style="text-align:right;padding-top:6px;">
-                                    <button type="button" id="addRoundOffBtn" onclick="toggleRoundOff()"
-                                        style="padding:5px 13px;border-radius:7px;border:1.5px solid #16a34a;background:#f0fdf4;color:#16a34a;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">
-                                        <i class="fas fa-plus"></i> Add Round Off
-                                    </button>
-                                </td>
-                                <td colspan="6"></td>
-                            </tr>
-                            <tr>
-                                <td colspan="7" style="text-align:right;color:#15803d;font-size:14px;font-weight:700">
-                                    Grand Total :</td>
-                                <td id="grandTotal"
-                                    style="text-align:right;color:#15803d;font-size:15px;font-weight:700;background:#f0fdf4">
-                                    ₹ 0.00</td>
-                                <td colspan="5"></td>
-                            </tr>
-                        </tfoot>
+                        <tfoot></tfoot>
                     </table>
+                </div>
+            </div>
+            <div class="bottom-actions" style="justify-content:flex-end;flex-wrap:wrap">
+                <div class="total-box">
+                    <div style="color:#6b7280">Taxable : <span id="totalTaxable">₹ 0.00</span></div>
+                    <div style="color:#6b7280">CGST : <span id="totalCgst">₹ 0.00</span></div>
+                    <div style="color:#6b7280">SGST : <span id="totalSgst">₹ 0.00</span></div>
+                    <div style="color:#6b7280">IGST : <span id="totalIgst">₹ 0.00</span></div>
+                    <div style="color:#6b7280">Tax Amount : <span id="totalTax">₹ 0.00</span></div>
+                    <div id="roundOffRow" style="display:none;color:#6b7280">
+                        <span style="margin-right:4px;">🗑</span> Round off : <span id="roundOffAmt">₹ 0.00</span>
+                    </div>
+                    <div class="grand">Grand Total : <span id="grandTotal">₹ 0.00</span></div>
+                    <div style="margin-top:8px;">
+                        <button type="button" id="addRoundOffBtn" onclick="toggleRoundOff()"
+                            style="padding:5px 13px;border-radius:7px;border:1.5px solid #16a34a;background:#f0fdf4;color:#16a34a;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">
+                            <i class="fas fa-plus"></i> Add Round Off
+                        </button>
+                    </div>
                 </div>
             </div>
 <div style="display:flex; justify-content:flex-start; gap:10px; margin-top:20px; flex-wrap:wrap; align-items:center;">
@@ -1985,17 +2028,26 @@ function toggleRoundOff() {
             }
 
             function updateTotals() {
-                let totalTaxable = 0, totalTax = 0, grandTotal = 0;
+                let totalTaxable = 0, totalTax = 0, totalCgst = 0, totalSgst = 0, totalIgst = 0, grandTotal = 0;
 
                 document.querySelectorAll('#itemTable tbody tr').forEach(row => {
                     const taxable = parseFloat(row.querySelector('.taxable').textContent.replace(/,/g, '')) || 0;
                     const amount = parseFloat(row.querySelector('.amount').textContent.replace(/,/g, '')) || 0;
+                    const cgstAmt = parseFloat(row.querySelector('.hidden-cgst-amt')?.value || 0);
+                    const sgstAmt = parseFloat(row.querySelector('.hidden-sgst-amt')?.value || 0);
+                    const igstAmt = parseFloat(row.querySelector('.hidden-igst-amt')?.value || 0);
                     totalTaxable += taxable;
-                    totalTax += (amount - taxable);
+                    totalCgst += cgstAmt;
+                    totalSgst += sgstAmt;
+                    totalIgst += igstAmt;
+                    totalTax += (cgstAmt + sgstAmt + igstAmt);
                     grandTotal += amount;
                 });
 
                 document.getElementById('totalTaxable').textContent = '₹ ' + totalTaxable.toFixed(2);
+                document.getElementById('totalCgst').textContent    = '₹ ' + totalCgst.toFixed(2);
+                document.getElementById('totalSgst').textContent    = '₹ ' + totalSgst.toFixed(2);
+                document.getElementById('totalIgst').textContent    = '₹ ' + totalIgst.toFixed(2);
                 document.getElementById('totalTax').textContent     = '₹ ' + totalTax.toFixed(2);
 
                 // Recalculate round off only if user has already enabled it
