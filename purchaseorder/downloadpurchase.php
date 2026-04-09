@@ -313,7 +313,7 @@ foreach ($calc as $c) {
     $hsnGroups[$key]['sgst_amt'] += $c['sgst_a'];
     $hsnGroups[$key]['igst_amt'] += $c['igst_a'];
 }
-$bH = 'border:0.5px solid #000;padding:3px 6px;font-size:8.5px;';
+$bH = 'border:0.5px solid #666;padding:3px 6px;font-size:8.5px;';
 $hsn_rows = '';
 foreach ($hsnGroups as $row) {
     $tax = $row['cgst_amt'] + $row['sgst_amt'] + $row['igst_amt'];
@@ -356,22 +356,22 @@ body { font-family: DejaVu Sans, sans-serif; font-size: 10px; color: #111; }
 .meta-cell{ vertical-align:top; border:none; width:45%; text-align:right; font-size:9px; line-height:1.7; }
 .meta-cell .po-num { font-size:13px; font-weight:bold; }
 .item-table { width:100%; border-collapse:collapse; font-size:8.5px; margin-top:2px; table-layout:fixed; }
-.item-table th { border:0.5px solid #000; padding:4px 3px; background:#f0f0f0; text-align:center; font-weight:bold; overflow:hidden; }
-.item-table td { border:0.5px solid #000; padding:3px 3px; vertical-align:top; word-wrap:break-word; overflow-wrap:break-word; }
+.item-table th { border:0.5px solid #666; padding:4px 3px; background:#f0f0f0; text-align:center; font-weight:bold; overflow:hidden; }
+.item-table td { border:0.5px solid #666; padding:3px 3px; vertical-align:top; word-wrap:break-word; overflow-wrap:break-word; }
 .item-table .desc { text-align:left; width:24%; word-break:break-word; overflow-wrap:anywhere; }
 .item-table .right { text-align:right; }
 .summary-table { width:100%; border-collapse:collapse; font-size:9px; margin-top:4px; }
-.summary-table td { border:0.5px solid #000; padding:4px 8px; vertical-align:top; }
+.summary-table td { border:0.5px solid #666; padding:4px 8px; vertical-align:top; }
 .totals-inner { width:100%; border-collapse:collapse; }
-.totals-inner td { border:none; border-bottom:0.5px solid #000; padding:4px 6px; }
-.totals-inner td + td { border-left:0.5px solid #000; }
+.totals-inner td { border:none; border-bottom:0.5px solid #666; padding:4px 6px; }
+.totals-inner td + td { border-left:0.5px solid #666; }
 .totals-inner tr td:first-child { border-left:0.5px solid #666; }
-.totals-inner tr td:last-child { border-right:0.5px solid #000; }
+.totals-inner tr td:last-child { border-right:0.5px solid #666; }
 .totals-inner tr:last-child td { border-bottom:none; }
 .totals-inner .grand-row td { font-weight:bold; background:#f5f5f5; }
-.terms-box { margin-top:2px; border:0.5px solid #000; padding:4px 6px; font-size:8.5px; line-height:1.5; }
-.sig-table { width:100%; border-collapse:collapse; border:0.5px solid #000; font-size:9px; margin-top:2px; }
-.sig-table td { border:0.5px solid #000; padding:8px; }
+.terms-box { margin-top:2px; border:0.5px solid #666; padding:4px 6px; font-size:8.5px; line-height:1.5; }
+.sig-table { width:100%; border-collapse:collapse; border:0.5px solid #666; font-size:9px; margin-top:2px; }
+.sig-table td { border:0.5px solid #666; padding:8px; }
 </style>
 </head>
 <body>
