@@ -33,6 +33,9 @@ $action  = $_POST['action']  ?? 'save';
 $edit_id = (int)($_POST['edit_id'] ?? 0);
 
 $supplier_name    = trim($_POST['supplier_name']    ?? '');
+$supplier_contact_person = trim($_POST['supplier_contact_person'] ?? '');
+$supplier_phone_display  = trim($_POST['supplier_phone_display']  ?? '');
+$supplier_gstin_display  = strtoupper(trim($_POST['supplier_gstin_display'] ?? ''));
 $contact_person   = trim($_POST['contact_person']   ?? '');
 $billing_address   = trim($_POST['billing_address']   ?? '');
 $billing_gstin     = trim($_POST['billing_gstin']     ?? '');
@@ -196,6 +199,27 @@ $item_list_json  = json_encode($item_list_ids);
 
 try {
     $pdo->beginTransaction();
+
+    if ($supplier_name !== '') {
+        try {
+            $supplierStmt = $pdo->prepare("SELECT id FROM po_suppliers WHERE supplier_name = ? ORDER BY id DESC LIMIT 1");
+            $supplierStmt->execute([$supplier_name]);
+            $supplierId = (int)$supplierStmt->fetchColumn();
+
+            if ($supplierId > 0) {
+                $pdo->prepare("
+                    UPDATE po_suppliers
+                    SET contact_person = :cp, phone = :ph, gstin = :gst
+                    WHERE id = :id
+                ")->execute([
+                    ':cp' => $supplier_contact_person,
+                    ':ph' => $supplier_phone_display,
+                    ':gst' => $supplier_gstin_display,
+                    ':id' => $supplierId,
+                ]);
+            }
+        } catch (Exception $e) {}
+    }
 
     if ($edit_id) {
         $pdo->prepare("

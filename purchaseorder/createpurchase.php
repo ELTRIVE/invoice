@@ -280,6 +280,20 @@ if ($edit_id) {
 
 $rows = (!empty($items) && is_array($items)) ? $items : [];
 
+/* ── Supplier master display values (separate from PO document contact) ───── */
+$supplierDisplay = [
+    'contact_person' => '',
+    'phone' => '',
+    'gstin' => '',
+];
+if (!empty($po['supplier_name'])) {
+    try {
+        $supStmt = $pdo->prepare("SELECT contact_person, phone, gstin FROM po_suppliers WHERE supplier_name = ? ORDER BY id DESC LIMIT 1");
+        $supStmt->execute([$po['supplier_name']]);
+        $supplierDisplay = array_merge($supplierDisplay, $supStmt->fetch(PDO::FETCH_ASSOC) ?: []);
+    } catch (Exception $e) {}
+}
+
 /* ── Company override (invoice_company) for PO ────────────────── */
 $allCompanies = [];
 try { $allCompanies = $pdo->query("SELECT * FROM invoice_company ORDER BY company_name ASC")->fetchAll(PDO::FETCH_ASSOC) ?: []; } catch (Exception $e) { $allCompanies = []; }
@@ -624,21 +638,18 @@ textarea.form-control{height:48px;resize:vertical}
                 </div>
                 <div class="col-md-3">
                     <span class="field-section-label">Contact Person</span>
-                    <input class="field-input-styled" type="text" id="supplierContactDisplay"
-                           readonly
-                           value="<?= htmlspecialchars($po['contact_person'] ?? '') ?>" placeholder="Contact name">
+                    <input class="field-input-styled" type="text" id="supplierContactDisplay" name="supplier_contact_person"
+                           value="<?= htmlspecialchars($supplierDisplay['contact_person'] ?? '') ?>" placeholder="Contact name">
                 </div>
                 <div class="col-md-2">
                     <span class="field-section-label">Phone</span>
-                    <input class="field-input-styled" type="text" id="supplierPhoneDisplay"
-                           readonly
-                           value="<?= htmlspecialchars($po['contact_phone'] ?? '') ?>" placeholder="Phone number">
+                    <input class="field-input-styled" type="text" id="supplierPhoneDisplay" name="supplier_phone_display"
+                           value="<?= htmlspecialchars($supplierDisplay['phone'] ?? '') ?>" placeholder="Phone number">
                 </div>
                 <div class="col-md-3">
                     <span class="field-section-label">GSTIN</span>
-                    <input class="field-input-styled" type="text" id="supplierGstinDisplay"
-                           readonly
-                           value="<?= htmlspecialchars($po['supplier_gstin'] ?? '') ?>" placeholder="27AABCS1234A1Z5" style="text-transform:uppercase">
+                    <input class="field-input-styled" type="text" id="supplierGstinDisplay" name="supplier_gstin_display"
+                           value="<?= htmlspecialchars($supplierDisplay['gstin'] ?? '') ?>" placeholder="27AABCS1234A1Z5" style="text-transform:uppercase">
                 </div>
             </div>
         </div>
@@ -648,7 +659,7 @@ textarea.form-control{height:48px;resize:vertical}
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
 
 
-    <!-- COL 1: Billing Address -->
+    <!-- COL 1: Source Address -->
     <div class="form-card" style="margin-bottom:0">
         <div class="form-card-header">
             <div class="hdr-icon" style="background:linear-gradient(135deg,#2563eb,#1d4ed8)"><i class="fas fa-file-invoice"></i></div>
@@ -1499,6 +1510,11 @@ function filterSuppliers(q){
 }
 function selectSupplierById(id){const s=allSuppliers.find(x=>x.id==id);if(!s)return;selectSupplier(s);}
 function selectSupplierIdx(idx){const s=allSuppliers[idx];if(!s)return;selectSupplier(s);}
+function applySupplierAddress(address){
+    const billingEl=document.getElementById('sourceAddrHidden');
+    if(billingEl) billingEl.value=address||'';
+    if(document.getElementById('same_as_billing').checked) syncShippingFromBilling();
+}
 function selectSupplier(s){
     const name = s.supplier_name || '';
     const contact = s.contact_person || '';
@@ -1509,7 +1525,7 @@ function selectSupplier(s){
     const supplierContactEl=document.getElementById('supplierContactDisplay');if(supplierContactEl)supplierContactEl.value=contact;
     const supplierPhoneEl=document.getElementById('supplierPhoneDisplay');if(supplierPhoneEl)supplierPhoneEl.value=phone;
     const supplierGstinEl=document.getElementById('supplierGstinDisplay');if(supplierGstinEl)supplierGstinEl.value=gstin;
-    if(address){document.getElementById('sourceAddrHidden').value=address;if(document.getElementById('same_as_billing').checked)document.getElementById('shippingDetails').value=address;}
+    applySupplierAddress(address);
     closeSupplierPopup();
 }
 function closeSupplierPopup(e){if(!e||e.target===document.getElementById('spOverlay'))document.getElementById('spOverlay').classList.remove('open');}

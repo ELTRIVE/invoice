@@ -27,9 +27,15 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
     $rows = $pdo->prepare("SELECT * FROM purchase_orders WHERE $wsql ORDER BY created_at DESC LIMIT 200");
     $rows->execute($params); $orders = $rows->fetchAll(PDO::FETCH_ASSOC);
     // build supplier map
-    $smRows = $pdo->query("SELECT supplier_name, email, phone FROM po_suppliers")->fetchAll(PDO::FETCH_ASSOC);
+    $smRows = $pdo->query("SELECT supplier_name, contact_person, email, phone FROM po_suppliers")->fetchAll(PDO::FETCH_ASSOC);
     $supplierMap = [];
-    foreach ($smRows as $sm) { $supplierMap[strtolower(trim($sm['supplier_name']))] = ['email'=>$sm['email']??'','phone'=>$sm['phone']??'']; }
+    foreach ($smRows as $sm) {
+        $supplierMap[strtolower(trim($sm['supplier_name']))] = [
+            'contact_person' => $sm['contact_person'] ?? '',
+            'email' => $sm['email'] ?? '',
+            'phone' => $sm['phone'] ?? '',
+        ];
+    }
     function _smartDate($ds){$d=new DateTime($ds);$t=new DateTime('today');$y=new DateTime('yesterday');$tm=new DateTime('tomorrow');if($d==$t)return'Today';if($d==$y)return'Yesterday';if($d==$tm)return'Tomorrow';return $d->format('d-M');}
     function _indFmt($n){$n=number_format((float)$n,2,'.','');$p=explode('.',$n);$i=$p[0];$d=$p[1];$neg='';if(isset($i[0])&&$i[0]==='-'){$neg='-';$i=substr($i,1);}if(strlen($i)<=3)return $neg.$i.'.'.$d;$l3=substr($i,-3);$r=substr($i,0,-3);$r=preg_replace('/\B(?=(\d{2})+(?!\d))/',',',$r);return $neg.$r.','.$l3.'.'.$d;}
     ob_start();
@@ -37,14 +43,15 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
         echo '<tr><td colspan="10" style="text-align:center;padding:40px;color:#9ca3af;">No purchase orders found.</td></tr>';
     } else {
         foreach ($orders as $o) {
-            $key=$o['_email']=($supplierMap[strtolower(trim($o['supplier_name']))]['email']??'');
-            $o['_phone']=!empty($o['supplier_phone'])?$o['supplier_phone']:($supplierMap[strtolower(trim($o['supplier_name']))]['phone']??'');
-            $o['_email']=$supplierMap[strtolower(trim($o['supplier_name']))]['email']??'';
+            $supplierKey = strtolower(trim($o['supplier_name']));
+            $o['_contact_person'] = $supplierMap[$supplierKey]['contact_person'] ?? '';
+            $o['_phone'] = $supplierMap[$supplierKey]['phone'] ?? '';
+            $o['_email'] = $supplierMap[$supplierKey]['email'] ?? '';
             $sc2=strtolower($o['status']);
             $obj=htmlspecialchars(json_encode($o));
             echo '<tr data-id="'.$o['id'].'" data-obj=\''.$obj.'\' style="cursor:pointer;transition:background .15s" onmouseover="this.style.background=\'#fff7f0\'" onmouseout="this.style.background=\'\'">';
             echo '<td>'.htmlspecialchars($o['supplier_name']).'</td>';
-            echo '<td>'.htmlspecialchars($o['contact_person']).'</td>';
+            echo '<td>'.htmlspecialchars($o['_contact_person']).'</td>';
             echo '<td style="color:#1565c0;font-weight:400;">'.htmlspecialchars($o['po_number']).'</td>';
             echo '<td><span class="badge-status '.$sc2.'">'.htmlspecialchars($o['status']).'</span></td>';
             echo '<td>'._smartDate($o['po_date']).'</td>';
@@ -56,7 +63,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
             if($sc2==='pending') echo '<button class="action-btn btn-approve" onclick="openAprModal('.$o['id'].',\''.htmlspecialchars($o['po_number']).'\')" title="Approve"><i class="fas fa-check"></i></button>';
             if($sc2==='approved') echo '<button class="action-btn btn-complete" onclick="openCmpModal('.$o['id'].',\''.htmlspecialchars($o['po_number']).'\')" title="Complete"><i class="fas fa-flag-checkered"></i></button>';
             echo '<button class="action-btn btn-bell" onclick="openReminderModal('.json_encode($o).')" title="Reminder"><i class="fas fa-bell"></i></button>';
-            echo '<a href="createpurchase.php?edit='.$o['id'].'" class="action-btn btn-edit" title="Edit" onclick="event.preventDefault();event.stopPropagation();window.location.href=\'createpurchase.php?edit='.$o['id'].'\'"><i class="fas fa-pencil-alt"></i></a>';
+            echo '<button type="button" class="action-btn btn-edit" title="Edit" onclick="event.stopPropagation();window.location.href=\'createpurchase.php?edit='.$o['id'].'\'"><i class="fas fa-pencil-alt"></i></button>';
             echo '</div></td></tr>';
         }
     }
@@ -179,9 +186,10 @@ function indFmt($num) {
 // Build supplier email+phone map from po_suppliers
 $supplierMap = [];
 try {
-    $smRows = $pdo->query("SELECT supplier_name, email, phone FROM po_suppliers")->fetchAll(PDO::FETCH_ASSOC);
+    $smRows = $pdo->query("SELECT supplier_name, contact_person, email, phone FROM po_suppliers")->fetchAll(PDO::FETCH_ASSOC);
     foreach ($smRows as $sm) {
         $supplierMap[strtolower(trim($sm['supplier_name']))] = [
+            'contact_person' => $sm['contact_person'] ?? '',
             'email' => $sm['email'] ?? '',
             'phone' => $sm['phone'] ?? '',
         ];
@@ -596,12 +604,13 @@ h2{font-weight:700;color:#1a1f2e;font-size:18px}
             <?php else: ?>
                 <?php foreach ($orders as $o):
                     $key = strtolower(trim($o['supplier_name']));
+                    $o['_contact_person'] = $supplierMap[$key]['contact_person'] ?? '';
                     $o['_email'] = $supplierMap[$key]['email'] ?? '';
-                    $o['_phone'] = !empty($o['supplier_phone']) ? $o['supplier_phone'] : ($supplierMap[$key]['phone'] ?? '');
+                    $o['_phone'] = $supplierMap[$key]['phone'] ?? '';
                 ?>
                 <tr data-id="<?= $o['id'] ?>" data-obj='<?= htmlspecialchars(json_encode($o)) ?>' onclick="openPopup(<?= htmlspecialchars(json_encode($o)) ?>)">
                     <td><?= htmlspecialchars($o['supplier_name']) ?></td>
-                    <td><?= htmlspecialchars($o['contact_person']) ?></td>
+                    <td><?= htmlspecialchars($o['_contact_person']) ?></td>
                     <td style="color:#1565c0;font-weight:400;"><?= htmlspecialchars($o['po_number']) ?></td>
                     <td>
                         <?php $sc=strtolower($o['status']); ?>
@@ -632,10 +641,10 @@ h2{font-weight:700;color:#1a1f2e;font-size:18px}
                                 <i class="fas fa-bell"></i>
                             </button>
                             <?php endif; ?>
-                            <a href="createpurchase.php?edit=<?= $o['id'] ?>" class="action-btn btn-edit" title="Edit"
-                               onclick="event.preventDefault();event.stopPropagation();window.location.href='createpurchase.php?edit=<?= $o['id'] ?>';">
+                            <button type="button" class="action-btn btn-edit" title="Edit"
+                               onclick="event.stopPropagation();window.location.href='createpurchase.php?edit=<?= $o['id'] ?>';">
                                 <i class="fas fa-pencil-alt"></i>
-                            </a>
+                            </button>
                         </div>
                     </td>
                 </tr>
@@ -725,7 +734,7 @@ function openPopup(o) {
     document.getElementById('popPdfBtn').dataset.url = 'downloadpurchase.php?id='+o.id;
     // Contact
     const cRow = document.getElementById('popContactRow');
-    if (o.contact_person) { document.getElementById('popContact').textContent = o.contact_person; cRow.style.display='block'; }
+    if (o._contact_person) { document.getElementById('popContact').textContent = o._contact_person; cRow.style.display='block'; }
     else cRow.style.display='none';
     // Ref
     const rRow = document.getElementById('popRefRow');
