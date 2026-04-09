@@ -336,7 +336,9 @@ body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e;
 .form-card-header h3{font-size:15px;font-weight:800;color:#1a1f2e;font-family:'Times New Roman',Times,serif}
 .form-card-body{padding:8px 14px}
 /* Professional field label style */
-.field-section-label{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#9ca3af;margin-bottom:4px;display:block}
+.field-section-label{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#1f2937;margin-bottom:4px;display:block}
+.supplier-section .field-section-label{font-size:10px;font-weight:900;color:#111827;letter-spacing:.6px}
+.supplier-section .form-card-header h3{font-weight:900;color:#111827}
 .field-select-styled{width:100%;padding:7px 12px;border:1.5px solid #e4e8f0;border-radius:8px;font-size:12px;font-family:'Times New Roman',Times,serif;color:#374151;background:#fff;outline:none;cursor:pointer;transition:border-color .2s,box-shadow .2s;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
 .field-select-styled:focus{border-color:#f97316;box-shadow:0 0 0 3px rgba(249,115,22,.1)}
 .field-input-styled{width:100%;padding:7px 12px;border:1.5px solid #e4e8f0;border-radius:8px;font-size:12px;font-family:'Times New Roman',Times,serif;color:#374151;background:#fff;outline:none;transition:border-color .2s,box-shadow .2s}
@@ -344,7 +346,7 @@ body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e;
 .field-input-styled[readonly]{background:#f8fafc;cursor:pointer}
 .supplier-field-wrap{display:flex;gap:6px;align-items:center}
 .supplier-field-wrap .field-input-styled{flex:1}
-label{display:block;font-size:12px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px}
+label{display:block;font-size:12px;font-weight:900;color:#1f2937;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
 .form-control,.form-select{width:100%;padding:9px 12px;border:1.5px solid #e4e8f0;border-radius:8px;font-size:14px;font-family:'Times New Roman',Times,serif;color:#1a1f2e;background:#fff;outline:none;transition:border-color .2s,box-shadow .2s;height:auto}
 .form-control:focus,.form-select:focus{border-color:#16a34a;background:#fff;box-shadow:0 0 0 3px rgba(22,163,74,.08)}
 textarea.form-control{height:48px;resize:vertical}
@@ -422,7 +424,7 @@ textarea.form-control{height:48px;resize:vertical}
 .modal-close{background:none;border:none;font-size:20px;color:#9ca3af;cursor:pointer;line-height:1}
 .modal-body{padding:16px 18px}
 .mf-group{margin-bottom:14px}
-.mf-label{display:block;font-size:12px;font-weight:700;color:#9ca3af;margin-bottom:5px;text-transform:uppercase;letter-spacing:.7px}
+.mf-label{display:block;font-size:12px;font-weight:900;color:#1f2937;margin-bottom:5px;text-transform:uppercase;letter-spacing:.6px}
 .mf-label .req{color:#ef4444}
 .mf-input{width:100%;border:1.5px solid #e4e8f0;border-radius:8px;padding:8px 12px;font-size:13px;font-family:inherit;outline:none}
 .mf-input:focus{border-color:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.08)}
@@ -502,7 +504,7 @@ textarea.form-control{height:48px;resize:vertical}
 .bs-col-panel.ship .bs-col-badge{background:#d1fae5;color:#065f46}
 .bs-req{color:#f97316;margin-left:2px;font-weight:700}
 .bs-fields{display:flex;flex-direction:column;gap:9px}
-.bs-field label{display:block;font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
+.bs-field label{display:block;font-size:10px;font-weight:900;color:#1f2937;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
 .bs-field .gstin-badge{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.06em;padding:1px 6px;border-radius:20px;background:#dcfce7;color:#166534;vertical-align:middle;margin-left:6px;border:1px solid #bbf7d0}
 .bs-field input,.bs-field textarea{width:100%;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;font-family:'Times New Roman',Times,serif;color:#0f172a;background:#fff;outline:none;transition:border-color .2s,box-shadow .2s;box-shadow:0 1px 2px rgba(0,0,0,.04)}
 .bs-field input:focus,.bs-field textarea:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
@@ -518,7 +520,7 @@ textarea.form-control{height:48px;resize:vertical}
 .bs-location-title{font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.8px}
 .bs-location-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
 .bs-location-group{}
-.bs-location-group .bs-loc-label{font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px;display:block}
+.bs-location-group .bs-loc-label{font-size:10px;font-weight:900;color:#1f2937;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;display:block}
 .bs-location-group input{width:100%;padding:6px 8px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:11px;font-family:'Times New Roman',Times,serif;color:#0f172a;background:#fff;outline:none;transition:border-color .2s,box-shadow .2s}
 .bs-location-group input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.08)}
 .bs-loc-divider{display:flex;align-items:center;gap:8px;margin:0 4px;grid-column:span 0}
@@ -603,7 +605,7 @@ textarea.form-control{height:48px;resize:vertical}
     </div>
 
     <!-- ── Supplier ────────────────────────────────────────────── -->
-    <div class="form-card">
+    <div class="form-card supplier-section">
         <div class="form-card-header">
             <div class="hdr-icon" style="background:linear-gradient(135deg,#f97316,#fb923c)"><i class="fas fa-truck"></i></div>
             <h3>Supplier</h3>
