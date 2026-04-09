@@ -740,8 +740,7 @@ textarea.form-control{height:48px;resize:vertical}
                 <div>
                     <label>PO No.</label>
                     <input class="form-control" type="text" name="po_number" style="font-size:13px;padding:5px 8px"
-                           value="<?= htmlspecialchars($po['po_number'] ?? $next_num) ?>"
-                           <?= $edit_id ? 'readonly' : '' ?>>
+                           value="<?= htmlspecialchars($po['po_number'] ?? $next_num) ?>">
                 </div>
                 <div>
                     <label>Reference</label>

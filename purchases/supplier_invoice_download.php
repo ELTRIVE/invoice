@@ -255,7 +255,7 @@ td, th { vertical-align: middle; }
 }
 .summary-right table td {
     border: none;
-    border-bottom: 0.5px solid #ccc;
+    border-bottom: 0.5px solid #444;
     padding: 4px 10px;
     font-size: 9px;
 }
@@ -287,13 +287,13 @@ td, th { vertical-align: middle; }
 .hsn-tbl { width: auto; font-size: 9px; margin-top: 9px; border-collapse: collapse; }
 .hsn-tbl th {
     background: #f2f2f2;
-    border: 0.75px solid #555;
+    border: 0.5px solid #444;
     padding: 4px 9px;
     text-align: center;
     font-weight: bold;
     white-space: nowrap;
 }
-.hsn-tbl td          { border: 0.75px solid #555; padding: 4px 9px; }
+.hsn-tbl td          { border: 0.5px solid #444; padding: 4px 9px; }
 .hsn-tbl td.r        { text-align: right;  }
 .hsn-tbl td.c        { text-align: center; }
 </style>
@@ -477,7 +477,7 @@ $descW = $hasIGST ? '30%' : ($hasCGST && $hasSGST ? '28%' : '32%');
     This is a computer-generated supplier invoice. E. &amp; O. E.
   </td>
   <td class="sig-right">
-    For, <strong><?= htmlspecialchars(strtoupper($company['company_name'] ?? '')) ?></strong>
+    For, <strong><?= htmlspecialchars(strtoupper($inv['supplier_name'] ?? ($company['company_name'] ?? ''))) ?></strong>
     <br><br>
     <?= $signatureBase64 ? '<img src="' . $signatureBase64 . '" style="max-height:75px; max-width:175px; object-fit:contain; display:inline-block;" /><br>' : '<br><br><br>' ?>
     <strong>Authorised Signatory</strong>
