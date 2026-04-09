@@ -80,14 +80,16 @@ body{font-family:'Times New Roman',Times,serif;background:#f0f2f8;color:#1a1f2e;
     box-shadow:0 2px 8px rgba(0,0,0,.05);
     display:flex;align-items:center;gap:12px;
     position:relative;overflow:hidden;
+    flex-wrap:nowrap;
 }
 .hero-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#f97316,#fb923c,#7c3aed)}
 .hero-logo{width:40px;height:40px;border-radius:8px;background:#fff7f0;border:2px solid #ffe0cc;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
 .hero-logo img{width:100%;height:100%;object-fit:contain}
 .hero-logo i{font-size:24px;color:#f97316}
-.hero-info strong{font-size:14px;font-weight:800;color:#1a1f2e;display:block;line-height:1.2}
-.hero-info .hero-sub{font-size:11px;color:#6b7280;margin-top:2px}
-.hero-tags{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.hero-info{flex:1;min-width:0;overflow:hidden;}
+.hero-info strong{font-size:14px;font-weight:800;color:#1a1f2e;display:block;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hero-info .hero-sub{font-size:11px;color:#6b7280;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hero-tags{display:flex;gap:4px;margin-top:4px;flex-wrap:nowrap;overflow:hidden;}
 .htag{background:rgba(249,115,22,.08);color:#f97316;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.3px}
 
 /* TWO COLUMN LAYOUT */
@@ -151,21 +153,8 @@ input.invalid{border-color:#dc2626!important;box-shadow:0 0 0 3px rgba(220,38,38
 <div class="content">
 
     <!-- PAGE HEADER -->
-    <div class="page-header">
-        <div class="page-header-left">
-            <div class="page-header-icon"><i class="fas fa-building"></i></div>
-            <div>
-                <div class="page-title">Company Settings</div>
-                <div class="page-sub">Manage your business information</div>
-            </div>
-        </div>
-        <?php if (!$editMode): ?>
-        <a href="?edit=1" class="btn-edit"><i class="fas fa-pen"></i> Edit Company</a>
-        <?php endif; ?>
-    </div>
-
-    <!-- HERO CARD -->
-    <div class="hero-card">
+    <!-- COMBINED HEADER + HERO ROW -->
+    <div class="hero-card" style="margin-bottom:6px;">
         <div class="hero-logo">
             <?php if (!empty($companyData['company_logo']) && file_exists($companyData['company_logo'])): ?>
                 <img src="<?= htmlspecialchars($companyData['company_logo']) ?>" alt="Logo">
@@ -181,6 +170,18 @@ input.invalid{border-color:#dc2626!important;box-shadow:0 0 0 3px rgba(220,38,38
                 <?php if (!empty($companyData['pan'])): ?><span class="htag">PAN: <?= htmlspecialchars($companyData['pan']) ?></span><?php endif; ?>
                 <?php if (!empty($companyData['city'])): ?><span class="htag"><i class="fas fa-map-marker-alt" style="margin-right:3px"></i><?= htmlspecialchars($companyData['city']) ?></span><?php endif; ?>
             </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:auto;">
+            <div style="display:flex;align-items:center;gap:8px;">
+                <div class="page-header-icon"><i class="fas fa-building"></i></div>
+                <div>
+                    <div class="page-title">Company Settings</div>
+                    <div class="page-sub">Manage your business information</div>
+                </div>
+            </div>
+            <?php if (!$editMode): ?>
+            <a href="?edit=1" class="btn-edit" style="flex-shrink:0;"><i class="fas fa-pen"></i> Edit Company</a>
+            <?php endif; ?>
         </div>
     </div>
 
