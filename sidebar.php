@@ -10,6 +10,10 @@ $logo = $company['company_logo'] ?? '';
 $isTechno = strpos(str_replace('\\', '/', $_SERVER['PHP_SELF']), '/techno_commercial/') !== false;
 $tcPage   = $_GET['tc_page'] ?? '';
 $tcSub    = $_GET['tc_sub']  ?? '';
+
+// Detect Safe Hydra context
+$isSafeHydra = strpos(str_replace('\\', '/', $_SERVER['PHP_SELF']), '/safehydra/') !== false;
+$shPage      = basename($_SERVER['PHP_SELF']);
 ?>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <style>
@@ -273,6 +277,11 @@ body { font-family: 'Times New Roman', Times, serif !important; }
             <i class="icon fas fa-box"></i>Items
         </a>
 
+        <a href="/invoice/po_items.php"
+           class="<?= in_array(basename($_SERVER['PHP_SELF']), ['po_items.php','edit_po_item.php'], true) ? 'active' : '' ?>">
+            <i class="icon fas fa-box-open"></i>PO Items
+        </a>
+
         <a href="/invoice/stock/stock_index.php"
            class="<?= (strpos(str_replace('\\', '/', $_SERVER['PHP_SELF']), '/stock/') !== false) ? 'active' : '' ?>">
             <i class="icon fas fa-boxes-stacked"></i>Stock
@@ -349,6 +358,41 @@ body { font-family: 'Times New Roman', Times, serif !important; }
 
         </div><!-- /tc-sub-panel -->
 
+        <!-- SAFE HYDRA -->
+        <button class="nav-link-btn <?= $isSafeHydra ? 'active' : '' ?>"
+                id="sh-parent-btn"
+                onclick="shToggle()">
+            <i class="icon fas fa-fire-extinguisher"></i>
+            Safe Hydra
+         
+            <i class="fas fa-chevron-right tc-chev" id="sh-main-chev" style="margin-left:auto;"></i>
+        </button>
+
+        <!-- SH Dropdown Panel -->
+        <div class="tc-sub-panel <?= $isSafeHydra ? 'open' : '' ?>" id="sh-sub-panel">
+
+            <!-- CREATE -->
+            <div class="tc-block">
+                <a class="tc-sec-item <?= ($isSafeHydra && $shPage === 'create.php') ? 'active' : '' ?>"
+                   href="/invoice/safehydra/create.php"
+                   style="display:flex;">
+                    <i class="tc-sec-icon fas fa-plus-circle"></i>
+                    Create
+                </a>
+            </div>
+
+            <!-- ALL DOCUMENTS -->
+            <div class="tc-block" style="margin-top:3px;">
+                <a class="tc-sec-item <?= ($isSafeHydra && $shPage === 'index.php') ? 'active' : '' ?>"
+                   href="/invoice/safehydra/index.php"
+                   style="display:flex;">
+                    <i class="tc-sec-icon fas fa-folder-open"></i>
+                    All Documents
+                </a>
+            </div>
+
+        </div><!-- /sh-sub-panel -->
+
     </div><!-- /nav-section -->
 
     <!-- Footer -->
@@ -383,6 +427,23 @@ body { font-family: 'Times New Roman', Times, serif !important; }
         createTer.classList.toggle('open');
         if (createBtn) createBtn.classList.toggle('active', createTer.classList.contains('open'));
         syncChevrons();
+    };
+})();
+
+// Safe Hydra toggle
+(function () {
+    var shPanel  = document.getElementById('sh-sub-panel');
+    var shChev   = document.getElementById('sh-main-chev');
+
+    function syncSH() {
+        if (shChev) shChev.style.transform = shPanel && shPanel.classList.contains('open') ? 'rotate(90deg)' : '';
+    }
+    syncSH();
+
+    window.shToggle = function () {
+        if (!shPanel) return;
+        shPanel.classList.toggle('open');
+        syncSH();
     };
 })();
 </script>

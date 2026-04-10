@@ -29,6 +29,57 @@ function document_number_exists(PDO $pdo, string $table, string $column, string 
     return (bool)$stmt->fetchColumn();
 }
 
+function ensure_master_po_items_table(PDO $pdo): void {
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS master_po_items (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            item_name VARCHAR(255) NOT NULL,
+            description TEXT DEFAULT NULL,
+            hsn_sac VARCHAR(50) DEFAULT '',
+            unit VARCHAR(50) DEFAULT '',
+            rate DECIMAL(15,2) DEFAULT 0.00,
+            cgst_pct DECIMAL(5,2) DEFAULT 0.00,
+            sgst_pct DECIMAL(5,2) DEFAULT 0.00,
+            igst_pct DECIMAL(5,2) DEFAULT 0.00,
+            last_source VARCHAR(50) DEFAULT '',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_master_po_items_name (item_name)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ");
+}
+
+function sync_master_po_item(PDO $pdo, array $item, string $source): void {
+    $name = trim((string)($item['item_name'] ?? ''));
+    if ($name === '') return;
+    $stmt = $pdo->prepare("
+        INSERT INTO master_po_items
+            (item_name, description, hsn_sac, unit, rate, cgst_pct, sgst_pct, igst_pct, last_source)
+        VALUES
+            (:item_name, :description, :hsn_sac, :unit, :rate, :cgst_pct, :sgst_pct, :igst_pct, :last_source)
+        ON DUPLICATE KEY UPDATE
+            description = VALUES(description),
+            hsn_sac = VALUES(hsn_sac),
+            unit = VALUES(unit),
+            rate = VALUES(rate),
+            cgst_pct = VALUES(cgst_pct),
+            sgst_pct = VALUES(sgst_pct),
+            igst_pct = VALUES(igst_pct),
+            last_source = VALUES(last_source)
+    ");
+    $stmt->execute([
+        ':item_name' => $name,
+        ':description' => trim((string)($item['description'] ?? '')),
+        ':hsn_sac' => trim((string)($item['hsn_sac'] ?? '')),
+        ':unit' => trim((string)($item['unit'] ?? '')),
+        ':rate' => (float)($item['rate'] ?? 0),
+        ':cgst_pct' => (float)($item['cgst_pct'] ?? 0),
+        ':sgst_pct' => (float)($item['sgst_pct'] ?? 0),
+        ':igst_pct' => (float)($item['igst_pct'] ?? 0),
+        ':last_source' => $source,
+    ]);
+}
+
 $action  = $_POST['action']  ?? 'save';
 $edit_id = (int)($_POST['edit_id'] ?? 0);
 
@@ -211,6 +262,7 @@ $item_list_json  = json_encode($item_list_ids);
 
 try {
     $pdo->beginTransaction();
+    ensure_master_po_items_table($pdo);
 
     if ($supplier_name !== '') {
         try {
@@ -314,6 +366,9 @@ try {
     }
 
     // Terms stored in purchase_orders.terms_list — no insert into po_terms needed
+    foreach ($items_array as $itm) {
+        sync_master_po_item($pdo, $itm, 'purchase_order');
+    }
 
     $pdo->commit();
     header($action === 'save_another' ? 'Location: createpurchase.php' : 'Location: pindex.php?saved=1');

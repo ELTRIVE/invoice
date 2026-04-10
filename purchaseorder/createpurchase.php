@@ -213,6 +213,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':sgst_pct'    => (float)($_POST['sgst_pct'] ?? 0),
                 ':igst_pct'    => (float)($_POST['igst_pct'] ?? 0),
             ]);
+            $pdo->exec("
+                CREATE TABLE IF NOT EXISTS master_po_items (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    item_name VARCHAR(255) NOT NULL,
+                    description TEXT DEFAULT NULL,
+                    hsn_sac VARCHAR(50) DEFAULT '',
+                    unit VARCHAR(50) DEFAULT '',
+                    rate DECIMAL(15,2) DEFAULT 0.00,
+                    cgst_pct DECIMAL(5,2) DEFAULT 0.00,
+                    sgst_pct DECIMAL(5,2) DEFAULT 0.00,
+                    igst_pct DECIMAL(5,2) DEFAULT 0.00,
+                    last_source VARCHAR(50) DEFAULT '',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    UNIQUE KEY uq_master_po_items_name (item_name)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+            ");
+            $sync = $pdo->prepare("
+                INSERT INTO master_po_items
+                    (item_name, description, hsn_sac, unit, rate, cgst_pct, sgst_pct, igst_pct, last_source)
+                VALUES
+                    (:item_name, :description, :hsn_sac, :unit, :rate, :cgst_pct, :sgst_pct, :igst_pct, 'purchase_order')
+                ON DUPLICATE KEY UPDATE
+                    description = VALUES(description),
+                    hsn_sac = VALUES(hsn_sac),
+                    unit = VALUES(unit),
+                    rate = VALUES(rate),
+                    cgst_pct = VALUES(cgst_pct),
+                    sgst_pct = VALUES(sgst_pct),
+                    igst_pct = VALUES(igst_pct),
+                    last_source = VALUES(last_source)
+            ");
+            $sync->execute([
+                ':item_name' => $name,
+                ':description' => trim($_POST['description'] ?? ''),
+                ':hsn_sac' => trim($_POST['hsn_sac'] ?? ''),
+                ':unit' => trim($_POST['unit'] ?? ''),
+                ':rate' => (float)($_POST['rate'] ?? 0),
+                ':cgst_pct' => (float)($_POST['cgst_pct'] ?? 0),
+                ':sgst_pct' => (float)($_POST['sgst_pct'] ?? 0),
+                ':igst_pct' => (float)($_POST['igst_pct'] ?? 0),
+            ]);
             echo json_encode(['success' => true, 'id' => $pdo->lastInsertId()]);
         } catch (PDOException $e) {
             echo json_encode(['success' => false, 'message' => $e->getMessage()]);

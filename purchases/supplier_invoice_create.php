@@ -85,6 +85,55 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS purchases (
 try { $pdo->exec("ALTER TABLE purchases ADD COLUMN terms_json LONGTEXT DEFAULT NULL"); } catch(Exception $e){}
 try { $pdo->exec("ALTER TABLE purchases ADD COLUMN item_list JSON DEFAULT NULL"); } catch(Exception $e){}
 try { $pdo->exec("ALTER TABLE purchases ADD COLUMN terms_list JSON DEFAULT NULL"); } catch(Exception $e){}
+
+function ensure_master_po_items_table(PDO $pdo): void {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS master_po_items (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        item_name VARCHAR(255) NOT NULL,
+        description TEXT DEFAULT NULL,
+        hsn_sac VARCHAR(50) DEFAULT '',
+        unit VARCHAR(50) DEFAULT '',
+        rate DECIMAL(15,2) DEFAULT 0.00,
+        cgst_pct DECIMAL(5,2) DEFAULT 0.00,
+        sgst_pct DECIMAL(5,2) DEFAULT 0.00,
+        igst_pct DECIMAL(5,2) DEFAULT 0.00,
+        last_source VARCHAR(50) DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uq_master_po_items_name (item_name)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+}
+
+function sync_master_po_item(PDO $pdo, array $item, string $source): void {
+    $name = trim((string)($item['item_name'] ?? ''));
+    if ($name === '') return;
+    $stmt = $pdo->prepare("
+        INSERT INTO master_po_items
+            (item_name, description, hsn_sac, unit, rate, cgst_pct, sgst_pct, igst_pct, last_source)
+        VALUES
+            (:item_name, :description, :hsn_sac, :unit, :rate, :cgst_pct, :sgst_pct, :igst_pct, :last_source)
+        ON DUPLICATE KEY UPDATE
+            description = VALUES(description),
+            hsn_sac = VALUES(hsn_sac),
+            unit = VALUES(unit),
+            rate = VALUES(rate),
+            cgst_pct = VALUES(cgst_pct),
+            sgst_pct = VALUES(sgst_pct),
+            igst_pct = VALUES(igst_pct),
+            last_source = VALUES(last_source)
+    ");
+    $stmt->execute([
+        ':item_name' => $name,
+        ':description' => trim((string)($item['description'] ?? '')),
+        ':hsn_sac' => trim((string)($item['hsn_sac'] ?? '')),
+        ':unit' => trim((string)($item['unit'] ?? '')),
+        ':rate' => (float)($item['rate'] ?? 0),
+        ':cgst_pct' => (float)($item['cgst_pct'] ?? 0),
+        ':sgst_pct' => (float)($item['sgst_pct'] ?? 0),
+        ':igst_pct' => (float)($item['igst_pct'] ?? 0),
+        ':last_source' => $source,
+    ]);
+}
 try { $pdo->exec("ALTER TABLE purchases ADD COLUMN company_override TEXT DEFAULT NULL"); } catch(Exception $e){}
 try { $pdo->exec("ALTER TABLE purchases ADD COLUMN signature_id INT DEFAULT NULL"); } catch(Exception $e){}
 
@@ -214,6 +263,17 @@ if (isset($_POST['save_new_item_ajax'])) {
             floatval($_POST['sgst_pct'] ?? 0),
             floatval($_POST['igst_pct'] ?? 0),
         ]);
+        ensure_master_po_items_table($pdo);
+        sync_master_po_item($pdo, [
+            'item_name' => $item_name,
+            'description' => trim($_POST['description'] ?? ''),
+            'hsn_sac' => trim($_POST['hsn_sac'] ?? ''),
+            'unit' => trim($_POST['unit'] ?? 'no.s'),
+            'rate' => floatval($_POST['rate'] ?? 0),
+            'cgst_pct' => floatval($_POST['cgst_pct'] ?? 0),
+            'sgst_pct' => floatval($_POST['sgst_pct'] ?? 0),
+            'igst_pct' => floatval($_POST['igst_pct'] ?? 0),
+        ], 'supplier_invoice');
         $newId = $pdo->lastInsertId();
         echo json_encode(['success'=>true, 'id'=>$newId, 'item_name'=>$item_name]);
     } catch(Exception $e) {
@@ -300,6 +360,7 @@ if (isset($_POST['save_supplier_invoice'])) {
     $editId = (int)($_POST['edit_id'] ?? 0);
     $isEdit = $editId > 0;
     try {
+        ensure_master_po_items_table($pdo);
         $supplier_name    = trim($_POST['supplier_name']    ?? '');
         $contact_person   = trim($_POST['contact_person']   ?? '');
         $supplier_address = trim($_POST['supplier_address'] ?? '');
@@ -365,6 +426,7 @@ if (isset($_POST['save_supplier_invoice'])) {
                 $igst_amt = round($basic * $igst_pct / 100, 2);
                 $total    = $basic + $cgst_amt + $sgst_amt + $igst_amt;
                 $items[]  = [
+                    'item_name'    => $desc,
                     'description'  => $desc,
                     'hsn_sac'      => trim($it['hsn_sac'] ?? ''),
                     'qty'          => $qty,
@@ -380,6 +442,16 @@ if (isset($_POST['save_supplier_invoice'])) {
                     'igst_amount'  => $igst_amt,
                     'total'        => $total,
                 ];
+                sync_master_po_item($pdo, [
+                    'item_name' => $desc,
+                    'description' => $desc,
+                    'hsn_sac' => trim($it['hsn_sac'] ?? ''),
+                    'unit' => trim($it['unit'] ?? ''),
+                    'rate' => $rate,
+                    'cgst_pct' => $cgst_pct,
+                    'sgst_pct' => $sgst_pct,
+                    'igst_pct' => $igst_pct,
+                ], 'supplier_invoice');
                 $total_taxable += $basic;
                 $total_cgst    += $cgst_amt;
                 $total_sgst    += $sgst_amt;
