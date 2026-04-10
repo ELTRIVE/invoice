@@ -2,6 +2,50 @@
 ob_start();
 require_once dirname(__DIR__) . '/db.php';
 
+function ensureCustomerInvoiceAddressColumns(PDO $pdo): void {
+    static $ensured = false;
+    if ($ensured) {
+        return;
+    }
+
+    $columns = [
+        "billing_gstin VARCHAR(20) DEFAULT ''",
+        "billing_pan VARCHAR(20) DEFAULT ''",
+        "billing_phone VARCHAR(20) DEFAULT ''",
+        "ship_address_line1 VARCHAR(255) DEFAULT ''",
+        "ship_address_line2 VARCHAR(255) DEFAULT ''",
+        "ship_city VARCHAR(100) DEFAULT ''",
+        "ship_state VARCHAR(100) DEFAULT ''",
+        "ship_pincode VARCHAR(20) DEFAULT ''",
+        "ship_country VARCHAR(100) DEFAULT ''",
+        "shipping_gstin VARCHAR(20) DEFAULT ''",
+        "shipping_pan VARCHAR(20) DEFAULT ''",
+        "shipping_phone VARCHAR(20) DEFAULT ''"
+    ];
+
+    foreach ($columns as $definition) {
+        try {
+            $pdo->exec("ALTER TABLE customers ADD COLUMN $definition");
+        } catch (Exception $e) {
+        }
+    }
+
+    $ensured = true;
+}
+
+function buildAddressText(array $parts): string {
+    $clean = [];
+    foreach ($parts as $part) {
+        $value = trim((string)$part);
+        if ($value !== '') {
+            $clean[] = $value;
+        }
+    }
+    return implode("\n", $clean);
+}
+
+ensureCustomerInvoiceAddressColumns($pdo);
+
 function get_next_prefixed_number(PDO $pdo, string $table, string $column, string $prefix, int $padLength, int $startNumber): array {
     $stmt = $pdo->query("SELECT `$column` AS doc_no FROM `$table`");
     $rows = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
@@ -98,8 +142,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['save_master_item']))
     $customer_phone   = trim($_POST['customer_phone']   ?? '');
     $shipping_details = trim($_POST['shipping_details'] ?? '');
     $billing_gstin    = strtoupper(trim($_POST['billing_gstin']  ?? ''));
+    $billing_pan      = strtoupper(trim($_POST['billing_pan']    ?? ''));
     $billing_phone    = trim($_POST['billing_phone']    ?? '');
     $shipping_gstin   = strtoupper(trim($_POST['shipping_gstin'] ?? ''));
+    $shipping_pan     = strtoupper(trim($_POST['shipping_pan']   ?? ''));
     $shipping_phone   = trim($_POST['shipping_phone']   ?? '');
     $quot_number      = trim($_POST['quot_number']      ?? '');
     $reference        = trim($_POST['reference']        ?? '');
@@ -185,11 +231,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['save_master_item']))
         }
         $pdo->beginTransaction();
         if ($post_edit_id) {
-            $pdo->prepare("UPDATE quotations SET quot_number=:qn,customer_name=:cn,contact_person=:cp,billing_details=:ca,customer_gstin=:cg,customer_phone=:cph,shipping_details=:sd,billing_gstin=:bg,billing_phone=:bp,shipping_gstin=:sg,shipping_phone=:sph,reference=:ref,quot_date=:qd,valid_till=:vt,notes=:notes,bank_id=:bid,signature_id=:sid,status=:st,total_taxable=:tt,total_cgst=:tc,total_sgst=:ts,total_igst=:ti,grand_total=:gt,items_json=:ij,item_list=:il,terms_list=:tl, company_override=:co WHERE id=:id")
-                ->execute([':qn'=>$quot_number,':cn'=>$customer_name,':cp'=>$contact_person,':ca'=>$billing_details,':cg'=>$customer_gstin,':cph'=>$customer_phone,':sd'=>$shipping_details,':bg'=>$billing_gstin,':bp'=>$billing_phone,':sg'=>$shipping_gstin,':sph'=>$shipping_phone,':ref'=>$reference,':qd'=>$quot_date,':vt'=>$valid_till,':notes'=>$notes,':bid'=>$bank_id,':sid'=>$signature_id,':st'=>$status,':tt'=>$total_taxable,':tc'=>$total_cgst,':ts'=>$total_sgst,':ti'=>$total_igst,':gt'=>$grand_total,':ij'=>$items_json,':il'=>$item_list_json,':tl'=>$terms_list_json,':co'=>$company_override,':id'=>$post_edit_id]);
+            $pdo->prepare("UPDATE quotations SET quot_number=:qn,customer_name=:cn,contact_person=:cp,billing_details=:ca,customer_gstin=:cg,customer_phone=:cph,shipping_details=:sd,billing_gstin=:bg,billing_pan=:bpan,billing_phone=:bp,shipping_gstin=:sg,shipping_pan=:span,shipping_phone=:sph,reference=:ref,quot_date=:qd,valid_till=:vt,notes=:notes,bank_id=:bid,signature_id=:sid,status=:st,total_taxable=:tt,total_cgst=:tc,total_sgst=:ts,total_igst=:ti,grand_total=:gt,items_json=:ij,item_list=:il,terms_list=:tl, company_override=:co WHERE id=:id")
+                ->execute([':qn'=>$quot_number,':cn'=>$customer_name,':cp'=>$contact_person,':ca'=>$billing_details,':cg'=>$customer_gstin,':cph'=>$customer_phone,':sd'=>$shipping_details,':bg'=>$billing_gstin,':bpan'=>$billing_pan,':bp'=>$billing_phone,':sg'=>$shipping_gstin,':span'=>$shipping_pan,':sph'=>$shipping_phone,':ref'=>$reference,':qd'=>$quot_date,':vt'=>$valid_till,':notes'=>$notes,':bid'=>$bank_id,':sid'=>$signature_id,':st'=>$status,':tt'=>$total_taxable,':tc'=>$total_cgst,':ts'=>$total_sgst,':ti'=>$total_igst,':gt'=>$grand_total,':ij'=>$items_json,':il'=>$item_list_json,':tl'=>$terms_list_json,':co'=>$company_override,':id'=>$post_edit_id]);
         } else {
-            $pdo->prepare("INSERT INTO quotations (quot_number,customer_name,contact_person,billing_details,customer_gstin,customer_phone,shipping_details,billing_gstin,billing_phone,shipping_gstin,shipping_phone,reference,quot_date,valid_till,notes,bank_id,signature_id,status,total_taxable,total_cgst,total_sgst,total_igst,grand_total,items_json,item_list,terms_list,created_by, company_override) VALUES (:qn,:cn,:cp,:ca,:cg,:cph,:sd,:bg,:bp,:sg,:sph,:ref,:qd,:vt,:notes,:bid,:sid,:st,:tt,:tc,:ts,:ti,:gt,:ij,:il,:tl,:cb,:co) ON DUPLICATE KEY UPDATE id=id")
-                ->execute([':qn'=>$quot_number,':cn'=>$customer_name,':cp'=>$contact_person,':ca'=>$billing_details,':cg'=>$customer_gstin,':cph'=>$customer_phone,':sd'=>$shipping_details,':bg'=>$billing_gstin,':bp'=>$billing_phone,':sg'=>$shipping_gstin,':sph'=>$shipping_phone,':ref'=>$reference,':qd'=>$quot_date,':vt'=>$valid_till,':notes'=>$notes,':bid'=>$bank_id,':sid'=>$signature_id,':st'=>$status,':tt'=>$total_taxable,':tc'=>$total_cgst,':ts'=>$total_sgst,':ti'=>$total_igst,':gt'=>$grand_total,':ij'=>$items_json,':il'=>$item_list_json,':tl'=>$terms_list_json,':cb'=>$created_by,':co'=>$company_override]);
+            $pdo->prepare("INSERT INTO quotations (quot_number,customer_name,contact_person,billing_details,customer_gstin,customer_phone,shipping_details,billing_gstin,billing_pan,billing_phone,shipping_gstin,shipping_pan,shipping_phone,reference,quot_date,valid_till,notes,bank_id,signature_id,status,total_taxable,total_cgst,total_sgst,total_igst,grand_total,items_json,item_list,terms_list,created_by, company_override) VALUES (:qn,:cn,:cp,:ca,:cg,:cph,:sd,:bg,:bpan,:bp,:sg,:span,:sph,:ref,:qd,:vt,:notes,:bid,:sid,:st,:tt,:tc,:ts,:ti,:gt,:ij,:il,:tl,:cb,:co) ON DUPLICATE KEY UPDATE id=id")
+                ->execute([':qn'=>$quot_number,':cn'=>$customer_name,':cp'=>$contact_person,':ca'=>$billing_details,':cg'=>$customer_gstin,':cph'=>$customer_phone,':sd'=>$shipping_details,':bg'=>$billing_gstin,':bpan'=>$billing_pan,':bp'=>$billing_phone,':sg'=>$shipping_gstin,':span'=>$shipping_pan,':sph'=>$shipping_phone,':ref'=>$reference,':qd'=>$quot_date,':vt'=>$valid_till,':notes'=>$notes,':bid'=>$bank_id,':sid'=>$signature_id,':st'=>$status,':tt'=>$total_taxable,':tc'=>$total_cgst,':ts'=>$total_sgst,':ti'=>$total_igst,':gt'=>$grand_total,':ij'=>$items_json,':il'=>$item_list_json,':tl'=>$terms_list_json,':cb'=>$created_by,':co'=>$company_override]);
             $quot_id = $pdo->lastInsertId();
             if (!$quot_id) { $s=$pdo->prepare("SELECT id FROM quotations WHERE quot_number=?"); $s->execute([$quot_number]); $quot_id=(int)$s->fetchColumn(); }
         }
@@ -207,7 +253,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['save_master_item']))
 }
 
 // Ensure tables exist
-$pdo->exec("CREATE TABLE IF NOT EXISTS quotations (id INT AUTO_INCREMENT PRIMARY KEY,quot_number VARCHAR(50) NOT NULL UNIQUE,customer_name VARCHAR(255) NOT NULL DEFAULT '',contact_person VARCHAR(255) DEFAULT '',billing_details TEXT,customer_gstin VARCHAR(100) DEFAULT '',customer_phone VARCHAR(50) DEFAULT '',reference VARCHAR(255) DEFAULT '',quot_date DATE NOT NULL,valid_till DATE NOT NULL,notes TEXT,shipping_details TEXT,signature_id INT DEFAULT NULL,status ENUM('Draft','Sent','Approved','Rejected') DEFAULT 'Draft',total_taxable DECIMAL(15,2) DEFAULT 0.00,total_cgst DECIMAL(15,2) DEFAULT 0.00,total_sgst DECIMAL(15,2) DEFAULT 0.00,total_igst DECIMAL(15,2) DEFAULT 0.00,grand_total DECIMAL(15,2) DEFAULT 0.00,items_json LONGTEXT NULL,item_list LONGTEXT NULL,terms_list LONGTEXT NULL,created_by VARCHAR(255) DEFAULT '',created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)");
+$pdo->exec("CREATE TABLE IF NOT EXISTS quotations (id INT AUTO_INCREMENT PRIMARY KEY,quot_number VARCHAR(50) NOT NULL UNIQUE,customer_name VARCHAR(255) NOT NULL DEFAULT '',contact_person VARCHAR(255) DEFAULT '',billing_details TEXT,customer_gstin VARCHAR(100) DEFAULT '',customer_phone VARCHAR(50) DEFAULT '',reference VARCHAR(255) DEFAULT '',quot_date DATE NOT NULL,valid_till DATE NOT NULL,notes TEXT,shipping_details TEXT,billing_gstin VARCHAR(20) DEFAULT '',billing_pan VARCHAR(20) DEFAULT '',billing_phone VARCHAR(50) DEFAULT '',shipping_gstin VARCHAR(20) DEFAULT '',shipping_pan VARCHAR(20) DEFAULT '',shipping_phone VARCHAR(50) DEFAULT '',signature_id INT DEFAULT NULL,status ENUM('Draft','Sent','Approved','Rejected') DEFAULT 'Draft',total_taxable DECIMAL(15,2) DEFAULT 0.00,total_cgst DECIMAL(15,2) DEFAULT 0.00,total_sgst DECIMAL(15,2) DEFAULT 0.00,total_igst DECIMAL(15,2) DEFAULT 0.00,grand_total DECIMAL(15,2) DEFAULT 0.00,items_json LONGTEXT NULL,item_list LONGTEXT NULL,terms_list LONGTEXT NULL,created_by VARCHAR(255) DEFAULT '',created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)");
+try { $pdo->exec("ALTER TABLE quotations ADD COLUMN billing_pan VARCHAR(20) DEFAULT ''"); } catch (Exception $e) {}
+try { $pdo->exec("ALTER TABLE quotations ADD COLUMN shipping_pan VARCHAR(20) DEFAULT ''"); } catch (Exception $e) {}
 try { $pdo->exec("ALTER TABLE quotations ADD COLUMN company_override TEXT DEFAULT NULL"); } catch(Exception $e){}
 try { $pdo->exec("ALTER TABLE quotations ADD COLUMN signature_id INT DEFAULT NULL"); } catch(Exception $e){}
 $pdo->exec("CREATE TABLE IF NOT EXISTS po_master_terms (id INT AUTO_INCREMENT PRIMARY KEY,term_text TEXT NOT NULL,is_active TINYINT(1) DEFAULT 1,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
@@ -356,10 +404,40 @@ if (isset($_GET['get_customers'])) {
         $countStmt->execute($params);
         $total       = (int)$countStmt->fetchColumn();
         $total_pages = max(1, (int)ceil($total / $per_page));
-        $dataStmt = $pdo->prepare("SELECT id,business_name,mobile,gstin,address_line1,address_line2,city,state FROM customers $where ORDER BY business_name ASC LIMIT $per_page OFFSET $offset");
+        $dataStmt = $pdo->prepare("SELECT id, business_name, title, first_name, last_name, mobile, gstin, pan_no,
+            address_line1, address_line2, address_city, address_state, pincode, address_country,
+            billing_gstin, billing_pan, billing_phone,
+            ship_address_line1, ship_address_line2, ship_city, ship_state, ship_pincode, ship_country,
+            shipping_gstin, shipping_pan, shipping_phone
+            FROM customers $where ORDER BY business_name ASC LIMIT $per_page OFFSET $offset");
         $dataStmt->execute($params);
+        $rows = $dataStmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($rows as &$row) {
+            $row['contact_person'] = trim(implode(' ', array_filter([
+                $row['title'] ?? '',
+                $row['first_name'] ?? '',
+                $row['last_name'] ?? ''
+            ])));
+            $row['billing_address'] = buildAddressText([
+                $row['address_line1'] ?? '',
+                $row['address_line2'] ?? '',
+                $row['address_city'] ?? '',
+                $row['address_state'] ?? '',
+                $row['pincode'] ?? '',
+                $row['address_country'] ?? ''
+            ]);
+            $row['shipping_address'] = buildAddressText([
+                $row['ship_address_line1'] ?? '',
+                $row['ship_address_line2'] ?? '',
+                $row['ship_city'] ?? '',
+                $row['ship_state'] ?? '',
+                $row['ship_pincode'] ?? '',
+                $row['ship_country'] ?? ''
+            ]);
+        }
+        unset($row);
         ob_clean(); echo json_encode([
-            'data'        => $dataStmt->fetchAll(PDO::FETCH_ASSOC),
+            'data'        => $rows,
             'total'       => $total,
             'page'        => $page,
             'total_pages' => $total_pages,
@@ -716,6 +794,13 @@ textarea.form-control{height:52px;resize:vertical;line-height:1.5}
                             <span id="billingGstin_hint" style="font-size:10px;margin-top:2px;display:none;font-weight:600"></span>
                         </div>
                         <div>
+                            <span class="field-section-label">PAN</span>
+                            <input class="field-input-styled" type="text" name="billing_pan" id="billingPanInput" value="<?= htmlspecialchars($quot['billing_pan'] ?? '') ?>" placeholder="Billing PAN" style="text-transform:uppercase" maxlength="10">
+                            <span id="billingPan_hint" style="font-size:10px;margin-top:2px;display:none;font-weight:600"></span>
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
+                        <div>
                             <span class="field-section-label">Phone</span>
                             <input class="field-input-styled" type="text" name="billing_phone" id="billingPhoneInput" value="<?= htmlspecialchars($quot['billing_phone'] ?? '') ?>" placeholder="Billing phone" maxlength="10">
                             <span id="billingPhone_hint" style="font-size:10px;margin-top:2px;display:none;font-weight:600"></span>
@@ -743,6 +828,13 @@ textarea.form-control{height:52px;resize:vertical;line-height:1.5}
                             <input class="field-input-styled" type="text" name="shipping_gstin" id="shippingGstinInput" value="<?= htmlspecialchars($quot['shipping_gstin'] ?? '') ?>" placeholder="Shipping GSTIN" style="text-transform:uppercase" maxlength="15">
                             <span id="shippingGstin_hint" style="font-size:10px;margin-top:2px;display:none;font-weight:600"></span>
                         </div>
+                        <div>
+                            <span class="field-section-label">PAN</span>
+                            <input class="field-input-styled" type="text" name="shipping_pan" id="shippingPanInput" value="<?= htmlspecialchars($quot['shipping_pan'] ?? '') ?>" placeholder="Shipping PAN" style="text-transform:uppercase" maxlength="10">
+                            <span id="shippingPan_hint" style="font-size:10px;margin-top:2px;display:none;font-weight:600"></span>
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
                         <div>
                             <span class="field-section-label">Phone</span>
                             <input class="field-input-styled" type="text" name="shipping_phone" id="shippingPhoneInput" value="<?= htmlspecialchars($quot['shipping_phone'] ?? '') ?>" placeholder="Shipping phone" maxlength="10">
@@ -804,7 +896,7 @@ textarea.form-control{height:52px;resize:vertical;line-height:1.5}
                         <select name="bank_id" id="bank_select" class="form-control">
                             <option value="">-- Select Bank --</option>
                             <?php foreach ($banks as $bank): ?>
-                                <option value="<?= $bank['id']; ?>" <?= (!empty($quot['bank_id']) && (string)$quot['bank_id'] === (string)$bank['id']) ? 'selected' : '' ?>><?= htmlspecialchars($bank['bank_name']); ?></option>
+                                <option value="<?= $bank['id']; ?>" <?= (!empty($quot['bank_id']) && (string)$quot['bank_id'] === (string)$bank['id']) ? 'selected' : '' ?>><?= htmlspecialchars($bank['bank_name'] . (!empty($bank['branch']) ? ' - ' . $bank['branch'] : '')); ?></option>
                             <?php endforeach; ?>
                         </select>
                         <button type="button" class="btn-plus" onclick="openModal('addBankModal')" title="Add Bank"><i class="fas fa-plus"></i></button>
@@ -1328,16 +1420,35 @@ function filterCustomers(q){onCustSearch(q);}
 function selectCustomer(c){
     const inp=document.getElementById('customerInput');
     inp.value=c.business_name||'';inp.removeAttribute('readonly');inp.style.cursor='';inp.onclick=null;
-    document.getElementById('contactInput').value='';
+    document.getElementById('contactInput').value=c.contact_person||'';
     document.getElementById('phoneInput').value=c.mobile||'';
     document.getElementById('gstinInput').value=c.gstin||'';
-    document.getElementById('billingGstinInput').value=c.gstin||'';
-    document.getElementById('billingPhoneInput').value=c.mobile||'';
-    document.getElementById('shippingGstinInput').value=c.gstin||'';
-    document.getElementById('shippingPhoneInput').value=c.mobile||'';
-    const addr=[c.address_line1,c.address_line2,c.city,c.state].filter(Boolean).join(', ');
-    document.getElementById('addrInput').value=addr;
-    document.getElementById('shippingInput') && (document.getElementById('shippingInput').value=addr);
+    document.getElementById('billingGstinInput').value=c.billing_gstin||c.gstin||'';
+    document.getElementById('billingPanInput').value=(c.billing_pan||c.pan_no||'').toUpperCase();
+    document.getElementById('billingPhoneInput').value=c.billing_phone||c.mobile||'';
+
+    const billingAddress = (c.billing_address||'').trim();
+    const shippingAddress = (c.shipping_address||'').trim();
+    const shippingGstin = (c.shipping_gstin||'').trim();
+    const shippingPan = (c.shipping_pan||'').trim();
+    const shippingPhone = (c.shipping_phone||'').trim();
+    const hasSeparateShipping = shippingAddress !== '' || shippingGstin !== '' || shippingPan !== '' || shippingPhone !== '';
+
+    document.getElementById('addrInput').value=billingAddress;
+
+    if (hasSeparateShipping) {
+        document.getElementById('sameAsBillingChk').checked = false;
+        document.getElementById('shippingInput').value = shippingAddress;
+        document.getElementById('shippingGstinInput').value = shippingGstin || document.getElementById('billingGstinInput').value;
+        document.getElementById('shippingPanInput').value = (shippingPan || document.getElementById('billingPanInput').value).toUpperCase();
+        document.getElementById('shippingPhoneInput').value = shippingPhone || document.getElementById('billingPhoneInput').value;
+    } else {
+        document.getElementById('sameAsBillingChk').checked = false;
+        document.getElementById('shippingInput').value = '';
+        document.getElementById('shippingGstinInput').value = '';
+        document.getElementById('shippingPanInput').value = '';
+        document.getElementById('shippingPhoneInput').value = '';
+    }
     closeCustomerPopup();
 }
 function useManualCustomer(){
@@ -1531,7 +1642,7 @@ function saveNewBank(){
     .then(r=>r.json()).then(data=>{
         if(data.status==='success'||data.id){
             const select=document.getElementById('bank_select');
-            const option=new Option(name, data.id, true, true);
+            const option=new Option(name + (branch ? ' - ' + branch : ''), data.id, true, true);
             select.appendChild(option);
             select.value=data.id;
             ['nb_name','nb_branch','nb_account','nb_ifsc'].forEach(id=>document.getElementById(id).value='');
@@ -1605,6 +1716,7 @@ if(__sigSel){
 function submitForm(action){
     let valid = true;
     const GSTIN_RE = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+    const PAN_RE = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
     const PHONE_RE = /^[6-9]\d{9}$/;
 
     function markErr(el, msg){
@@ -1625,10 +1737,12 @@ function submitForm(action){
 
     // ── Billing (Row 2) ──
     fmtField('billingGstinInput',    GSTIN_RE, 'Invalid Billing GSTIN format (e.g. 22AAAAA0000A1Z5)');
+    fmtField('billingPanInput',      PAN_RE,   'Invalid Billing PAN format (e.g. ABCDE1234F)');
     fmtField('billingPhoneInput',    PHONE_RE, 'Enter a valid 10-digit billing phone');
 
     // ── Shipping (Row 3) ──
     fmtField('shippingGstinInput',   GSTIN_RE, 'Invalid Shipping GSTIN format (e.g. 22AAAAA0000A1Z5)');
+    fmtField('shippingPanInput',     PAN_RE,   'Invalid Shipping PAN format (e.g. ABCDE1234F)');
     fmtField('shippingPhoneInput',   PHONE_RE, 'Enter a valid 10-digit shipping phone');
 
     // ── Quotation Details ──
@@ -1673,13 +1787,15 @@ document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click
 function applySameAsBilling(checked){
     const shipAddr  = document.getElementById('shippingInput');
     const shipGstin = document.getElementById('shippingGstinInput');
+    const shipPan   = document.getElementById('shippingPanInput');
     const shipPhone = document.getElementById('shippingPhoneInput');
     if(checked){
         shipAddr.value  = document.getElementById('addrInput').value;
         shipGstin.value = document.getElementById('billingGstinInput').value;
+        shipPan.value   = document.getElementById('billingPanInput').value;
         shipPhone.value = document.getElementById('billingPhoneInput').value;
         // Lock with green style
-        [shipAddr, shipGstin, shipPhone].forEach(function(el){
+        [shipAddr, shipGstin, shipPan, shipPhone].forEach(function(el){
             el.readOnly = true;
             el.style.background   = '#f0fdf4';
             el.style.borderColor  = '#bbf7d0';
@@ -1688,7 +1804,7 @@ function applySameAsBilling(checked){
         });
     } else {
         // Unlock — restore full editability
-        [shipAddr, shipGstin, shipPhone].forEach(function(el){
+        [shipAddr, shipGstin, shipPan, shipPhone].forEach(function(el){
             el.readOnly = false;
             el.style.background  = '';
             el.style.borderColor = '';
@@ -1706,6 +1822,9 @@ document.getElementById('addrInput').addEventListener('input', function(){
 });
 document.getElementById('billingGstinInput').addEventListener('input', function(){
     if(sameChk.checked) document.getElementById('shippingGstinInput').value = this.value.toUpperCase();
+});
+document.getElementById('billingPanInput').addEventListener('input', function(){
+    if(sameChk.checked) document.getElementById('shippingPanInput').value = this.value.toUpperCase();
 });
 document.getElementById('billingPhoneInput').addEventListener('input', function(){
     if(sameChk.checked) document.getElementById('shippingPhoneInput').value = this.value;
@@ -1764,6 +1883,8 @@ document.getElementById('billingGstinInput')?.addEventListener('blur', function(
 document.getElementById('shippingGstinInput')?.addEventListener('blur', function(){ qtValidateGstin('shippingGstinInput','shippingGstin_hint'); });
 document.getElementById('billingPhoneInput')?.addEventListener('blur', function(){ qtValidatePhone('billingPhoneInput','billingPhone_hint'); });
 document.getElementById('shippingPhoneInput')?.addEventListener('blur', function(){ qtValidatePhone('shippingPhoneInput','shippingPhone_hint'); });
+document.getElementById('billingPanInput')?.addEventListener('input', function(){ this.value = this.value.toUpperCase(); });
+document.getElementById('shippingPanInput')?.addEventListener('input', function(){ this.value = this.value.toUpperCase(); });
 
 updateTotals();
 </script>

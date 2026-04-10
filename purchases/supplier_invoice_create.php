@@ -493,7 +493,7 @@ textarea.form-control{height:52px;resize:vertical;line-height:1.5}
 #itemTable{width:100%;border-collapse:collapse;font-size:11.5px;background:#fff;min-width:900px}
 #itemTable thead th{background:#fff7f0;color:#f97316;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:5px 5px;border-bottom:2px solid #fed7aa;white-space:nowrap;position:sticky;top:0;z-index:1}
 #itemTable td{padding:3px 5px;border-bottom:1px solid #f1f5f9;vertical-align:middle;color:#374151}
-#itemTable tbody tr:hover td{background:#fafbff}
+#itemTable tbody tr:hover td{background:#fff7f0}
 #itemTable input.form-control{height:26px;padding:3px 5px;font-size:11.5px;border-radius:5px;border:1.5px solid #e4e8f0;background:#fff;font-family:'Segoe UI',system-ui,sans-serif}
 #itemTable input.form-control:focus{border-color:#f97316;box-shadow:0 0 0 2px rgba(249,115,22,.1)}
 #itemTable tfoot td{padding:5px;font-weight:700;font-size:12px;border-top:2px solid #e4e8f0;background:#f8fafc}
@@ -824,9 +824,9 @@ textarea.form-control{height:52px;resize:vertical;line-height:1.5}
             </tfoot>
         </table>
     </div>
-    <div class="bottom-actions">
+    <div class="bottom-actions" style="justify-content:space-between;flex-wrap:wrap">
         <button type="button" class="btn-add-item" onclick="openSelectItemModal()"><i class="fas fa-plus"></i> Add Item</button>
-        <div style="text-align:right;font-size:12px;color:#6b7280;display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+        <div style="text-align:right;font-size:12px;color:#6b7280;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end;">
             <div id="roundOffRow" style="display:none;color:#6b7280;font-size:12px;">
                 <span style="margin-right:2px;">🗑</span> Round off :
                 <strong id="roundOffAmt" style="color:#374151;">₹ 0.00</strong>
@@ -835,7 +835,7 @@ textarea.form-control{height:52px;resize:vertical;line-height:1.5}
             </div>
             <div>Grand Total: <strong style="color:#f97316;font-size:14px;font-weight:800" id="grandTotalDisplay">&#8377; 0.00</strong></div>
             <button type="button" id="addRoundOffBtn" onclick="toggleRoundOff()"
-                style="padding:5px 12px;border-radius:7px;border:1.5px solid #16a34a;background:#f0fdf4;color:#16a34a;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;margin-top:2px;">
+                style="padding:5px 12px;border-radius:7px;border:1.5px solid #16a34a;background:#f0fdf4;color:#16a34a;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">
                 <i class="fas fa-plus"></i> Add Round Off
             </button>
         </div>

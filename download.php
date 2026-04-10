@@ -22,6 +22,11 @@ function formatAddress($address)
     return htmlspecialchars(preg_replace("/\r\n|\r|\n/", ', ', trim($address)));
 }
 
+function addressContainsLabel($address, $label)
+{
+    return stripos((string)$address, $label . ':') !== false;
+}
+
 // Number to Words (Indian format)
 function numberToWords($number)
 {
@@ -365,10 +370,16 @@ body { font-family: DejaVu Sans, sans-serif; font-size: 10px; }
 <td>
 <strong>' . htmlspecialchars($invoice['customer']) . '</strong><br>
 ' . formatAddress($invoice['billing_address']) . '
+' . (!empty($invoice['billing_phone']) && !addressContainsLabel($invoice['billing_address'] ?? '', 'Phone') ? '<br><strong>Phone :</strong> ' . htmlspecialchars($invoice['billing_phone']) : '') . '
+' . (!empty($invoice['billing_gstin']) && !addressContainsLabel($invoice['billing_address'] ?? '', 'GSTIN') ? '<br><strong>GSTIN :</strong> ' . htmlspecialchars($invoice['billing_gstin']) : '') . '
+' . ((!empty($invoice['billing_pan']) || !empty($invoice['pan_no'])) && !addressContainsLabel($invoice['billing_address'] ?? '', 'PAN') ? '<br><strong>PAN :</strong> ' . htmlspecialchars(!empty($invoice['billing_pan']) ? $invoice['billing_pan'] : $invoice['pan_no']) : '') . '
 </td>
 <td>
 
 ' . formatAddress($invoice['shipping_address']) . '
+' . (!empty($invoice['ship_phone_num']) && !addressContainsLabel($invoice['shipping_address'] ?? '', 'Phone') ? '<br><strong>Phone :</strong> ' . htmlspecialchars($invoice['ship_phone_num']) : '') . '
+' . (!empty($invoice['ship_gstin']) && !addressContainsLabel($invoice['shipping_address'] ?? '', 'GSTIN') ? '<br><strong>GSTIN :</strong> ' . htmlspecialchars($invoice['ship_gstin']) : '') . '
+' . ((!empty($invoice['ship_pan']) || !empty($invoice['pan_no'])) && !addressContainsLabel($invoice['shipping_address'] ?? '', 'PAN') ? '<br><strong>PAN :</strong> ' . htmlspecialchars(!empty($invoice['ship_pan']) ? $invoice['ship_pan'] : $invoice['pan_no']) : '') . '
 </td>
 </tr>
 </table>
@@ -526,7 +537,7 @@ $html .= '
         }
     }
     $b = "border:1px solid #555;padding:6px 10px;font-size:11px;";
-    $ts = "width:100%;border-collapse:collapse;border:1px solid #555;font-size:11px;font-family:Arial,sans-serif;margin-top:8px;";
+    $ts = "width:auto;border-collapse:collapse;border:1px solid #555;font-size:11px;font-family:Arial,sans-serif;margin-top:6px;";
     $out = "<style>.hsn-table thead { display: table-row-group !important; }</style>";
 
     $out .= "<table class=\"hsn-table\" style=\"$ts; margin-top:0;\">";

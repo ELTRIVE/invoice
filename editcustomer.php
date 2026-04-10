@@ -1,10 +1,41 @@
 <?php
 require_once 'db.php';
+function ensureCustomerInvoiceAddressColumns(PDO $pdo): void {
+    static $ensured = false;
+    if ($ensured) {
+        return;
+    }
+
+    $columns = [
+        "billing_gstin VARCHAR(20) DEFAULT ''",
+        "billing_pan VARCHAR(20) DEFAULT ''",
+        "billing_phone VARCHAR(20) DEFAULT ''",
+        "ship_address_line1 VARCHAR(255) DEFAULT ''",
+        "ship_address_line2 VARCHAR(255) DEFAULT ''",
+        "ship_city VARCHAR(100) DEFAULT ''",
+        "ship_state VARCHAR(100) DEFAULT ''",
+        "ship_pincode VARCHAR(20) DEFAULT ''",
+        "ship_country VARCHAR(100) DEFAULT ''",
+        "shipping_gstin VARCHAR(20) DEFAULT ''",
+        "shipping_pan VARCHAR(20) DEFAULT ''",
+        "shipping_phone VARCHAR(20) DEFAULT ''"
+    ];
+
+    foreach ($columns as $definition) {
+        try {
+            $pdo->exec("ALTER TABLE customers ADD COLUMN $definition");
+        } catch (Exception $e) {
+        }
+    }
+
+    $ensured = true;
+}
 /* ── TOPBAR LOGO ── */
 $_topbarCompany = $pdo->query("SELECT company_logo, company_name FROM invoice_company ORDER BY id DESC LIMIT 1")->fetch(PDO::FETCH_ASSOC);
 $_topbarLogo = $_topbarCompany['company_logo'] ?? '';
 $_topbarName = $_topbarCompany['company_name'] ?? 'ELTRIVE';
 
+ensureCustomerInvoiceAddressColumns($pdo);
 
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $customer = $pdo->query("SELECT * FROM customers WHERE id=$id")->fetch(PDO::FETCH_ASSOC);
@@ -456,56 +487,148 @@ h1,h2,h3,h4,h5,h6,.page-title,.card-title,.tc-title,.rev-card-title,
 
         <div id="moreSection">
 
-            <!-- Address -->
-            <div class="section-label">Address</div>
-            <!-- Row 1: Address Line 1 + Address Line 2 -->
+            <div class="section-label">Billing Address</div>
             <div class="form-grid g-2" style="margin-bottom:12px;">
                 <div class="field">
-                    <label>Address Line 1</label>
+                    <label>Billing Address Line 1</label>
                     <input type="text" name="address_line1"
                            value="<?= htmlspecialchars($customer['address_line1'] ?? '') ?>"
                            placeholder="Street, area">
                 </div>
                 <div class="field">
-                    <label>Address Line 2</label>
+                    <label>Billing Address Line 2</label>
                     <input type="text" name="address_line2"
                            value="<?= htmlspecialchars($customer['address_line2'] ?? '') ?>"
                            placeholder="Landmark">
                 </div>
             </div>
-            <!-- Row 2: City + State + Country + Pincode -->
             <div class="form-grid g-4">
                 <div class="field">
-                    <label>City</label>
+                    <label>Billing City</label>
                     <input type="text" name="address_city"
                            value="<?= htmlspecialchars($customer['address_city'] ?? '') ?>"
                            placeholder="City">
                 </div>
                 <div class="field">
-                    <label>State</label>
+                    <label>Billing State</label>
                     <input type="text" name="address_state"
                            value="<?= htmlspecialchars($customer['address_state'] ?? '') ?>"
                            placeholder="State">
                 </div>
                 <div class="field">
-                    <label>Country</label>
+                    <label>Billing Country</label>
                     <input type="text" name="address_country"
                            value="<?= htmlspecialchars($customer['address_country'] ?? '') ?>"
                            placeholder="Country">
                 </div>
                 <div class="field">
-                    <label>Pincode</label>
+                    <label>Billing Pincode</label>
                     <input type="text" name="pincode"
                            value="<?= htmlspecialchars($customer['pincode'] ?? '') ?>"
                            placeholder="Pincode">
                 </div>
             </div>
+            <div class="form-grid g-2" style="margin-bottom:12px;">
+                <div class="field">
+                    <label>Billing GSTIN</label>
+                    <input type="text" name="billing_gstin" id="billing_gstin"
+                           value="<?= htmlspecialchars($customer['billing_gstin'] ?? '') ?>"
+                           placeholder="22AAAAA0000A1Z5" maxlength="15"
+                           style="font-family:monospace;text-transform:uppercase;">
+                    <span class="field-error" id="billing_gstin_error"></span>
+                </div>
+                <div class="field">
+                    <label>Billing PAN</label>
+                    <input type="text" name="billing_pan" id="billing_pan"
+                           value="<?= htmlspecialchars($customer['billing_pan'] ?? '') ?>"
+                           placeholder="ABCDE1234F" maxlength="10"
+                           style="font-family:monospace;text-transform:uppercase;">
+                    <span class="field-error" id="billing_pan_error"></span>
+                </div>
+            </div>
+            <div class="form-grid g-2" style="margin-bottom:12px;">
+                <div class="field">
+                    <label>Billing Phone</label>
+                    <input type="text" name="billing_phone" id="billing_phone"
+                           value="<?= htmlspecialchars($customer['billing_phone'] ?? '') ?>"
+                           placeholder="10-digit mobile" maxlength="10">
+                    <span class="field-error" id="billing_phone_error"></span>
+                </div>
+            </div>
 
-            <!-- Tax & Legal -->
+            <div class="section-label">Shipping Address</div>
+            <div class="form-grid g-2" style="margin-bottom:12px;">
+                <div class="field">
+                    <label>Shipping Address Line 1</label>
+                    <input type="text" name="ship_address_line1"
+                           value="<?= htmlspecialchars($customer['ship_address_line1'] ?? '') ?>"
+                           placeholder="Street, area">
+                </div>
+                <div class="field">
+                    <label>Shipping Address Line 2</label>
+                    <input type="text" name="ship_address_line2"
+                           value="<?= htmlspecialchars($customer['ship_address_line2'] ?? '') ?>"
+                           placeholder="Landmark">
+                </div>
+            </div>
+            <div class="form-grid g-4">
+                <div class="field">
+                    <label>Shipping City</label>
+                    <input type="text" name="ship_city"
+                           value="<?= htmlspecialchars($customer['ship_city'] ?? '') ?>"
+                           placeholder="City">
+                </div>
+                <div class="field">
+                    <label>Shipping State</label>
+                    <input type="text" name="ship_state"
+                           value="<?= htmlspecialchars($customer['ship_state'] ?? '') ?>"
+                           placeholder="State">
+                </div>
+                <div class="field">
+                    <label>Shipping Country</label>
+                    <input type="text" name="ship_country"
+                           value="<?= htmlspecialchars($customer['ship_country'] ?? '') ?>"
+                           placeholder="Country">
+                </div>
+                <div class="field">
+                    <label>Shipping Pincode</label>
+                    <input type="text" name="ship_pincode"
+                           value="<?= htmlspecialchars($customer['ship_pincode'] ?? '') ?>"
+                           placeholder="Pincode">
+                </div>
+            </div>
+            <div class="form-grid g-2" style="margin-bottom:12px;">
+                <div class="field">
+                    <label>Shipping GSTIN</label>
+                    <input type="text" name="shipping_gstin" id="shipping_gstin"
+                           value="<?= htmlspecialchars($customer['shipping_gstin'] ?? '') ?>"
+                           placeholder="22AAAAA0000A1Z5" maxlength="15"
+                           style="font-family:monospace;text-transform:uppercase;">
+                    <span class="field-error" id="shipping_gstin_error"></span>
+                </div>
+                <div class="field">
+                    <label>Shipping PAN</label>
+                    <input type="text" name="shipping_pan" id="shipping_pan"
+                           value="<?= htmlspecialchars($customer['shipping_pan'] ?? '') ?>"
+                           placeholder="ABCDE1234F" maxlength="10"
+                           style="font-family:monospace;text-transform:uppercase;">
+                    <span class="field-error" id="shipping_pan_error"></span>
+                </div>
+            </div>
+            <div class="form-grid g-2" style="margin-bottom:12px;">
+                <div class="field">
+                    <label>Shipping Phone</label>
+                    <input type="text" name="shipping_phone" id="shipping_phone"
+                           value="<?= htmlspecialchars($customer['shipping_phone'] ?? '') ?>"
+                           placeholder="10-digit mobile" maxlength="10">
+                    <span class="field-error" id="shipping_phone_error"></span>
+                </div>
+            </div>
+
             <div class="section-label">Tax & Legal</div>
             <div class="form-grid g-4">
                 <div class="field span-2">
-                    <label>GSTIN</label>
+                    <label>Customer GSTIN</label>
                     <input type="text" name="gstin" id="gstin"
                            value="<?= htmlspecialchars($customer['gstin'] ?? '') ?>"
                            placeholder="22AAAAA0000A1Z5" maxlength="15"
@@ -666,25 +789,35 @@ function deleteCustomer(id) {
 /* ── GSTIN / PAN VALIDATION ── */
 function validateGstinPan() {
     var valid = true;
+    var gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+    var panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+    var phoneRegex = /^[6-9]\d{9}$/;
 
-    var gstinEl  = document.getElementById('gstin');
-    var gstinErr = document.getElementById('gstin_error');
-    if (gstinEl && gstinEl.value.trim() !== '') {
-        var gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-        if (!gstinRegex.test(gstinEl.value.trim())) {
-            if (gstinErr) { gstinErr.textContent = 'Invalid GSTIN. Format: 22AAAAA0000A1Z5'; gstinErr.classList.add('show'); }
-            gstinEl.classList.add('invalid');
+    [
+        ['gstin', 'gstin_error'],
+        ['billing_gstin', 'billing_gstin_error'],
+        ['shipping_gstin', 'shipping_gstin_error']
+    ].forEach(function(pair) {
+        var input = document.getElementById(pair[0]);
+        var error = document.getElementById(pair[1]);
+        if (!input) return;
+
+        if (input.value.trim() !== '' && !gstinRegex.test(input.value.trim())) {
+            if (error) {
+                error.textContent = 'Invalid GSTIN. Format: 22AAAAA0000A1Z5';
+                error.classList.add('show');
+            }
+            input.classList.add('invalid');
             valid = false;
         } else {
-            if (gstinErr) gstinErr.classList.remove('show');
-            gstinEl.classList.remove('invalid');
+            if (error) error.classList.remove('show');
+            input.classList.remove('invalid');
         }
-    }
+    });
 
     var panEl  = document.getElementById('pan_no');
     var panErr = document.getElementById('pan_error');
     if (panEl && panEl.value.trim() !== '') {
-        var panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
         if (!panRegex.test(panEl.value.trim())) {
             if (panErr) { panErr.textContent = 'Invalid PAN. Format: ABCDE1234F'; panErr.classList.add('show'); }
             panEl.classList.add('invalid');
@@ -695,6 +828,48 @@ function validateGstinPan() {
         }
     }
 
+    [
+        ['billing_pan', 'billing_pan_error'],
+        ['shipping_pan', 'shipping_pan_error']
+    ].forEach(function(pair) {
+        var input = document.getElementById(pair[0]);
+        var error = document.getElementById(pair[1]);
+        if (!input) return;
+
+        if (input.value.trim() !== '' && !panRegex.test(input.value.trim())) {
+            if (error) {
+                error.textContent = 'Invalid PAN. Format: ABCDE1234F';
+                error.classList.add('show');
+            }
+            input.classList.add('invalid');
+            valid = false;
+        } else {
+            if (error) error.classList.remove('show');
+            input.classList.remove('invalid');
+        }
+    });
+
+    [
+        ['billing_phone', 'billing_phone_error'],
+        ['shipping_phone', 'shipping_phone_error']
+    ].forEach(function(pair) {
+        var input = document.getElementById(pair[0]);
+        var error = document.getElementById(pair[1]);
+        if (!input) return;
+
+        if (input.value.trim() !== '' && !phoneRegex.test(input.value.trim())) {
+            if (error) {
+                error.textContent = 'Phone must be a valid 10-digit mobile number';
+                error.classList.add('show');
+            }
+            input.classList.add('invalid');
+            valid = false;
+        } else {
+            if (error) error.classList.remove('show');
+            input.classList.remove('invalid');
+        }
+    });
+
     return valid;
 }
 
@@ -702,15 +877,15 @@ function validateGstinPan() {
 document.addEventListener('DOMContentLoaded', function() {
 
     /* auto uppercase */
-    document.querySelectorAll('[name="gstin"],[name="pan_no"]').forEach(function(el) {
+    document.querySelectorAll('[name="gstin"],[name="billing_gstin"],[name="shipping_gstin"],[name="pan_no"],[name="billing_pan"],[name="shipping_pan"]').forEach(function(el) {
         el.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
     });
 
     /* validate on blur */
-    var gEl = document.getElementById('gstin');
-    var pEl = document.getElementById('pan_no');
-    if (gEl) gEl.addEventListener('blur', validateGstinPan);
-    if (pEl) pEl.addEventListener('blur', validateGstinPan);
+    ['gstin', 'billing_gstin', 'shipping_gstin', 'pan_no', 'billing_pan', 'shipping_pan', 'billing_phone', 'shipping_phone'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('blur', validateGstinPan);
+    });
 
     /* close financial modal on overlay click */
     var finModal = document.getElementById('financialModal');

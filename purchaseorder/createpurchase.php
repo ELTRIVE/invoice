@@ -424,20 +424,20 @@ textarea.form-control{height:48px;resize:vertical}
 .supplier-input-row{display:flex;gap:6px}
 .supplier-input-row .form-control{flex:1}
 .table-wrap{overflow-x:auto}
-.item-table{width:100%;border-collapse:collapse;font-size:12px;background:#fff}
-.item-table thead tr:first-child th{background:#f0fdf4;color:#15803d;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:6px 5px;border-bottom:2px solid #bbf7d0;white-space:nowrap}
-.item-table th{padding:6px 5px;text-align:left;font-weight:700;color:#374151;border-bottom:1px solid #e4e8f0;white-space:nowrap;font-size:10px}
-.item-table td{padding:4px 3px;border-bottom:1px solid #f1f5f9;vertical-align:middle;color:#374151}
-.item-table tbody tr:hover td{background:#fafbff}
-.item-table td input{width:100%;border:1.5px solid #e4e8f0;border-radius:5px;padding:4px 5px;font-size:11px;font-family:inherit;background:#fff;outline:none}
-.item-table td input:focus{border-color:#16a34a;box-shadow:0 0 0 2px rgba(22,163,74,.1)}
-.item-table td.num{text-align:right;padding:4px 6px;font-weight:600;white-space:nowrap}
-.item-name-input{font-weight:600;color:#1a1f2e}
+.item-table{width:100%;border-collapse:collapse;font-size:11.5px;background:#fff}
+.item-table thead tr:first-child th{background:#fff7f0;color:#f97316;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:5px 5px;border-bottom:2px solid #fed7aa;white-space:nowrap}
+.item-table th{padding:5px 5px;text-align:left;font-weight:700;color:#374151;border-bottom:1px solid #e4e8f0;white-space:nowrap;font-size:10.5px}
+.item-table td{padding:3px 5px;border-bottom:1px solid #f1f5f9;vertical-align:middle;color:#374151}
+.item-table tbody tr:hover td{background:#fff7f0}
+.item-table td input{width:100%;border:1.5px solid #e4e8f0;border-radius:5px;padding:3px 5px;font-size:11.5px;font-family:'Segoe UI',system-ui,sans-serif;background:#fff;outline:none}
+.item-table td input:focus{border-color:#f97316;box-shadow:0 0 0 2px rgba(249,115,22,.1)}
+.item-table td.num{text-align:right;padding:3px 6px;font-weight:600;white-space:nowrap}
+.item-name-input{font-weight:700;color:#1a1f2e}
 .item-desc-input{margin-top:2px;font-size:10px;color:#6b7280 !important;border-top:1px dashed #e4e8f0 !important}
-.btn-remove-item{background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;border-radius:5px;width:22px;height:22px;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center}
+.btn-remove-item{background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;border-radius:5px;width:22px;height:22px;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center}
 .btn-remove-item:hover{background:#dc2626;color:#fff}
-.btn-add-item{background:none;border:1.5px solid #16a34a;color:#16a34a;border-radius:7px;padding:5px 12px;cursor:pointer;font-size:11px;font-family:inherit;font-weight:700}
-.btn-add-item:hover{background:#f0fdf4}
+.btn-add-item{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:none;border-radius:7px;cursor:pointer;font-size:12px;font-family:inherit;font-weight:700;transition:all .2s}
+.btn-add-item:hover{transform:translateY(-1px)}
 .total-box{text-align:right;margin-top:8px;font-size:12px;padding:8px 12px;background:#f8fafc;border-radius:8px;border:1px solid #e4e8f0}
 .total-box .grand{font-size:14px;font-weight:800;color:#15803d;margin-top:4px;background:#f0fdf4;padding:4px 8px;border-radius:7px;display:inline-block}
 .extra-btns{display:flex;gap:8px;margin-top:8px;justify-content:flex-end}

@@ -5,6 +5,39 @@ date_default_timezone_set('Asia/Kolkata');
 $error = '';
 $ref = $_SERVER['HTTP_REFERER'] ?? 'create_invoice';
 
+function ensureCustomerInvoiceAddressColumns(PDO $pdo): void {
+    static $ensured = false;
+    if ($ensured) {
+        return;
+    }
+
+    $columns = [
+        "billing_gstin VARCHAR(20) DEFAULT ''",
+        "billing_pan VARCHAR(20) DEFAULT ''",
+        "billing_phone VARCHAR(20) DEFAULT ''",
+        "ship_address_line1 VARCHAR(255) DEFAULT ''",
+        "ship_address_line2 VARCHAR(255) DEFAULT ''",
+        "ship_city VARCHAR(100) DEFAULT ''",
+        "ship_state VARCHAR(100) DEFAULT ''",
+        "ship_pincode VARCHAR(20) DEFAULT ''",
+        "ship_country VARCHAR(100) DEFAULT ''",
+        "shipping_gstin VARCHAR(20) DEFAULT ''",
+        "shipping_pan VARCHAR(20) DEFAULT ''",
+        "shipping_phone VARCHAR(20) DEFAULT ''"
+    ];
+
+    foreach ($columns as $definition) {
+        try {
+            $pdo->exec("ALTER TABLE customers ADD COLUMN $definition");
+        } catch (Exception $e) {
+        }
+    }
+
+    $ensured = true;
+}
+
+ensureCustomerInvoiceAddressColumns($pdo);
+
 if (isset($_POST['save_customer'])) {
     if(!empty($_POST['_ref'])) $ref = $_POST['_ref'];
     $stmt = $pdo->prepare("
@@ -15,8 +48,10 @@ if (isset($_POST['save_customer'])) {
          address_state, address_country, pincode, gstin,
          show_title_in_shipping, extra_key, extra_value,
          receivables, receivable_notes, business_prospect, order_target,
-         msme_no, pan_no, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         msme_no, pan_no, billing_gstin, billing_pan, billing_phone,
+         ship_address_line1, ship_address_line2, ship_city, ship_state, ship_pincode, ship_country,
+         shipping_gstin, shipping_pan, shipping_phone, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
     $stmt->execute([
         $_POST['business_name'] ?? null, $_POST['title'] ?? null,
@@ -34,6 +69,18 @@ if (isset($_POST['save_customer'])) {
         $_POST['receivables'] ?? 0,      $_POST['receivable_notes'] ?? null,
         $_POST['business_prospect'] ?? 0, $_POST['order_target'] ?? null,
         $_POST['msme_no'] ?? null,       $_POST['pan_no'] ?? null,
+        strtoupper(trim($_POST['billing_gstin'] ?? '')),
+        strtoupper(trim($_POST['billing_pan'] ?? '')),
+        trim($_POST['billing_phone'] ?? ''),
+        $_POST['ship_address_line1'] ?? null,
+        $_POST['ship_address_line2'] ?? null,
+        $_POST['ship_city'] ?? null,
+        $_POST['ship_state'] ?? null,
+        $_POST['ship_pincode'] ?? null,
+        $_POST['ship_country'] ?? 'India',
+        strtoupper(trim($_POST['shipping_gstin'] ?? '')),
+        strtoupper(trim($_POST['shipping_pan'] ?? '')),
+        trim($_POST['shipping_phone'] ?? ''),
         date('Y-m-d H:i:s')
     ]);
     header("Location: " . $ref . "?customer_saved=1");
@@ -224,6 +271,11 @@ input.invalid{border-color:#dc2626!important;box-shadow:0 0 0 3px rgba(220,38,38
                             <span class="field-error" id="billing_gstin_error"></span>
                         </div>
                         <div class="field full">
+                            <label>Billing PAN</label>
+                            <input type="text" name="billing_pan" id="billing_pan" placeholder="ABCDE1234F" maxlength="10" style="text-transform:uppercase">
+                            <span class="field-error" id="billing_pan_error"></span>
+                        </div>
+                        <div class="field full">
                             <label>Billing Phone</label>
                             <input type="text" name="billing_phone" id="billing_phone" placeholder="9XXXXXXXXX" maxlength="10">
                             <span class="field-error" id="billing_phone_error"></span>
@@ -273,6 +325,11 @@ input.invalid{border-color:#dc2626!important;box-shadow:0 0 0 3px rgba(220,38,38
                             <label>Shipping GSTIN</label>
                             <input type="text" name="shipping_gstin" id="shipping_gstin" placeholder="22AAAAA0000A1Z5" maxlength="15" style="text-transform:uppercase">
                             <span class="field-error" id="shipping_gstin_error"></span>
+                        </div>
+                        <div class="field full">
+                            <label>Shipping PAN</label>
+                            <input type="text" name="shipping_pan" id="shipping_pan" placeholder="ABCDE1234F" maxlength="10" style="text-transform:uppercase">
+                            <span class="field-error" id="shipping_pan_error"></span>
                         </div>
                         <div class="field full">
                             <label>Shipping Phone</label>
@@ -376,7 +433,7 @@ input.invalid{border-color:#dc2626!important;box-shadow:0 0 0 3px rgba(220,38,38
 
 <script>
 // Auto uppercase
-['gstin','pan_no','billing_gstin','shipping_gstin','bank_ifsc'].forEach(id=>{
+['gstin','pan_no','billing_gstin','billing_pan','shipping_gstin','shipping_pan','bank_ifsc'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.addEventListener('input',function(){this.value=this.value.toUpperCase();});
 });
 
@@ -384,7 +441,9 @@ const rules = {
     gstin:        { pattern:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, msg:'Invalid GSTIN. Format: 22AAAAA0000A1Z5' },
     pan_no:       { pattern:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, msg:'Invalid PAN. Format: ABCDE1234F' },
     billing_gstin:{ pattern:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, msg:'Invalid Billing GSTIN format' },
+    billing_pan:  { pattern:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, msg:'Invalid Billing PAN format' },
     shipping_gstin:{ pattern:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, msg:'Invalid Shipping GSTIN format' },
+    shipping_pan: { pattern:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, msg:'Invalid Shipping PAN format' },
     mobile:       { pattern:/^[6-9]\d{9}$/, msg:'Mobile must be a valid 10-digit Indian number' },
     billing_phone:{ pattern:/^[6-9]\d{9}$/, msg:'Billing phone must be a valid 10-digit number' },
     pincode:      { pattern:/^\d{6}$/, msg:'Pincode must be exactly 6 digits' },
@@ -423,6 +482,9 @@ function copySameAsBilling(chk){
     document.getElementById('ship_city').value   = document.querySelector('[name="address_city"]').value;
     document.getElementById('ship_state').value  = document.querySelector('[name="address_state"]').value;
     document.getElementById('ship_pincode').value= document.querySelector('[name="pincode"]').value;
+    document.getElementById('shipping_gstin').value = document.getElementById('billing_gstin').value || document.getElementById('gstin').value || '';
+    document.getElementById('shipping_pan').value = document.getElementById('billing_pan').value || document.getElementById('pan_no').value || '';
+    document.getElementById('shipping_phone').value = document.getElementById('billing_phone').value || '';
 }
 
 document.querySelector('form').addEventListener('submit', function(e){
@@ -432,7 +494,7 @@ document.querySelector('form').addEventListener('submit', function(e){
     if(!validateField('pan_no')) valid=false;
     if(!validateField('mobile')) valid=false;
     // Optional format checks
-    ['billing_gstin','shipping_gstin','billing_phone','pincode','bank_ifsc'].forEach(id=>{
+    ['billing_gstin','billing_pan','shipping_gstin','shipping_pan','billing_phone','pincode','bank_ifsc'].forEach(id=>{
         if(!validateField(id)) valid=false;
     });
     // Email check

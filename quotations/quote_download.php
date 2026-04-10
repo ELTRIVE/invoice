@@ -186,6 +186,7 @@ if (!empty($quot['billing_phone']))      $to_html .= '<strong>Phone :</strong> '
 elseif (!empty($quot['customer_phone'])) $to_html .= '<strong>Phone :</strong> ' . htmlspecialchars($quot['customer_phone']) . '<br>';
 if (!empty($quot['billing_gstin']))      $to_html .= '<strong>GSTIN :</strong> ' . htmlspecialchars($quot['billing_gstin']) . '<br>';
 elseif (!empty($quot['customer_gstin'])) $to_html .= '<strong>GSTIN :</strong> ' . htmlspecialchars($quot['customer_gstin']) . '<br>';
+if (!empty($quot['billing_pan']))        $to_html .= '<strong>PAN :</strong> ' . htmlspecialchars($quot['billing_pan']) . '<br>';
 
 // Shipping address block
 $ship_html = '';
@@ -194,6 +195,7 @@ if (!empty($quot['shipping_details'])) {
         $ship_html .= htmlspecialchars($ln) . '<br>';
     if (!empty($quot['shipping_phone'])) $ship_html .= '<strong>Phone :</strong> ' . htmlspecialchars($quot['shipping_phone']) . '<br>';
     if (!empty($quot['shipping_gstin'])) $ship_html .= '<strong>GSTIN :</strong> ' . htmlspecialchars($quot['shipping_gstin']) . '<br>';
+    if (!empty($quot['shipping_pan']))   $ship_html .= '<strong>PAN :</strong> ' . htmlspecialchars($quot['shipping_pan']) . '<br>';
 } else {
     $ship_html = $to_html;
 }

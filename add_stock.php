@@ -40,10 +40,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'tcs_percent'          => $_POST['tcs_percent'],
             'total'                => $_POST['total'],
         ]);
+        $newItemId = (int)$pdo->lastInsertId();
         // Return to create_invoice with _restored=1 so draft gets restored
         if ($fromInvoicePost) {
             $back = 'create_invoice.php?_restored=1';
             if ($editIdPost > 0) $back .= '&edit=' . $editIdPost;
+            $back .= '&_new_item_id=' . urlencode((string)$newItemId);
+            $back .= '&_new_item_name=' . urlencode((string)($_POST['item_name'] ?? ''));
+            $back .= '&_new_item_code=' . urlencode((string)($_POST['service_code'] ?? ''));
+            $back .= '&_new_item_hsn=' . urlencode((string)($_POST['hsn_sac'] ?? ''));
+            $back .= '&_new_item_uom=' . urlencode((string)($_POST['uom'] ?? ''));
+            $back .= '&_new_item_rate=' . urlencode((string)($_POST['unit_price'] ?? '0'));
+            $back .= '&_new_item_desc=' . urlencode((string)($_POST['material_description'] ?? ''));
             header('Location: ' . $back);
         } else {
             header('Location: ' . $ref . '?stock_saved=1');

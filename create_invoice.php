@@ -8,6 +8,14 @@ try {
 } catch (Exception $e) {
 }
 try {
+    $pdo->exec("ALTER TABLE invoices ADD COLUMN billing_pan VARCHAR(20) DEFAULT ''");
+} catch (Exception $e) {
+}
+try {
+    $pdo->exec("ALTER TABLE invoices ADD COLUMN ship_pan VARCHAR(20) DEFAULT ''");
+} catch (Exception $e) {
+}
+try {
     $pdo->exec("CREATE TABLE IF NOT EXISTS executives (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
 } catch (Exception $e) {
 }
@@ -49,6 +57,35 @@ function get_next_prefixed_number(PDO $pdo, string $table, string $column, strin
     }
     $nextNum = max($startNumber, $maxNum + 1);
     return [$prefix . str_pad((string)$nextNum, $padLength, '0', STR_PAD_LEFT), $lastDoc];
+}
+
+function mergeAddressWithMeta(string $address, string $gstin = '', string $pan = '', string $phone = ''): string
+{
+    $lines = preg_split("/\r\n|\r|\n/", trim($address)) ?: [];
+    $clean = [];
+
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '') {
+            continue;
+        }
+        if (preg_match('/^(GSTIN|PAN|Phone)\s*:/i', $line)) {
+            continue;
+        }
+        $clean[] = $line;
+    }
+
+    if (trim($gstin) !== '') {
+        $clean[] = 'GSTIN: ' . strtoupper(trim($gstin));
+    }
+    if (trim($pan) !== '') {
+        $clean[] = 'PAN: ' . strtoupper(trim($pan));
+    }
+    if (trim($phone) !== '') {
+        $clean[] = 'Phone: ' . trim($phone);
+    }
+
+    return implode("\n", $clean);
 }
 
 function document_number_exists(PDO $pdo, string $table, string $column, string $value, ?int $excludeId = null): bool
@@ -230,9 +267,13 @@ if (isset($_POST['save_invoice'])) {
         $gstin = $_POST['gstin'] ?? '';
         $pan_no = strtoupper(trim($_POST['pan'] ?? ''));
         $billing_gstin = trim($_POST['billing_gstin'] ?? '');
+        $billing_pan = strtoupper(trim($_POST['billing_pan'] ?? ''));
         $billing_phone = trim($_POST['billing_phone'] ?? '');
         $ship_gstin = $_POST['ship_gstin'] ?? '';
+        $ship_pan = strtoupper(trim($_POST['ship_pan'] ?? ''));
         $ship_phone_num = $_POST['ship_phone_num'] ?? '';
+        $billing_address = mergeAddressWithMeta($billing_address, $billing_gstin, $billing_pan, $billing_phone);
+        $shipping_address = mergeAddressWithMeta($shipping_address, $ship_gstin, $ship_pan, $ship_phone_num);
         $invoice_number = trim($_POST['invoice_number']);
         $reference = $_POST['reference'] ?? '';
         $po_number = trim($_POST['po_number'] ?? '');
@@ -301,7 +342,7 @@ if (isset($_POST['save_invoice'])) {
             $stmt = $pdo->prepare("
                 UPDATE invoices SET
                     customer=?, contact_person=?, mobile=?, sales_credit=?,
-                    billing_address=?, shipping_address=?, gstin=?, pan_no=?, billing_gstin=?, billing_phone=?, ship_gstin=?, ship_phone_num=?,
+                    billing_address=?, shipping_address=?, gstin=?, pan_no=?, billing_gstin=?, billing_pan=?, billing_phone=?, ship_gstin=?, ship_pan=?, ship_phone_num=?,
                     invoice_number=?, reference=?, po_number=?, invoice_date=?, due_date=?,
                     party_ledger=?, income_ledger=?, voucher_number=?, voucher_date=?, bank_id=?,
                     item_list=?, executive_id=?, company_override=?, signature_id=?
@@ -317,8 +358,10 @@ if (isset($_POST['save_invoice'])) {
                 $gstin,
                 $pan_no,
                 $billing_gstin,
+                $billing_pan,
                 $billing_phone,
                 $ship_gstin,
+                $ship_pan,
                 $ship_phone_num,
                 $invoice_number,
                 $reference,
@@ -344,11 +387,11 @@ if (isset($_POST['save_invoice'])) {
             $stmt = $pdo->prepare("
                 INSERT INTO invoices (
                     customer, contact_person, mobile, sales_credit,
-                    billing_address, shipping_address, gstin, pan_no, billing_gstin, billing_phone, ship_gstin, ship_phone_num,
+                    billing_address, shipping_address, gstin, pan_no, billing_gstin, billing_pan, billing_phone, ship_gstin, ship_pan, ship_phone_num,
                     invoice_number, reference, po_number, invoice_date, due_date,
                     party_ledger, income_ledger, voucher_number, voucher_date, bank_id,
                     item_list, executive_id, company_override, signature_id
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             $stmt->execute([
                 $customer,
@@ -360,8 +403,10 @@ if (isset($_POST['save_invoice'])) {
                 $gstin,
                 $pan_no,
                 $billing_gstin,
+                $billing_pan,
                 $billing_phone,
                 $ship_gstin,
+                $ship_pan,
                 $ship_phone_num,
                 $invoice_number,
                 $reference,
@@ -485,10 +530,60 @@ if (isset($_POST['save_invoice'])) {
 }
 
 /* ================= FETCH CUSTOMERS & ITEMS ================= */
+function ensureCustomerInvoiceAddressColumns(PDO $pdo): void
+{
+    static $ensured = false;
+    if ($ensured) {
+        return;
+    }
+
+    $columns = [
+        "billing_gstin VARCHAR(20) DEFAULT ''",
+        "billing_pan VARCHAR(20) DEFAULT ''",
+        "billing_phone VARCHAR(20) DEFAULT ''",
+        "ship_address_line1 VARCHAR(255) DEFAULT ''",
+        "ship_address_line2 VARCHAR(255) DEFAULT ''",
+        "ship_city VARCHAR(100) DEFAULT ''",
+        "ship_state VARCHAR(100) DEFAULT ''",
+        "ship_pincode VARCHAR(20) DEFAULT ''",
+        "ship_country VARCHAR(100) DEFAULT ''",
+        "shipping_gstin VARCHAR(20) DEFAULT ''",
+        "shipping_pan VARCHAR(20) DEFAULT ''",
+        "shipping_phone VARCHAR(20) DEFAULT ''"
+    ];
+
+    foreach ($columns as $definition) {
+        try {
+            $pdo->exec("ALTER TABLE customers ADD COLUMN $definition");
+        } catch (Exception $e) {
+        }
+    }
+
+    $ensured = true;
+}
+
+function buildAddressText(array $parts): string
+{
+    $clean = [];
+    foreach ($parts as $part) {
+        $value = trim((string) $part);
+        if ($value !== '') {
+            $clean[] = $value;
+        }
+    }
+    return implode("\n", $clean);
+}
+
+ensureCustomerInvoiceAddressColumns($pdo);
+
 try {
     $customers = $pdo->query("
         SELECT id, business_name AS customer, mobile, gstin, pan_no,
-               address_line1, address_line2, city, state, pincode, country
+               title, first_name, last_name,
+               address_line1, address_line2, address_city, address_state, pincode, address_country,
+               billing_gstin, billing_pan, billing_phone,
+               ship_address_line1, ship_address_line2, ship_city, ship_state, ship_pincode, ship_country,
+               shipping_gstin, shipping_pan, shipping_phone
         FROM customers
         ORDER BY business_name ASC
     ")->fetchAll(PDO::FETCH_ASSOC);
@@ -843,6 +938,108 @@ $popupCompany = !empty($existingOverride) ? array_merge($companyData, $existingO
             transform: translateY(-1px)
         }
 
+        /* QUOTATION-STYLE POPUP THEME */
+        .modal-box {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .18);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            width: 500px;
+            max-width: 96vw;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            border-bottom: 1px solid #f0f2f7;
+            background: #fafbfd;
+        }
+
+        .modal-header-box h3 {
+            font-size: 13px;
+            font-weight: 800;
+            color: #1a1f2e;
+            margin: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        .modal-close-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: #9ca3af;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .modal-search-wrap {
+            padding: 8px 14px;
+            border-bottom: 1px solid #f0f2f7;
+        }
+
+        .modal-search-inp {
+            width: 100%;
+            border: 1.5px solid #e4e8f0;
+            border-radius: 7px;
+            padding: 6px 10px;
+            font-size: 12px;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            outline: none;
+            background: #fff;
+            color: #374151;
+        }
+
+        .modal-search-inp:focus {
+            border-color: #f97316;
+            box-shadow: none;
+        }
+
+        .sp-item {
+            padding: 8px 14px;
+            cursor: pointer;
+            border-bottom: 1px solid #f9f9f9;
+            transition: background .1s;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        .sp-item:hover {
+            background: #fff7f0;
+        }
+
+        .sp-item-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1a1f2e;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        .sp-item-sub {
+            font-size: 11px;
+            color: #9ca3af;
+            margin-top: 1px;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        .sp-empty {
+            padding: 20px;
+            text-align: center;
+            color: #9ca3af;
+            font-size: 13px;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        .modal-footer-box {
+            padding: 10px 14px;
+            border-top: 1px solid #f0f2f7;
+            background: #fafbfd;
+            display: flex;
+            gap: 6px;
+        }
+
         .btn-plus {
             display: inline-flex;
             align-items: center;
@@ -974,14 +1171,14 @@ $popupCompany = !empty($existingOverride) ? array_merge($companyData, $existingO
         }
 
         #itemTable thead tr:first-child th {
-            background: #f0fdf4;
-            color: #15803d;
-            font-size: 12px;
+            background: #fff7f0;
+            color: #f97316;
+            font-size: 10.5px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: .5px;
-            padding: 8px 7px;
-            border-bottom: 2px solid #bbf7d0;
+            letter-spacing: .4px;
+            padding: 5px 5px;
+            border-bottom: 2px solid #fed7aa;
             white-space: nowrap;
             position: sticky;
             top: 0;
@@ -989,18 +1186,18 @@ $popupCompany = !empty($existingOverride) ? array_merge($companyData, $existingO
         }
 
         #itemTable thead tr:last-child th {
-            background: #f8fafc;
+            background: #fff7f0;
             color: #6b7280;
-            font-size: 12px;
-            padding: 5px 7px;
+            font-size: 10.5px;
+            padding: 5px 5px;
             border-bottom: 1px solid #e4e8f0;
             position: sticky;
-            top: 34px;
+            top: 28px;
             z-index: 1
         }
 
         #itemTable td {
-            padding: 5px 7px;
+            padding: 3px 5px;
             border-bottom: 1px solid #f1f5f9;
             vertical-align: middle;
             color: #374151
@@ -1012,22 +1209,22 @@ $popupCompany = !empty($existingOverride) ? array_merge($companyData, $existingO
         }
 
         #itemTable tbody tr:hover td {
-            background: #fafbff
+            background: #fff7f0
         }
 
         #itemTable input.form-control {
-            height: 28px;
-            padding: 3px 6px;
-            font-size: 13px;
-            border-radius: 6px;
+            height: 26px;
+            padding: 3px 5px;
+            font-size: 11.5px;
+            border-radius: 5px;
             border: 1.5px solid #e4e8f0;
             background: #fff;
-            font-family: 'Times New Roman', Times, serif
+            font-family: 'Segoe UI', system-ui, sans-serif
         }
 
         #itemTable input.form-control:focus {
-            border-color: #16a34a;
-            box-shadow: 0 0 0 2px rgba(22, 163, 74, .1)
+            border-color: #f97316;
+            box-shadow: 0 0 0 2px rgba(249, 115, 22, .1)
         }
 
         #itemTable tfoot td {
@@ -1238,12 +1435,44 @@ $popupCompany = !empty($existingOverride) ? array_merge($companyData, $existingO
                                 <select class="form-select" id="customer_select" style="font-size:13px;height:34px;padding:4px 8px;flex:1">
                                     <option value="">-- Select Customer --</option>
                                     <?php foreach ($customers as $c): ?>
+                                        <?php
+                                        $contactName = trim(
+                                            implode(' ', array_filter([
+                                                $c['title'] ?? '',
+                                                $c['first_name'] ?? '',
+                                                $c['last_name'] ?? ''
+                                            ]))
+                                        );
+                                        $billingAddress = buildAddressText([
+                                            $c['address_line1'] ?? '',
+                                            $c['address_line2'] ?? '',
+                                            $c['address_city'] ?? '',
+                                            $c['address_state'] ?? '',
+                                            $c['pincode'] ?? '',
+                                            $c['address_country'] ?? ''
+                                        ]);
+                                        $shippingAddress = buildAddressText([
+                                            $c['ship_address_line1'] ?? '',
+                                            $c['ship_address_line2'] ?? '',
+                                            $c['ship_city'] ?? '',
+                                            $c['ship_state'] ?? '',
+                                            $c['ship_pincode'] ?? '',
+                                            $c['ship_country'] ?? ''
+                                        ]);
+                                        ?>
                                         <option value="<?= htmlspecialchars($c['customer']) ?>" <?= ($isEdit && $editInvoice['customer'] === $c['customer']) ? 'selected' : '' ?>
-                                            data-contact="<?= htmlspecialchars($c['contact_person'] ?? '') ?>"
+                                            data-contact="<?= htmlspecialchars($contactName) ?>"
                                             data-mobile="<?= htmlspecialchars($c['mobile'] ?? '') ?>"
                                             data-gstin="<?= htmlspecialchars($c['gstin'] ?? '') ?>"
                                             data-pan="<?= htmlspecialchars($c['pan_no'] ?? '') ?>"
-                                            data-address="<?= htmlspecialchars(trim(($c['address_line1'] ?? '') . "\n" . ($c['address_line2'] ?? '') . "\n" . ($c['city'] ?? '') . ', ' . ($c['state'] ?? '') . ' - ' . ($c['pincode'] ?? '') . "\n" . ($c['country'] ?? 'India'))) ?>">
+                                            data-billing-address="<?= htmlspecialchars($billingAddress) ?>"
+                                            data-shipping-address="<?= htmlspecialchars($shippingAddress) ?>"
+                                            data-billing-gstin="<?= htmlspecialchars($c['billing_gstin'] ?? '') ?>"
+                                            data-billing-pan="<?= htmlspecialchars($c['billing_pan'] ?? '') ?>"
+                                            data-billing-phone="<?= htmlspecialchars($c['billing_phone'] ?? '') ?>"
+                                            data-shipping-gstin="<?= htmlspecialchars($c['shipping_gstin'] ?? '') ?>"
+                                            data-shipping-pan="<?= htmlspecialchars($c['shipping_pan'] ?? '') ?>"
+                                            data-shipping-phone="<?= htmlspecialchars($c['shipping_phone'] ?? '') ?>">
                                             <?= htmlspecialchars($c['customer']) ?>
                                         </option>
                                     <?php endforeach; ?>
@@ -1278,7 +1507,7 @@ $popupCompany = !empty($existingOverride) ? array_merge($companyData, $existingO
                                 <label>Billing Address</label>
                                 <textarea class="form-control" name="billing_address" id="billing_address" style="height:52px;font-size:12px;padding:5px 8px"><?= $isEdit ? htmlspecialchars($editInvoice['billing_address'] ?? '') : '' ?></textarea>
                                 <div class="form-check" style="margin-top:3px">
-                                    <input class="form-check-input" type="checkbox" id="same_as_billing" checked>
+                                    <input class="form-check-input" type="checkbox" id="same_as_billing">
                                     <label class="form-check-label" for="same_as_billing" style="text-transform:none;letter-spacing:0;font-size:10px;color:#6b7280;font-weight:400">Same as Billing</label>
                                 </div>
                             </div>
@@ -1288,7 +1517,9 @@ $popupCompany = !empty($existingOverride) ? array_merge($companyData, $existingO
                             </div>
                         </div>
                         <input type="hidden" name="billing_gstin" id="billing_gstin" value="<?= $isEdit ? htmlspecialchars($editInvoice['billing_gstin'] ?? '') : '' ?>">
+                        <input type="hidden" name="billing_pan" id="billing_pan" value="<?= $isEdit ? htmlspecialchars($editInvoice['billing_pan'] ?? '') : '' ?>">
                         <input type="hidden" name="ship_gstin" id="ship_gstin" value="<?= $isEdit ? htmlspecialchars($editInvoice['ship_gstin'] ?? '') : '' ?>">
+                        <input type="hidden" name="ship_pan" id="ship_pan" value="<?= $isEdit ? htmlspecialchars($editInvoice['ship_pan'] ?? '') : '' ?>">
                         <input type="hidden" name="billing_phone" id="billing_phone" value="<?= $isEdit ? htmlspecialchars($editInvoice['billing_phone'] ?? '') : '' ?>">
                         <input type="hidden" name="ship_phone_num" id="ship_phone_num" value="<?= $isEdit ? htmlspecialchars($editInvoice['ship_phone_num'] ?? '') : '' ?>">
                     </div>
@@ -1337,7 +1568,7 @@ $popupCompany = !empty($existingOverride) ? array_merge($companyData, $existingO
                                 <select name="bank_id" id="bank_select" class="form-select" style="font-size:13px;padding:5px 8px">
                                     <option value="">-- Select Bank --</option>
                                     <?php foreach ($banks as $bank): ?>
-                                        <option value="<?= $bank['id']; ?>" <?= ($isEdit && (string)($editInvoice['bank_id'] ?? '') === (string)$bank['id']) ? 'selected' : '' ?>><?= htmlspecialchars($bank['bank_name']); ?></option>
+                                        <option value="<?= $bank['id']; ?>" <?= ($isEdit && (string)($editInvoice['bank_id'] ?? '') === (string)$bank['id']) ? 'selected' : '' ?>><?= htmlspecialchars($bank['bank_name'] . (!empty($bank['branch']) ? ' - ' . $bank['branch'] : '')); ?></option>
                                     <?php endforeach; ?>
                                 </select>
                                 <button type="button" style="width:32px;height:34px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;border-radius:7px;font-size:14px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center" data-bs-toggle="modal" data-bs-target="#addBankModal" title="Add Bank"><i class="fas fa-plus"></i></button>
@@ -1403,10 +1634,6 @@ $popupCompany = !empty($existingOverride) ? array_merge($companyData, $existingO
                         <button type="button" class="btn-add-item" data-bs-toggle="modal"
                             data-bs-target="#selectItemModal">
                             <i class="fas fa-plus"></i> Add Item
-                        </button>
-                        <button type="button" class="btn-add-item" onclick="goAddStock()"
-                            style="background:linear-gradient(135deg,#f97316,#fb923c);border:none;cursor:pointer;">
-                            <i class="fas fa-boxes"></i> Add Stock
                         </button>
                     </div>
                 </div>
@@ -1627,90 +1854,38 @@ function toggleRoundOff() {
                 <div class="modal-content"
                     style="border:none;border-radius:18px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.18);">
 
-                    <!-- Header -->
-                    <div
-                        style="background:#fff;padding:20px 24px 14px;border-bottom:1.5px solid #f0f2f8;display:flex;align-items:center;justify-content:space-between;">
-                        <div style="display:flex;align-items:center;gap:12px;">
-                            <div
-                                style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#16a34a,#4ade80);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;">
-                                <i class="fas fa-boxes"></i>
+                    <div class="modal-header-box" style="padding:18px 22px;">
+                        <h3><i class="fas fa-boxes" style="color:#f97316;margin-right:6px"></i>Item Library</h3>
+                        <button class="modal-close-btn" type="button" data-bs-dismiss="modal">✕</button>
+                    </div>
+                    <div class="modal-search-wrap" style="padding:14px 18px;border-top:1px solid #f0f2f7;border-bottom:1px solid #f0f2f7;background:#fafbfd;">
+                        <input class="modal-search-inp" id="itemSearch" type="text" placeholder="Search by name or HSN...">
+                    </div>
+                    <div id="itemSelectList" style="max-height:380px;overflow-y:auto;border-top:1px solid #f0f2f7">
+                        <?php foreach ($masterItems as $item): ?>
+                            <?php
+                            $parts = [];
+                            if (!empty($item['uom'])) $parts[] = $item['uom'];
+                            if (!empty($item['hsn_sac'])) $parts[] = 'HSN: ' . $item['hsn_sac'];
+                            if ((float) ($item['unit_price'] ?? 0) > 0) $parts[] = 'Rs ' . number_format((float) $item['unit_price'], 2);
+                            $subline = implode(' | ', $parts);
+                            ?>
+                            <div class="sp-item item-popup-row"
+                                data-search="<?= htmlspecialchars(strtolower(trim(($item['service_code'] ?? '') . ' ' . ($item['item_name'] ?? '') . ' ' . ($item['material_description'] ?? '') . ' ' . ($item['hsn_sac'] ?? '')))) ?>"
+                                onclick='selectItem(<?= (int) $item['id'] ?>, <?= htmlspecialchars(json_encode($item['service_code'] ?? ''), ENT_QUOTES) ?>, <?= htmlspecialchars(json_encode($item['item_name'] ?? ''), ENT_QUOTES) ?>, <?= htmlspecialchars(json_encode($item['hsn_sac'] ?? ''), ENT_QUOTES) ?>, <?= htmlspecialchars(json_encode($item['uom'] ?? ''), ENT_QUOTES) ?>, <?= (float) ($item['unit_price'] ?? 0) ?>, <?= htmlspecialchars(json_encode($item['material_description'] ?? ''), ENT_QUOTES) ?>)'
+                                style="cursor:pointer;">
+                                <div class="sp-item-name"><?= htmlspecialchars($item['item_name'] ?? '') ?></div>
+                                <div class="sp-item-sub">
+                                    <?= htmlspecialchars($subline) ?>
+                                    <?= !empty($item['service_code']) ? ' | Code: ' . htmlspecialchars($item['service_code']) : '' ?>
+                                </div>
                             </div>
-                            <div>
-                                <div
-                                    style="font-size:15px;font-weight:800;color:#1a1f2e;font-family:'Times New Roman',serif;">
-                                    Select Item</div>
-                                <div style="font-size:11px;color:#9ca3af;font-family:'Times New Roman',serif;">Click any
-                                    row to add it to the invoice</div>
-                            </div>
-                        </div>
-                        <button type="button" data-bs-dismiss="modal"
-                            style="width:32px;height:32px;border-radius:50%;border:none;background:#f4f6fb;color:#6b7280;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s"
-                            onmouseenter="this.style.background='#fef2f2';this.style.color='#dc2626'"
-                            onmouseleave="this.style.background='#f4f6fb';this.style.color='#6b7280'">&#10005;</button>
+                        <?php endforeach; ?>
+                        <div id="itemNoResult" class="sp-empty" style="display:none;">No items found.</div>
                     </div>
-
-                    <!-- Search -->
-                    <div style="padding:14px 24px;background:#fafbfd;border-bottom:1px solid #f0f2f8;">
-                        <div style="position:relative;">
-                            <i class="fas fa-search"
-                                style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:13px;"></i>
-                            <input type="text" id="itemSearch" placeholder="Search by code or description..." autofocus
-                                style="width:100%;padding:9px 14px 9px 36px;border:1.5px solid #e4e8f0;border-radius:10px;font-size:13px;font-family:'Times New Roman',serif;outline:none;background:#fff;color:#1a1f2e;transition:border-color .2s;"
-                                onfocus="this.style.borderColor='#16a34a'" onblur="this.style.borderColor='#e4e8f0'">
-                        </div>
-                    </div>
-
-                    <!-- Table -->
-                    <div style="max-height:380px;overflow-y:auto;padding:8px 0;">
-                        <!-- Column headers -->
-                        <div
-                            style="display:grid;grid-template-columns:140px 1fr;padding:6px 24px;background:#f8fafc;border-bottom:1px solid #f0f2f8;">
-                            <div
-                                style="font-size:10px;font-weight:800;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;">
-                                Service Code</div>
-                            <div
-                                style="font-size:10px;font-weight:800;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;">
-                                Description</div>
-                        </div>
-                        <table style="width:100%;border-collapse:collapse;" id="itemListBody">
-                            <?php foreach ($masterItems as $item): ?>
-                                <tr class="item-row"
-                                    style="cursor:pointer;border-bottom:1px solid #f4f6fb;transition:background .12s;"
-                                    onclick='selectItem(<?= (int) $item['id'] ?>, <?= htmlspecialchars(json_encode($item['service_code'] ?? ''), ENT_QUOTES) ?>, <?= htmlspecialchars(json_encode($item['item_name'] ?? ''), ENT_QUOTES) ?>, <?= htmlspecialchars(json_encode($item['hsn_sac'] ?? ''), ENT_QUOTES) ?>, <?= htmlspecialchars(json_encode($item['uom'] ?? ''), ENT_QUOTES) ?>, <?= (float) ($item['unit_price'] ?? 0) ?>, <?= htmlspecialchars(json_encode($item['material_description'] ?? ''), ENT_QUOTES) ?>)'
-                                    onmouseenter="this.style.background='#f0fdf4'" onmouseleave="this.style.background=''">
-                                    <td style="padding:11px 24px;width:140px;vertical-align:top;">
-                                        <span
-                                            style="display:inline-block;background:#dcfce7;color:#16a34a;padding:3px 10px;border-radius:8px;font-size:11px;font-weight:700;font-family:'Times New Roman',serif;">
-                                            <?= htmlspecialchars($item['service_code']) ?>
-                                        </span>
-                                    </td>
-                                    <td
-                                        style="padding:11px 24px 11px 0;color:#374151;font-size:13px;font-family:'Times New Roman',serif;vertical-align:top;line-height:1.4;">
-                                        <?= nl2br(htmlspecialchars($item['item_name'])) ?>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </table>
-                        <div id="itemNoResult"
-                            style="display:none;text-align:center;padding:32px;color:#9ca3af;font-family:'Times New Roman',serif;font-size:13px;">
-                            <i class="fas fa-search"
-                                style="font-size:28px;margin-bottom:10px;display:block;opacity:.3"></i>
-                            No items match your search
-                        </div>
-                    </div>
-
-                    <!-- Footer -->
-                    <div
-                        style="padding:12px 24px;border-top:1.5px solid #f0f2f8;display:flex;justify-content:space-between;align-items:center;background:#fafbfd;">
-                        <span id="itemCount" style="font-size:11px;color:#9ca3af;font-family:'Times New Roman',serif;">
-                            <?= count($masterItems) ?> items available
-                        </span>
-                        <button type="button" data-bs-dismiss="modal"
-                            style="padding:8px 20px;border-radius:10px;border:1.5px solid #e4e8f0;background:#fff;color:#6b7280;font-size:12px;font-weight:700;font-family:'Times New Roman',serif;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s;"
-                            onmouseenter="this.style.background='#fef2f2';this.style.color='#dc2626';this.style.borderColor='#fca5a5'"
-                            onmouseleave="this.style.background='#fff';this.style.color='#6b7280';this.style.borderColor='#e4e8f0'">
-                            <i class="fas fa-times"></i> Close
-                        </button>
+                    <div class="modal-footer-box" style="justify-content:space-between;padding:14px 18px;background:#fafbfd;border-top:1px solid #f0f2f7;">
+                        <button type="button" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#1a2940;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit" onclick="bootstrap.Modal.getOrCreateInstance(document.getElementById('selectItemModal')).hide(); goAddStock();"><i class="fas fa-plus"></i> Create New Item</button>
+                        <button type="button" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit" data-bs-dismiss="modal"><i class="fas fa-check"></i> Done</button>
                     </div>
                 </div>
             </div>
@@ -1765,29 +1940,62 @@ function toggleRoundOff() {
                 $('#customer_hidden').val(selected.val() || '');
 
                 if (!selected.val()) {
-                    $('#contact_person, #mobile, #gstin, #pan, #billing_gstin, #billing_phone, #billing_address, #shipping_address, #ship_gstin, #ship_phone_num').val('');
+                    $('#contact_person, #mobile, #gstin, #pan, #billing_gstin, #billing_pan, #billing_phone, #billing_address, #shipping_address, #ship_gstin, #ship_pan, #ship_phone_num').val('');
+                    $('#same_as_billing').prop('checked', false);
+                    lockShippingFields(false);
                     return;
                 }
 
                 $('#contact_person').val(selected.data('contact'));
                 $('#mobile').val(selected.data('mobile'));
                 $('#gstin').val(selected.data('gstin'));
-                $('#billing_gstin').val(selected.data('gstin'));
-                $('#billing_phone').val(selected.data('mobile'));
+                $('#billing_gstin').val(selected.data('billing-gstin') || selected.data('gstin'));
+                $('#billing_pan').val((selected.data('billing-pan') || selected.data('pan') || '').toUpperCase());
+                $('#billing_phone').val(selected.data('billing-phone') || selected.data('mobile'));
                 $('#pan').val((selected.data('pan') || '').toUpperCase());
-                $('#ship_gstin').val(selected.data('gstin'));
-                $('#ship_phone_num').val(selected.data('mobile'));
 
-                const addr = selected.data('address') || '';
-                $('#billing_address').val(addr);
-                if ($('#same_as_billing').is(':checked')) {
-                    $('#shipping_address').val(addr);
+                const billingAddress = (selected.data('billing-address') || '').trim();
+                const shippingAddress = (selected.data('shipping-address') || '').trim();
+                const shippingGstin = (selected.data('shipping-gstin') || '').trim();
+                const shippingPan = (selected.data('shipping-pan') || '').trim();
+                const shippingPhone = (selected.data('shipping-phone') || '').trim();
+                const hasSeparateShipping = shippingAddress !== '' || shippingGstin !== '' || shippingPan !== '' || shippingPhone !== '';
+
+                $('#billing_address').val(composeAddressBlock(billingAddress, $('#billing_gstin').val(), $('#billing_pan').val(), $('#billing_phone').val()));
+
+                if (hasSeparateShipping) {
+                    $('#same_as_billing').prop('checked', false);
+                    lockShippingFields(false);
+                    $('#ship_gstin').val(shippingGstin || $('#billing_gstin').val());
+                    $('#ship_pan').val((shippingPan || $('#billing_pan').val()).toUpperCase());
+                    $('#ship_phone_num').val(shippingPhone || $('#billing_phone').val());
+                    $('#shipping_address').val(composeAddressBlock(shippingAddress, $('#ship_gstin').val(), $('#ship_pan').val(), $('#ship_phone_num').val()));
+                } else {
+                    $('#same_as_billing').prop('checked', false);
+                    $('#shipping_address').val('');
+                    $('#ship_gstin').val('');
+                    $('#ship_pan').val('');
+                    $('#ship_phone_num').val('');
+                    lockShippingFields(false);
                 }
             });
 
             // ── Same As Billing: full sync (address + gstin + phone) ──────────────────
+            function composeAddressBlock(address, gstin, pan, phone) {
+                const lines = String(address || '')
+                    .split(/\r?\n/)
+                    .map(function (line) { return line.trim(); })
+                    .filter(Boolean);
+
+                if (gstin) lines.push('GSTIN: ' + String(gstin).trim().toUpperCase());
+                if (pan) lines.push('PAN: ' + String(pan).trim().toUpperCase());
+                if (phone) lines.push('Phone: ' + String(phone).trim());
+
+                return lines.join('\n');
+            }
+
             function lockShippingFields(lock) {
-                const shippingFields = ['#shipping_address', '#ship_gstin', '#ship_phone_num'];
+                const shippingFields = ['#shipping_address', '#ship_gstin', '#ship_pan', '#ship_phone_num'];
                 shippingFields.forEach(function (sel) {
                     const el = $(sel);
                     if (lock) {
@@ -1801,8 +2009,9 @@ function toggleRoundOff() {
             }
 
             function syncShippingFromBilling() {
-                $('#shipping_address').val($('#billing_address').val());
+                $('#shipping_address').val(composeAddressBlock($('#billing_address').val(), $('#billing_gstin').val(), $('#billing_pan').val(), $('#billing_phone').val()));
                 $('#ship_gstin').val($('#billing_gstin').val());
+                $('#ship_pan').val($('#billing_pan').val());
                 $('#ship_phone_num').val($('#billing_phone').val());
             }
 
@@ -1814,22 +2023,37 @@ function toggleRoundOff() {
                     lockShippingFields(false);
                     $('#shipping_address').css({ 'background': '', 'border-color': '', 'color': '' });
                     $('#ship_gstin').css({ 'background': '', 'border-color': '', 'color': '' });
+                    $('#ship_pan').css({ 'background': '', 'border-color': '', 'color': '' });
                     $('#ship_phone_num').css({ 'background': '', 'border-color': '', 'color': '' });
                 }
             });
 
             // Live sync when billing fields change and checkbox is checked
             $('#billing_address').on('input', function () {
-                if ($('#same_as_billing').is(':checked')) $('#shipping_address').val(this.value);
+                if ($('#same_as_billing').is(':checked')) {
+                    $('#shipping_address').val(composeAddressBlock(this.value, $('#billing_gstin').val(), $('#billing_pan').val(), $('#billing_phone').val()));
+                }
             });
             $('#billing_gstin').on('input', function () {
-                if ($('#same_as_billing').is(':checked')) $('#ship_gstin').val(this.value.toUpperCase());
+                if ($('#same_as_billing').is(':checked')) {
+                    $('#ship_gstin').val(this.value.toUpperCase());
+                    $('#shipping_address').val(composeAddressBlock($('#billing_address').val(), this.value, $('#billing_pan').val(), $('#billing_phone').val()));
+                }
+            });
+            $('#billing_pan').on('input', function () {
+                if ($('#same_as_billing').is(':checked')) {
+                    $('#ship_pan').val(this.value.toUpperCase());
+                    $('#shipping_address').val(composeAddressBlock($('#billing_address').val(), $('#billing_gstin').val(), this.value, $('#billing_phone').val()));
+                }
             });
             $('#billing_phone').on('input', function () {
-                if ($('#same_as_billing').is(':checked')) $('#ship_phone_num').val(this.value);
+                if ($('#same_as_billing').is(':checked')) {
+                    $('#ship_phone_num').val(this.value);
+                    $('#shipping_address').val(composeAddressBlock($('#billing_address').val(), $('#billing_gstin').val(), $('#billing_pan').val(), this.value));
+                }
             });
 
-            // Run lock on page load (checkbox starts checked)
+            // Run lock on page load only if user has enabled same-as-billing
             $(document).ready(function () {
                 if ($('#same_as_billing').is(':checked')) lockShippingFields(true);
             });
@@ -1938,9 +2162,6 @@ function toggleRoundOff() {
     `;
 
                 tbody.appendChild(row);
-                const modalEl = document.getElementById('selectItemModal');
-                const modal = bootstrap.Modal.getInstance(modalEl);
-                if (modal) modal.hide();
                 updateRow(row);
                 updateTotals();
             }
@@ -1957,15 +2178,14 @@ function toggleRoundOff() {
             document.getElementById('itemSearch')?.addEventListener('keyup', function () {
                 const query = this.value.toLowerCase();
                 let visible = 0;
-                document.querySelectorAll('#itemListBody .item-row').forEach(row => {
-                    const show = row.textContent.toLowerCase().includes(query);
+                document.querySelectorAll('#itemSelectList .item-popup-row').forEach(row => {
+                    const haystack = (row.getAttribute('data-search') || row.textContent || '').toLowerCase();
+                    const show = haystack.includes(query);
                     row.style.display = show ? '' : 'none';
                     if (show) visible++;
                 });
                 const noResult = document.getElementById('itemNoResult');
-                const countEl = document.getElementById('itemCount');
                 if (noResult) noResult.style.display = visible === 0 ? 'block' : 'none';
-                if (countEl) countEl.textContent = visible + ' item' + (visible !== 1 ? 's' : '') + (query ? ' found' : ' available');
             });
 
             function handleGstInput(input) {
@@ -2099,7 +2319,8 @@ function toggleRoundOff() {
                             if (data.status === "success") {
 
                                 // Add new bank to dropdown
-                                let option = new Option(data.bank_name, data.id, true, true);
+                                const branch = (form.querySelector('[name=\"branch\"]')?.value || '').trim();
+                                let option = new Option(data.bank_name + (branch ? ' - ' + branch : ''), data.id, true, true);
                                 select.add(option);
 
                                 // Properly close modal
@@ -2302,6 +2523,22 @@ function toggleRoundOff() {
                 try { sessionStorage.removeItem(DRAFT_KEY); } catch (e) { }
             }
 
+            function addReturnedStockFromQuery() {
+                var params = new URLSearchParams(window.location.search);
+                var itemId = params.get('_new_item_id');
+                if (!itemId) return;
+
+                selectItem(
+                    parseInt(itemId, 10) || 0,
+                    params.get('_new_item_code') || '',
+                    params.get('_new_item_name') || '',
+                    params.get('_new_item_hsn') || '',
+                    params.get('_new_item_uom') || '',
+                    parseFloat(params.get('_new_item_rate') || '0') || 0,
+                    params.get('_new_item_desc') || ''
+                );
+            }
+
             function goAddStock() {
                 saveFormDraft();
                 window.location.href = 'add_stock.php?_from=create_invoice<?= $isEdit ? "&edit_id=$editId" : "" ?>';
@@ -2318,7 +2555,9 @@ function toggleRoundOff() {
                     var tries = 0, iv = setInterval(function () {
                         tries++;
                         if ((window.$ && $('#customer_select').data('select2')) || tries > 20) {
-                            clearInterval(iv); restoreFormDraft();
+                            clearInterval(iv);
+                            restoreFormDraft();
+                            addReturnedStockFromQuery();
                         }
                     }, 100);
                 }
