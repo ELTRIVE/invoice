@@ -10,17 +10,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
 }
 
 // Pagination
+$_q = trim((string)($_GET['q'] ?? ''));
 $_perPageRaw = isset($_GET['per_page']) ? (int)$_GET['per_page'] : 10;
 $perPage = in_array($_perPageRaw, [10,25,50,100]) ? $_perPageRaw : 10;
 $page = max(1, (int)($_GET['page'] ?? 1));
-$totalItems = (int)$pdo->query("SELECT COUNT(*) FROM items")->fetchColumn();
+$where = '';
+$params = [];
+if ($_q !== '') {
+    $where = "WHERE hsn_sac LIKE :q OR item_name LIKE :q OR material_description LIKE :q OR uom LIKE :q";
+    $params[':q'] = '%' . $_q . '%';
+}
+$countStmt = $pdo->prepare("SELECT COUNT(*) FROM items $where");
+$countStmt->execute($params);
+$totalItems = (int)$countStmt->fetchColumn();
 $totalPages = max(1, ceil($totalItems / $perPage));
 $page = min($page, $totalPages);
 $offset = ($page - 1) * $perPage;
 
 // Fetch paginated items
-$stmt = $pdo->prepare("SELECT * FROM items ORDER BY id DESC LIMIT $perPage OFFSET $offset");
-$stmt->execute();
+$stmt = $pdo->prepare("SELECT * FROM items $where ORDER BY id DESC LIMIT $perPage OFFSET $offset");
+$stmt->execute($params);
 $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // All items for summary totals
@@ -39,25 +48,8 @@ $allItems = $pdo->query("SELECT total, qty FROM items")->fetchAll(PDO::FETCH_ASS
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f8;color:#1a1f2e;font-size:13px;}
 .content{margin-left:220px;padding:58px 18px 6px 18px;min-height:100vh;display:flex;flex-direction:column;background:#f0f2f8}
 
-/* PAGE HEADER */
-.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
-.page-header-left{display:flex;align-items:center;gap:10px}
-.page-icon{width:34px;height:34px;background:linear-gradient(135deg,#f97316,#fb923c);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;box-shadow:0 2px 8px rgba(249,115,22,.3);flex-shrink:0}
-.page-title{font-size:14px;font-weight:800;color:#1a1f2e;line-height:1.2}
-.page-sub{font-size:11px;color:#9ca3af;margin-top:1px}
-
-/* BUTTONS */
 .btn-add{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;text-decoration:none;cursor:pointer;transition:all .2s;box-shadow:0 2px 8px rgba(249,115,22,.25)}
 .btn-add:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(249,115,22,.35)}
-.btn-back{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;background:#fff;border:1.5px solid #e4e8f0;border-radius:7px;font-size:12px;font-weight:600;color:#374151;text-decoration:none;transition:all .2s;margin-right:6px}
-.btn-back:hover{border-color:#f97316;color:#f97316;background:#fff7f0}
-
-/* SUMMARY CARDS */
-.summary-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:nowrap}
-.summary-card{background:#fff;border-radius:8px;border:1px solid #e8ecf4;padding:4px 12px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
-.summary-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;flex-shrink:0}
-.summary-num{font-size:13px;font-weight:800;color:#1a1f2e;line-height:1.2}
-.summary-label{font-size:10px;color:#9ca3af;margin-top:1px;text-transform:uppercase;letter-spacing:.5px}
 
 /* TABLE CARD */
 .table-card{background:#fff;border-radius:10px;border:1px solid #e8ecf4;box-shadow:0 1px 4px rgba(0,0,0,.04);overflow:hidden;flex:1;display:flex;flex-direction:column;}
@@ -74,13 +66,13 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f8;color:#1a1f2
 .show-entries select:focus{border-color:#f97316}
 
 /* TABLE */
-.table-wrap{overflow-x:auto;flex:1}
-table{width:100%;border-collapse:collapse;font-size:12px}
+.table-wrap{overflow-x:hidden;flex:1}
+table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
 thead tr{background:#fff7f0}
-th{padding:4px 8px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#f97316;border-bottom:2px solid #fed7aa;white-space:nowrap;cursor:pointer;user-select:none}
+th{padding:4px 5px;text-align:left;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#f97316;border-bottom:2px solid #fed7aa;white-space:nowrap;cursor:pointer;user-select:none}
 th:hover{background:#ffeedd;color:#ea6c00}
 .sort-icon{font-size:9px;opacity:.5;margin-left:2px}
-td{padding:4px 8px;border-bottom:1px solid #f1f5f9;color:#374151;vertical-align:middle}
+td{padding:4px 5px;border-bottom:1px solid #f1f5f9;color:#374151;vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 tr:last-child td{border-bottom:none}
 tbody tr:hover td{background:#fff7f0}
 
@@ -98,6 +90,7 @@ tbody tr:hover td{background:#fff7f0}
 .btn-delete{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;color:#dc2626;cursor:pointer;font-size:11px;transition:all .2s}
 .btn-delete:hover{background:#dc2626;color:#fff}
 .action-cell{display:flex;gap:4px;align-items:center}
+.col-item,.col-desc{white-space:normal;overflow:visible;text-overflow:clip}
 
 /* EMPTY STATE */
 .empty-state{text-align:center;padding:40px 20px;color:#9ca3af}
@@ -114,7 +107,7 @@ tbody tr:hover td{background:#fff7f0}
 .pagination span.disabled{border-color:#e4e8f0;color:#d1d5db;background:#fafafa;cursor:default}
 
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-thumb{background:#e2e8f0;border-radius:99px}
-@media(max-width:768px){.content{margin-left:0;padding:60px 10px 16px}.summary-row{grid-template-columns:1fr}}
+@media(max-width:768px){.content{margin-left:0;padding:60px 10px 16px}}
 </style>
 </head>
 <body>
@@ -124,67 +117,6 @@ tbody tr:hover td{background:#fff7f0}
 
 <div class="content">
 
-    <!-- TOP ROW: Header + Summary Cards + Per Page + Buttons -->
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:nowrap">
-        <!-- Page Icon + Title -->
-        <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
-            <div class="page-icon"><i class="fas fa-boxes"></i></div>
-            <div>
-                <div class="page-title">Items List</div>
-                <div class="page-sub">Manage all inventory items</div>
-            </div>
-        </div>
-
-        <!-- Summary Cards -->
-        <div class="summary-card" style="flex-shrink:0">
-            <div class="summary-icon" style="background:linear-gradient(135deg,#f97316,#fb923c)">
-                <i class="fas fa-boxes"></i>
-            </div>
-            <div>
-                <div class="summary-num"><?= $totalItems ?></div>
-                <div class="summary-label">Total Items</div>
-            </div>
-        </div>
-        <div class="summary-card" style="flex-shrink:0">
-            <div class="summary-icon" style="background:linear-gradient(135deg,#3b82f6,#2563eb)">
-                <i class="fas fa-rupee-sign"></i>
-            </div>
-            <div>
-                <div class="summary-num">₹<?= number_format(array_sum(array_column($allItems, 'total')), 2) ?></div>
-                <div class="summary-label">Total Value</div>
-            </div>
-        </div>
-        <div class="summary-card" style="flex-shrink:0">
-            <div class="summary-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
-                <i class="fas fa-cubes"></i>
-            </div>
-            <div>
-                <div class="summary-num"><?= number_format(array_sum(array_column($allItems, 'qty')), 0) ?></div>
-                <div class="summary-label">Total Qty</div>
-            </div>
-        </div>
-
-        <!-- Per Page -->
-        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;flex-shrink:0">Show
-            <select id="perPageSelect" onchange="changePerPage(this.value)" style="padding:3px 6px;border:1.5px solid #e4e8f0;border-radius:6px;font-size:12px;font-family:inherit;cursor:pointer;background:#fff;color:#374151;outline:none">
-                <option value="10" <?= $perPage==10?'selected':'' ?>>10</option>
-                <option value="25" <?= $perPage==25?'selected':'' ?>>25</option>
-                <option value="50" <?= $perPage==50?'selected':'' ?>>50</option>
-                <option value="100" <?= $perPage==100?'selected':'' ?>>100</option>
-            </select>
-            entries
-        </div>
-
-        <!-- Spacer -->
-        <div style="flex:1"></div>
-
-        <!-- Buttons -->
-        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-            <a href="javascript:history.back()" class="btn-back"><i class="fas fa-arrow-left"></i> Back</a>
-            <a href="add_stock.php" class="btn-add"><i class="fas fa-plus"></i> Add Item</a>
-        </div>
-    </div>
-
     <!-- TABLE CARD -->
     <div class="table-card">
         <div class="table-card-header">
@@ -193,7 +125,23 @@ tbody tr:hover td{background:#fff7f0}
         </div>
 
         <div class="controls-row">
-            <input type="text" class="search-input" id="searchInput" placeholder="Search by code, name, HSN…">
+            <form method="get" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <input id="searchInput" class="search-input" type="text" name="q" placeholder="Search by name, HSN, description…" value="<?= htmlspecialchars($_q) ?>">
+                <input type="hidden" name="per_page" value="<?= $perPage ?>">
+                <button type="submit" style="display:none"></button>
+            </form>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <div class="show-entries">Show
+                    <select id="perPageSelect" onchange="changePerPage(this.value)">
+                        <option value="10" <?= $perPage==10?'selected':'' ?>>10</option>
+                        <option value="25" <?= $perPage==25?'selected':'' ?>>25</option>
+                        <option value="50" <?= $perPage==50?'selected':'' ?>>50</option>
+                        <option value="100" <?= $perPage==100?'selected':'' ?>>100</option>
+                    </select>
+                    entries
+                </div>
+                <a href="add_stock.php" class="btn-add"><i class="fas fa-plus"></i> Add Item</a>
+            </div>
         </div>
 
         <div class="table-wrap">
@@ -204,30 +152,42 @@ tbody tr:hover td{background:#fff7f0}
             </div>
             <?php else: ?>
             <table id="itemsTable">
+                <colgroup>
+                    <col style="width:7%">
+                    <col style="width:16%">
+                    <col style="width:20%">
+                    <col style="width:5%">
+                    <col style="width:5%">
+                    <col style="width:7%">
+                    <col style="width:6%">
+                    <col style="width:5%">
+                    <col style="width:5%">
+                    <col style="width:5%">
+                    <col style="width:8%">
+                    <col style="width:4%">
+                </colgroup>
                 <thead>
                     <tr>
-                        <th onclick="sortTable(0)" style="cursor:pointer;user-select:none">Service Code <span class="sort-icon" data-col="0">⇅</span></th>
-                        <th onclick="sortTable(1)" style="cursor:pointer;user-select:none">HSN/SAC <span class="sort-icon" data-col="1">⇅</span></th>
-                        <th onclick="sortTable(2)" style="cursor:pointer;user-select:none">Item name <span class="sort-icon" data-col="2">⇅</span></th>
-                        <th onclick="sortTable(3)" style="cursor:pointer;user-select:none">Description <span class="sort-icon" data-col="3">⇅</span></th>
-                        <th onclick="sortTable(4)" style="cursor:pointer;user-select:none">UOM <span class="sort-icon" data-col="4">⇅</span></th>
-                        <th onclick="sortTable(5)" style="cursor:pointer;user-select:none">Qty <span class="sort-icon" data-col="5">⇅</span></th>
-                        <th onclick="sortTable(6)" style="cursor:pointer;user-select:none">Unit Price <span class="sort-icon" data-col="6">⇅</span></th>
-                        <th onclick="sortTable(7)" style="cursor:pointer;user-select:none">Discount% <span class="sort-icon" data-col="7">⇅</span></th>
-                        <th onclick="sortTable(8)" style="cursor:pointer;user-select:none">SGST% <span class="sort-icon" data-col="8">⇅</span></th>
-                        <th onclick="sortTable(9)" style="cursor:pointer;user-select:none">CGST% <span class="sort-icon" data-col="9">⇅</span></th>
-                        <th onclick="sortTable(10)" style="cursor:pointer;user-select:none">IGST% <span class="sort-icon" data-col="10">⇅</span></th>
-                        <th onclick="sortTable(11)" style="cursor:pointer;user-select:none">Total <span class="sort-icon" data-col="11">⇅</span></th>
+                        <th onclick="sortTable(0)" style="cursor:pointer;user-select:none">HSN/SAC <span class="sort-icon" data-col="0">⇅</span></th>
+                        <th onclick="sortTable(1)" style="cursor:pointer;user-select:none">Item name <span class="sort-icon" data-col="1">⇅</span></th>
+                        <th onclick="sortTable(2)" style="cursor:pointer;user-select:none">Description <span class="sort-icon" data-col="2">⇅</span></th>
+                        <th onclick="sortTable(3)" style="cursor:pointer;user-select:none">UOM <span class="sort-icon" data-col="3">⇅</span></th>
+                        <th onclick="sortTable(4)" style="cursor:pointer;user-select:none">Qty <span class="sort-icon" data-col="4">⇅</span></th>
+                        <th onclick="sortTable(5)" style="cursor:pointer;user-select:none">Unit Price <span class="sort-icon" data-col="5">⇅</span></th>
+                        <th onclick="sortTable(6)" style="cursor:pointer;user-select:none">Discount% <span class="sort-icon" data-col="6">⇅</span></th>
+                        <th onclick="sortTable(7)" style="cursor:pointer;user-select:none">SGST% <span class="sort-icon" data-col="7">⇅</span></th>
+                        <th onclick="sortTable(8)" style="cursor:pointer;user-select:none">CGST% <span class="sort-icon" data-col="8">⇅</span></th>
+                        <th onclick="sortTable(9)" style="cursor:pointer;user-select:none">IGST% <span class="sort-icon" data-col="9">⇅</span></th>
+                        <th onclick="sortTable(10)" style="cursor:pointer;user-select:none">Total <span class="sort-icon" data-col="10">⇅</span></th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
                 <?php foreach ($items as $i => $item): ?>
                 <tr>
-                    <td><span class="badge badge-code"><?= htmlspecialchars($item['service_code'] ?? '-') ?></span></td>
                     <td><span class="badge badge-hsn"><?= htmlspecialchars($item['hsn_sac'] ?? '-') ?></span></td>
-                    <td style="max-width:220px;white-space:normal"><?= htmlspecialchars($item['item_name'] ?? '-') ?></td>
-                    <td style="font-weight:400;color:#1a1f2e"><?= htmlspecialchars($item['material_description'] ?? '-') ?></td>
+                    <td class="col-item"><?= htmlspecialchars($item['item_name'] ?? '-') ?></td>
+                    <td class="col-desc" style="font-weight:400;color:#1a1f2e"><?= htmlspecialchars($item['material_description'] ?? '-') ?></td>
                     <td><?= htmlspecialchars($item['uom'] ?? '-') ?></td>
                     <td><?= htmlspecialchars($item['qty'] ?? 0) ?></td>
                     <td class="amount-cell">₹<?= number_format($item['unit_price'] ?? 0, 2) ?></td>
@@ -285,14 +245,6 @@ tbody tr:hover td{background:#fff7f0}
 </div>
 
 <script>
-// Search
-document.getElementById('searchInput').addEventListener('input', function() {
-    const q = this.value.toLowerCase();
-    document.querySelectorAll('#itemsTable tbody tr').forEach(row => {
-        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
-    });
-});
-
 // Per-page
 function changePerPage(val) {
     const url = new URL(window.location.href);
@@ -329,6 +281,26 @@ function sortTable(col) {
     });
 
     rows.forEach(r => tbody.appendChild(r));
+}
+
+// Live global search (server-side across all pages)
+const searchInput = document.getElementById('searchInput');
+if (searchInput) {
+    let searchTimer;
+    const currentQ = new URL(window.location.href).searchParams.get('q') || '';
+    searchInput.addEventListener('input', function () {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+            const url = new URL(window.location.href);
+            const val = this.value.trim();
+            if (val === currentQ) return;
+            if (val) url.searchParams.set('q', val);
+            else url.searchParams.delete('q');
+            url.searchParams.set('per_page', document.getElementById('perPageSelect')?.value || '<?= $perPage ?>');
+            url.searchParams.set('page', '1');
+            window.location.href = url.toString();
+        }, 700);
+    });
 }
 </script>
 </body>

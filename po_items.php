@@ -194,13 +194,13 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f8;color:#1a1f2
 .search-input:focus{border-color:#f97316;background-color:#fff}
 .show-entries{display:flex;align-items:center;gap:6px;font-size:12px;color:#6b7280}
 .show-entries select{padding:4px 8px;border:1.5px solid #e4e8f0;border-radius:6px;font-size:12px;font-family:inherit;cursor:pointer;background:#fff;color:#374151;outline:none}
-.table-wrap{overflow-x:auto;flex:1}
-table{width:100%;border-collapse:collapse;font-size:12px}
+.table-wrap{overflow-x:hidden;flex:1}
+table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
 thead tr{background:#fff7f0}
-th{padding:4px 8px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#f97316;border-bottom:2px solid #fed7aa;white-space:nowrap;cursor:pointer;user-select:none}
+th{padding:4px 5px;text-align:left;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#f97316;border-bottom:2px solid #fed7aa;white-space:nowrap;cursor:pointer;user-select:none}
 th:hover{background:#ffeedd;color:#ea6c00}
 .sort-icon{font-size:9px;opacity:.5;margin-left:2px}
-td{padding:4px 8px;border-bottom:1px solid #f1f5f9;color:#374151;vertical-align:middle}
+td{padding:4px 5px;border-bottom:1px solid #f1f5f9;color:#374151;vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 tr:last-child td{border-bottom:none}
 tbody tr:hover td{background:#fff7f0}
 .amount-cell{font-weight:700;color:#15803d;font-variant-numeric:tabular-nums}
@@ -209,6 +209,7 @@ tbody tr:hover td{background:#fff7f0}
 .btn-delete{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;color:#dc2626;cursor:pointer;font-size:11px;transition:all .2s}
 .btn-delete:hover{background:#dc2626;color:#fff}
 .action-cell{display:flex;gap:4px;align-items:center}
+.col-item,.col-desc{white-space:normal;overflow:visible;text-overflow:clip}
 .pagination{display:flex;justify-content:center;align-items:center;gap:4px;padding:4px 0 2px}
 .pagination a,.pagination span{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 6px;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;border:1.5px solid #e4e8f0;color:#374151;background:#fff;transition:all .15s}
 .pagination a:hover{border-color:#f97316;color:#f97316;background:#fff7f0}
@@ -217,7 +218,7 @@ tbody tr:hover td{background:#fff7f0}
 .pagination span.disabled{border-color:#e4e8f0;color:#d1d5db;background:#fafafa;cursor:default}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center}
 .modal-overlay.show{display:flex}
-.modal-box{background:#fff;border-radius:12px;width:1080px;max-width:96vw;border:1px solid #e8ecf4;box-shadow:0 20px 60px rgba(0,0,0,.2);font-family:'Times New Roman',Times,serif}
+.modal-box{background:#fff;border-radius:12px;width:820px;max-width:94vw;border:1px solid #e8ecf4;box-shadow:0 20px 60px rgba(0,0,0,.2);font-family:'Times New Roman',Times,serif}
 .modal-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #f0f2f7;background:#fafbfd}
 .modal-title{font-size:13px;font-weight:800}
 .modal-close{border:1px solid #e4e8f0;background:#fff;border-radius:50%;width:30px;height:30px;cursor:pointer}
@@ -243,7 +244,7 @@ tbody tr:hover td{background:#fff7f0}
         </div>
         <div class="controls-row">
             <form method="get" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                <input class="search-input" type="text" name="q" placeholder="Search by item, description, HSN, unit, source..." value="<?= htmlspecialchars($_q) ?>">
+                <input id="searchInput" class="search-input" type="text" name="q" placeholder="Search by item, description, HSN, unit, source..." value="<?= htmlspecialchars($_q) ?>">
                 <input type="hidden" name="per_page" value="<?= $perPage ?>">
                 <button type="submit" style="display:none"></button>
             </form>
@@ -260,6 +261,18 @@ tbody tr:hover td{background:#fff7f0}
         </div>
         <div class="table-wrap">
             <table id="poItemsTable">
+                <colgroup>
+                    <col style="width:18%">
+                    <col style="width:24%">
+                    <col style="width:8%">
+                    <col style="width:7%">
+                    <col style="width:8%">
+                    <col style="width:7%">
+                    <col style="width:7%">
+                    <col style="width:7%">
+                    <col style="width:10%">
+                    <col style="width:4%">
+                </colgroup>
                 <thead>
                     <tr>
                         <th onclick="sortTable(0)">Item Name <span class="sort-icon" data-col="0">⇅</span></th>
@@ -277,8 +290,8 @@ tbody tr:hover td{background:#fff7f0}
                 <tbody>
                     <?php foreach ($items as $it): ?>
                     <tr>
-                        <td><?= htmlspecialchars((string)$it['item_name']) ?></td>
-                        <td><?= htmlspecialchars((string)($it['description'] ?? '')) ?></td>
+                        <td class="col-item"><?= htmlspecialchars((string)$it['item_name']) ?></td>
+                        <td class="col-desc"><?= htmlspecialchars((string)($it['description'] ?? '')) ?></td>
                         <td><?= htmlspecialchars((string)($it['hsn_sac'] ?? '')) ?></td>
                         <td><?= htmlspecialchars((string)($it['unit'] ?? '')) ?></td>
                         <td class="amount-cell">₹<?= number_format((float)($it['rate'] ?? 0), 2) ?></td>
@@ -433,6 +446,26 @@ function closeEditModal(){
 document.getElementById('editModal').addEventListener('click', function(e){
     if(e.target === this) closeEditModal();
 });
+
+// Live global search (server-side across all pages)
+const searchInput = document.getElementById('searchInput');
+if (searchInput) {
+    let searchTimer;
+    const currentQ = new URL(window.location.href).searchParams.get('q') || '';
+    searchInput.addEventListener('input', function () {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+            const url = new URL(window.location.href);
+            const val = this.value.trim();
+            if (val === currentQ) return;
+            if (val) url.searchParams.set('q', val);
+            else url.searchParams.delete('q');
+            url.searchParams.set('per_page', document.getElementById('perPageSelect')?.value || '<?= $perPage ?>');
+            url.searchParams.set('page', '1');
+            window.location.href = url.toString();
+        }, 700);
+    });
+}
 </script>
 </body>
 </html>

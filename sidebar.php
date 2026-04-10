@@ -278,7 +278,7 @@ body { font-family: 'Times New Roman', Times, serif !important; }
         </a>
 
         <a href="/invoice/po_items.php"
-           class="<?= in_array(basename($_SERVER['PHP_SELF']), ['po_items.php','edit_po_item.php'], true) ? 'active' : '' ?>">
+           class="<?= basename($_SERVER['PHP_SELF']) === 'po_items.php' ? 'active' : '' ?>">
             <i class="icon fas fa-box-open"></i>PO Items
         </a>
 
