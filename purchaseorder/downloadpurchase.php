@@ -290,20 +290,19 @@ if (!empty($po['shipping_phone'])) $shipping_info_html .= ' | Phone: ' . h($po['
 $item_rows_html = '';
 foreach ($calc as $i => $c) {
     $item = $c['item'];
-    $nm = '<strong>' . wrap_words_for_pdf($item['item_name'] ?? '', 2) . '</strong>';
-    if (!empty($item['description'])) $nm .= '<br><span style="font-size:7.5px;">' . nl2br(h($item['description'])) . '</span>';
+    $nm = '<div style="font-weight:600;font-size:9px;">' . h($item['item_name'] ?? '') . '</div>';
+    if (!empty($item['description'])) $nm .= '<div style="font-size:8px;color:#444;line-height:1.3;">' . nl2br(h($item['description'])) . '</div>';
     $item_rows_html .= '<tr>';
-    $item_rows_html .= '<td style="text-align:center;">' . ($i + 1) . '</td>';
+    $item_rows_html .= '<td class="right">' . ($i + 1) . '</td>';
+    $item_rows_html .= '<td>' . h($item['hsn_sac'] ?? '') . '</td>';
     $item_rows_html .= '<td class="desc">' . $nm . '</td>';
-    $item_rows_html .= '<td style="text-align:center;">' . number_format($c['qty'], 0) . '</td>';
     $item_rows_html .= '<td style="text-align:center;">' . h($item['unit'] ?? '') . '</td>';
+    $item_rows_html .= '<td class="right">' . number_format($c['qty'], 3) . '</td>';
     $item_rows_html .= '<td class="right">' . number_format($c['rate'], 2) . '</td>';
     $item_rows_html .= '<td class="right">' . number_format($c['taxable'], 2) . '</td>';
-    if ($has_tax) {
-        if ($tot_cgst > 0) $item_rows_html .= '<td class="right">' . number_format($c['cgst_a'], 2) . '</td>';
-        if ($tot_sgst > 0) $item_rows_html .= '<td class="right">' . number_format($c['sgst_a'], 2) . '</td>';
-        if ($tot_igst > 0) $item_rows_html .= '<td class="right">' . number_format($c['igst_a'], 2) . '</td>';
-    }
+    $item_rows_html .= '<td class="right">' . number_format($c['cgst_a'], 2) . '</td>';
+    $item_rows_html .= '<td class="right">' . number_format($c['sgst_a'], 2) . '</td>';
+    $item_rows_html .= '<td class="right">' . number_format($c['igst_a'], 2) . '</td>';
     $item_rows_html .= '<td class="right">' . number_format($c['amt'], 2) . '</td>';
     $item_rows_html .= '</tr>';
 }
@@ -334,25 +333,26 @@ foreach ($calc as $c) {
     $hsnGroups[$key]['sgst_amt'] += $c['sgst_a'];
     $hsnGroups[$key]['igst_amt'] += $c['igst_a'];
 }
-$bH = 'border:0.5px solid #666;padding:3px 6px;font-size:8.5px;';
+$bH  = 'border:0.5px solid #000;padding:3px 3px;font-size:10px;font-weight:normal;'; // data cells
+$bHh = 'border:0.5px solid #000;padding:4px 3px;font-size:10px;font-weight:bold;';   // header cells
 $hsn_rows = '';
 foreach ($hsnGroups as $row) {
     $tax = $row['cgst_amt'] + $row['sgst_amt'] + $row['igst_amt'];
     $hsn_rows .= '<tr>';
     $hsn_rows .= '<td style="' . $bH . 'text-align:center;">' . h($row['hsn']) . '</td>';
     $hsn_rows .= '<td style="' . $bH . 'text-align:right;">' . number_format($row['taxable'],2) . '</td>';
-    if ($tot_cgst>0) $hsn_rows .= '<td style="' . $bH . 'text-align:center;">' . $row['cgst_p'] . '%</td><td style="' . $bH . 'text-align:right;">' . number_format($row['cgst_amt'],2) . '</td>';
-    if ($tot_sgst>0) $hsn_rows .= '<td style="' . $bH . 'text-align:center;">' . $row['sgst_p'] . '%</td><td style="' . $bH . 'text-align:right;">' . number_format($row['sgst_amt'],2) . '</td>';
-    if ($tot_igst>0) $hsn_rows .= '<td style="' . $bH . 'text-align:center;">' . $row['igst_p'] . '%</td><td style="' . $bH . 'text-align:right;">' . number_format($row['igst_amt'],2) . '</td>';
-    $hsn_rows .= '<td style="' . $bH . 'text-align:right;font-weight:bold;">' . number_format($tax,2) . '</td></tr>';
+    $hsn_rows .= '<td style="' . $bH . 'text-align:center;">' . $row['cgst_p'] . '%</td><td style="' . $bH . 'text-align:right;">' . number_format($row['cgst_amt'],2) . '</td>';
+    $hsn_rows .= '<td style="' . $bH . 'text-align:center;">' . $row['sgst_p'] . '%</td><td style="' . $bH . 'text-align:right;">' . number_format($row['sgst_amt'],2) . '</td>';
+    $hsn_rows .= '<td style="' . $bH . 'text-align:center;">' . $row['igst_p'] . '%</td><td style="' . $bH . 'text-align:right;">' . number_format($row['igst_amt'],2) . '</td>';
+    $hsn_rows .= '<td style="' . $bH . 'text-align:right;">' . number_format($tax,2) . '</td></tr>';
 }
 
 // ── Tax column headers ────────────────────────────────────────────────────────
 $tax_th_new = '';
 if ($has_tax) {
-    if ($tot_cgst > 0) $tax_th_new .= '<th style="width:38px;">CGST (&#8377;)</th>';
-    if ($tot_sgst > 0) $tax_th_new .= '<th style="width:38px;">SGST (&#8377;)</th>';
-    if ($tot_igst > 0) $tax_th_new .= '<th style="width:38px;">IGST (&#8377;)</th>';
+if ($tot_cgst > 0) $tax_th_new .= '<th style="width:34px;">CGST (&#8377;)</th>';
+if ($tot_sgst > 0) $tax_th_new .= '<th style="width:34px;">SGST (&#8377;)</th>';
+if ($tot_igst > 0) $tax_th_new .= '<th style="width:34px;">IGST (&#8377;)</th>';
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -365,34 +365,34 @@ $html = '<!DOCTYPE html>
 <meta charset="UTF-8">
 <style>
 @page {margin: 20px 15px;}
-body { font-family: DejaVu Sans, sans-serif; font-size: 10px; color: #111; }
+body { font-family: DejaVu Sans, sans-serif; font-size: 11px; color: #111; }
 .header-table { width:100%; border-collapse:collapse; margin-bottom:8px; }
 .hdr-table { width:100%; border-collapse:collapse; margin-bottom:6px; }
 .hdr-logo  { width:38%; vertical-align:top; border:none; }
-.hdr-info  { width:62%; text-align:right; vertical-align:top; border:none; font-size:9px; line-height:1.4; }
-.hdr-info .co-name { font-size:16px; font-weight:bold; }
-.po-title { text-align:center; font-size:15px; font-weight:bold; letter-spacing:1px; margin:4px 0; padding:0; }
+.hdr-info  { width:62%; text-align:right; vertical-align:top; border:none; font-size:10px; line-height:1.4; }
+.hdr-info .co-name { font-size:18px; font-weight:bold; }
+.po-title { text-align:center; font-size:18px; font-weight:bold; letter-spacing:1px; margin:8px 0; padding:0; }
 .to-meta { width:100%; border-collapse:collapse; margin-bottom:4px; }
-.to-cell  { vertical-align:top; border:none; width:55%; font-size:9px; line-height:1.6; }
-.meta-cell{ vertical-align:top; border:none; width:45%; text-align:right; font-size:9px; line-height:1.7; }
+.to-cell  { vertical-align:top; border:none; width:55%; font-size:10px; line-height:1.6; }
+.meta-cell{ vertical-align:top; border:none; width:45%; text-align:right; font-size:10px; line-height:1.7; }
 .meta-cell .po-num { font-size:13px; font-weight:bold; }
-.item-table { width:100%; border-collapse:collapse; font-size:8.5px; margin-top:2px; table-layout:fixed; }
-.item-table th { border:0.5px solid #666; padding:4px 3px; background:#f0f0f0; text-align:center; font-weight:bold; overflow:hidden; }
-.item-table td { border:0.5px solid #666; padding:3px 3px; vertical-align:top; word-wrap:break-word; overflow-wrap:break-word; }
-.item-table .desc { text-align:left; width:24%; word-break:break-word; overflow-wrap:anywhere; }
-.item-table .right { text-align:right; }
-.summary-table { width:100%; border-collapse:collapse; font-size:9px; margin-top:4px; }
-.summary-table td { border:0.5px solid #666; padding:4px 8px; vertical-align:top; }
+.item-table { width:100%; border-collapse:collapse; font-size:10px; margin-top:2px; table-layout:auto; }
+.item-table th { border:0.5px solid #000; padding:4px 3px; background:#f0f0f0; text-align:center; font-weight:bold; white-space:nowrap; }
+.item-table td { border:0.5px solid #000; padding:3px 3px; vertical-align:middle; white-space:normal; word-break:break-word; }
+.item-table .desc { text-align:left; white-space:normal; line-height:1.3; }
+.item-table .right { text-align:right; white-space:nowrap; }
+.summary-table { width:100%; border-collapse:collapse; font-size:10px; margin-top:4px; }
+.summary-table td { border:0.5px solid #000; padding:4px 8px; vertical-align:top; }
 .totals-inner { width:100%; border-collapse:collapse; }
-.totals-inner td { border:none; border-bottom:0.5px solid #666; padding:4px 6px; }
-.totals-inner td + td { border-left:0.5px solid #666; }
-.totals-inner tr td:first-child { border-left:0.5px solid #666; }
-.totals-inner tr td:last-child { border-right:0.5px solid #666; }
+.totals-inner td { border:none; border-bottom:0.5px solid #000; padding:4px 6px; }
+.totals-inner td + td { border-left:0.5px solid #000; }
+.totals-inner tr td:first-child { border-left:0.5px solid #000; }
+.totals-inner tr td:last-child { border-right:0.5px solid #000; }
 .totals-inner tr:last-child td { border-bottom:none; }
 .totals-inner .grand-row td { font-weight:bold; background:#f5f5f5; }
-.terms-box { margin-top:2px; border:0.5px solid #666; padding:4px 6px; font-size:8.5px; line-height:1.5; }
-.sig-table { width:100%; border-collapse:collapse; border:0.5px solid #666; font-size:9px; margin-top:2px; }
-.sig-table td { border:0.5px solid #666; padding:8px; }
+.terms-box { margin-top:2px; border:0.5px solid #000; padding:4px 6px; font-size:10px; line-height:1.5; }
+.sig-table { width:100%; border-collapse:collapse; border:0.5px solid #000; font-size:10px; margin-top:2px; }
+.sig-table td { border:0.5px solid #000; padding:8px; }
 </style>
 </head>
 <body>
@@ -436,16 +436,32 @@ body { font-family: DejaVu Sans, sans-serif; font-size: 10px; color: #111; }
 
 <!-- ITEMS TABLE -->
 <table class="item-table">
+<colgroup>
+<col style="width:4%;">
+<col style="width:7%;">
+<col style="width:42%;">
+<col style="width:5%;">
+<col style="width:5%;">
+<col style="width:9%;">
+<col style="width:8%;">
+<col style="width:5%;">
+<col style="width:5%;">
+<col style="width:5%;">
+<col style="width:10%;">
+</colgroup>
 <thead>
 <tr>
-  <th style="width:22px;">No.</th>
-  <th style="width:24%;">Item &amp; Description</th>
-  <th style="width:28px;">Qty</th>
-  <th style="width:26px;">Unit</th>
-  <th style="width:48px;">Rate (&#8377;)</th>
-  <th style="width:52px;">Taxable (&#8377;)</th>
-  ' . $tax_th_new . '
-  <th style="width:52px;">Amount (&#8377;)</th>
+  <th>S.No</th>
+  <th>HSN/SAC</th>
+  <th>Item &amp; Description</th>
+  <th>UOM</th>
+  <th>Qty</th>
+  <th>Unit Price</th>
+  <th>Basic Amount</th>
+  <th>CGST</th>
+  <th>SGST</th>
+  <th>IGST</th>
+  <th>Total</th>
 </tr>
 </thead>
 <tbody>' . $item_rows_html . '
@@ -462,9 +478,9 @@ body { font-family: DejaVu Sans, sans-serif; font-size: 10px; color: #111; }
   <td style="width:48%; padding:0;">
     <table class="totals-inner">
       <tr><td>Total Amount before Tax (&#8377;)</td><td style="text-align:right;">' . number_format($subtotal,2) . '</td></tr>
-      ' . ($tot_cgst>0?'<tr><td>CGST (&#8377;)</td><td style="text-align:right;">' . number_format($tot_cgst,2) . '</td></tr>':'') . '
-      ' . ($tot_sgst>0?'<tr><td>SGST (&#8377;)</td><td style="text-align:right;">' . number_format($tot_sgst,2) . '</td></tr>':'') . '
-      ' . ($tot_igst>0?'<tr><td>IGST (&#8377;)</td><td style="text-align:right;">' . number_format($tot_igst,2) . '</td></tr>':'') . '
+      <tr><td>CGST (&#8377;)</td><td style="text-align:right;">' . number_format($tot_cgst,2) . '</td></tr>
+      <tr><td>SGST (&#8377;)</td><td style="text-align:right;">' . number_format($tot_sgst,2) . '</td></tr>
+      <tr><td>IGST (&#8377;)</td><td style="text-align:right;">' . number_format($tot_igst,2) . '</td></tr>
       <tr class="grand-row"><td><strong>Grand Total (&#8377;)</strong></td><td style="text-align:right;"><strong>' . number_format($grand_total,2) . '</strong></td></tr>
     </table>
   </td>
@@ -499,21 +515,20 @@ $html .= '
 </tr>
 </table>';
 
-// HSN summary (only if tax)
-if ($has_tax) {
+// HSN summary — always shown
 $html .= '
-<table style="width:auto;border-collapse:collapse;font-size:8.5px;margin-top:6px;">
-<thead><tr style="background:#f2f2f2;font-weight:bold;">
-<th style="' . $bH . '">HSN/SAC</th>
-<th style="' . $bH . 'text-align:right;">Taxable (&#8377;)</th>
-' . ($tot_cgst>0?'<th style="' . $bH . '">CGST%</th><th style="' . $bH . 'text-align:right;">CGST (&#8377;)</th>':'') . '
-' . ($tot_sgst>0?'<th style="' . $bH . '">SGST%</th><th style="' . $bH . 'text-align:right;">SGST (&#8377;)</th>':'') . '
-' . ($tot_igst>0?'<th style="' . $bH . '">IGST%</th><th style="' . $bH . 'text-align:right;">IGST (&#8377;)</th>':'') . '
-<th style="' . $bH . 'text-align:right;">Total Tax (&#8377;)</th>
+<style>.hsn-table thead { display: table-row-group !important; }</style>
+<table class="hsn-table" style="width:auto;border-collapse:collapse;border:0.5px solid #000;font-size:10px;font-family:DejaVu Sans,sans-serif;margin-top:6px;">
+<thead><tr style="background:#f0f0f0;font-weight:bold;font-size:10px;">
+<th style="' . $bHh . 'text-align:center;">HSN/SAC</th>
+<th style="' . $bHh . 'text-align:right;">Taxable (&#8377;)</th>
+<th style="' . $bHh . 'text-align:center;">CGST%</th><th style="' . $bHh . 'text-align:right;">CGST (&#8377;)</th>
+<th style="' . $bHh . 'text-align:center;">SGST%</th><th style="' . $bHh . 'text-align:right;">SGST (&#8377;)</th>
+<th style="' . $bHh . 'text-align:center;">IGST%</th><th style="' . $bHh . 'text-align:right;">IGST (&#8377;)</th>
+<th style="' . $bHh . 'text-align:right;">Total Tax (&#8377;)</th>
 </tr></thead>
 <tbody>' . $hsn_rows . '</tbody>
 </table>';
-}
 
 $html .= '</body></html>';
 

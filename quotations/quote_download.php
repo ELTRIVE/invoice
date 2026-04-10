@@ -200,12 +200,12 @@ if (!empty($quot['shipping_details'])) {
 
 // Item rows
 $item_rows_html = '';
-foreach ($calc as $c) {
+foreach ($calc as $idx => $c) {
     $item = $c['item'];
-    $nm   = htmlspecialchars($item['item_name'] ?? '');
-    if (!empty($item['description'])) $nm .= '<br>' . htmlspecialchars($item['description']);
+    $nm   = '<div style="font-weight:600;font-size:9px;">' . htmlspecialchars($item['item_name'] ?? '') . '</div>';
+    if (!empty($item['description'])) $nm .= '<div style="font-size:8px;color:#444;line-height:1.3;">' . htmlspecialchars($item['description']) . '</div>';
     $item_rows_html .= '<tr>
-<td></td>
+<td class="right">' . ($idx + 1) . '</td>
 <td>' . htmlspecialchars($item['hsn_sac'] ?? '') . '</td>
 <td class="desc">' . $nm . '</td>
 <td>' . htmlspecialchars($item['unit'] ?? '') . '</td>
@@ -215,7 +215,6 @@ foreach ($calc as $c) {
 ' . ($hasSGST ? '<td class="right">' . number_format($c['sgst_a'], 2) . '</td>' : '') . '
 ' . ($hasCGST ? '<td class="right">' . number_format($c['cgst_a'], 2) . '</td>' : '') . '
 ' . ($hasIGST ? '<td class="right">' . number_format($c['igst_a'], 2) . '</td>' : '') . '
-<td class="right">0.00</td>
 <td class="right">' . number_format($c['amt'], 2) . '</td>
 </tr>';
 }
@@ -254,11 +253,11 @@ body { font-family: DejaVu Sans, sans-serif; font-size: 10px; }
 .address-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
 .address-table th { border: 0.5px solid #000; padding: 8px; background: #f0f0f0; font-weight: bold; }
 .address-table td { border: 0.5px solid #000; padding: 8px; vertical-align: top; }
-.item-table { width: 100%; border-collapse: collapse; font-size: 8.5px; table-layout: fixed; }
-.item-table th { border: 0.5px solid #000; padding: 3px 2px; background: #f0f0f0; text-align: center; font-weight: bold; word-wrap: break-word; }
-.item-table td { border: 0.5px solid #000; padding: 3px 2px; vertical-align: middle; word-wrap: break-word; }
-.item-table .desc { text-align: left; white-space: pre-line; }
-.item-table .right { text-align: right; }
+.item-table { width: 100%; border-collapse: collapse; font-size: 9px; table-layout: auto; }
+.item-table th { border: 0.5px solid #000; padding: 4px 3px; background: #f0f0f0; text-align: center; font-weight: bold; white-space: nowrap; }
+.item-table td { border: 0.5px solid #000; padding: 3px 3px; vertical-align: middle; white-space: normal; word-break: break-word; }
+.item-table .desc { text-align: left; white-space: normal; line-height: 1.3; }
+.item-table .right { text-align: right; white-space: nowrap; }
 .item-table .footer-row td { background: #f5f5f5; font-weight: bold; }
 </style>
 </head>
@@ -312,17 +311,29 @@ body { font-family: DejaVu Sans, sans-serif; font-size: 10px; }
 </table>
 
 <table class="item-table" style="margin-top:8px;">
+<colgroup>
+<col style="width:4%;">
+<col style="width:7%;">
+<col style="width:42%;">
+<col style="width:5%;">
+<col style="width:5%;">
+<col style="width:9%;">
+<col style="width:8%;">
+' . ($hasSGST ? '<col style="width:5%;">' : '') . '
+' . ($hasCGST ? '<col style="width:5%;">' : '') . '
+' . ($hasIGST ? '<col style="width:5%;">' : '') . '
+<col style="width:10%;">
+</colgroup>
 <thead>
 <tr>
-<th>Service Code</th>
+<th>S.No</th>
 <th>HSN/SAC</th>
-<th>Material Description</th>
+<th>Item Name &amp; Description</th>
 <th>UOM</th>
 <th>Qty</th>
 <th>Unit Price</th>
 <th>Basic Amount</th>
 ' . ($hasSGST ? "<th>SGST</th>" : "") . '' . ($hasCGST ? "<th>CGST</th>" : "") . '' . ($hasIGST ? "<th>IGST</th>" : "") . '
-<th>TCS Value %</th>
 <th>Total</th>
 </tr>
 </thead>
@@ -333,11 +344,10 @@ body { font-family: DejaVu Sans, sans-serif; font-size: 10px; }
 ' . ($hasSGST ? '<td class="right">' . number_format($subtotalSGST, 2) . '</td>' : '') . '
 ' . ($hasCGST ? '<td class="right">' . number_format($subtotalCGST, 2) . '</td>' : '') . '
 ' . ($hasIGST ? '<td class="right">' . number_format($subtotalIGST, 2) . '</td>' : '') . '
-<td></td>
 <td class="right">' . number_format($grandTotal, 2) . '</td>
 </tr>
 <tr class="footer-row">
-<td colspan="' . (8 + ($hasSGST ? 1 : 0) + ($hasCGST ? 1 : 0) + ($hasIGST ? 1 : 0)) . '" style="text-align:center; vertical-align:middle; border:0.5px solid #000; padding:4px;"><strong>Grand Total (in words): ' . htmlspecialchars($amountInWords) . '</strong></td>
+<td colspan="' . (7 + ($hasSGST ? 1 : 0) + ($hasCGST ? 1 : 0) + ($hasIGST ? 1 : 0)) . '" style="text-align:center; vertical-align:middle; border:0.5px solid #000; padding:4px;"><strong>Grand Total (in words): ' . htmlspecialchars($amountInWords) . '</strong></td>
 <td class="right">' . number_format($grandTotal, 2) . '</td>
 </tr>
 </tbody>
@@ -489,4 +499,3 @@ $filename     = "QT_{$customerSlug}_{$quotSlug}_{$dateSlug}_ELTRIVE.pdf";
 $dompdf->stream($filename, ["Attachment" => true]);
 exit;
 ?>
-
